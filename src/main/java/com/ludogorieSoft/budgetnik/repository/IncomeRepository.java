@@ -1,9 +1,11 @@
 package com.ludogorieSoft.budgetnik.repository;
 
+import com.ludogorieSoft.budgetnik.model.Expense;
 import com.ludogorieSoft.budgetnik.model.Income;
 import com.ludogorieSoft.budgetnik.model.User;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,4 +35,7 @@ public interface IncomeRepository extends JpaRepository<Income, UUID> {
     BigDecimal calculateSumOfUserIncomesByType(
             @Param("userId") UUID userId,
             @Param("type") Type type);
+
+    @Query("SELECT i FROM Income i WHERE i.owner = :owner AND i.date >= :startDate AND i.date <= :endDate")
+    List<Income> findIncomesForPeriod(@Param("owner") User owner, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 }

@@ -5,6 +5,7 @@ import com.ludogorieSoft.budgetnik.dto.response.ExpenseResponseDto;
 import com.ludogorieSoft.budgetnik.model.enums.Type;
 import com.ludogorieSoft.budgetnik.service.ExpenseService;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -84,5 +85,13 @@ public class ExpensesController {
       @RequestParam("id") UUID id, @RequestParam("type") Type type) {
     List<ExpenseResponseDto> response = expenseService.getAllExpensesOfUserByType(id, type);
     return new ResponseEntity<>(response, HttpStatus.OK);
+  }
+
+  @GetMapping("/users/period")
+  public ResponseEntity<List<ExpenseResponseDto>> getAllExpensesOfUserForPeriod(
+          @RequestParam("id") UUID id, @RequestParam("startDate")LocalDate startDate, @RequestParam("endDate") LocalDate endDate
+  ) {
+    List<ExpenseResponseDto> response = expenseService.getAllExpensesOfUserForPeriod(id, startDate, endDate);
+    return  new ResponseEntity<>(response, HttpStatus.OK);
   }
 }

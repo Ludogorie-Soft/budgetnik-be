@@ -10,6 +10,7 @@ import com.ludogorieSoft.budgetnik.repository.ExpenseRepository;
 import com.ludogorieSoft.budgetnik.service.ExpenseService;
 import com.ludogorieSoft.budgetnik.service.UserService;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -106,6 +107,14 @@ public class ExpenseServiceImpl implements ExpenseService {
     return expenseRepository.findAllByOwnerAndType(user, type).stream()
         .map(expense -> modelMapper.map(expense, ExpenseResponseDto.class))
         .toList();
+  }
+
+  @Override
+  public List<ExpenseResponseDto> getAllExpensesOfUserForPeriod(UUID userId, LocalDate firstDate, LocalDate lastDate) {
+    User user = userService.findById(userId);
+    return expenseRepository.findExpensesForPeriod(user, firstDate, lastDate).stream()
+            .map(expense -> modelMapper.map(expense, ExpenseResponseDto.class))
+            .toList();
   }
 
   private Expense findById(UUID id) {

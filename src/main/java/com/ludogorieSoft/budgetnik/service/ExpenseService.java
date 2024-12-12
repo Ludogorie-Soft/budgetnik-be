@@ -9,6 +9,7 @@ import com.ludogorieSoft.budgetnik.model.User;
 import com.ludogorieSoft.budgetnik.model.enums.Type;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,4 +23,5 @@ public interface ExpenseService {
     ExpenseResponseDto editExpense(UUID expenseId, ExpenseRequestDto  expenseRequestDto);
     BigDecimal calculateSumOfUserExpensesByType(UUID userId, Type type);
     List<ExpenseResponseDto> getAllExpensesOfUserByType(UUID userId, Type type);
+    List<ExpenseResponseDto> getAllExpensesOfUserForPeriod(UUID userId, LocalDate firstDate, LocalDate lastDate);
 }

@@ -10,6 +10,7 @@ import com.ludogorieSoft.budgetnik.repository.IncomeRepository;
 import com.ludogorieSoft.budgetnik.service.IncomeService;
 import com.ludogorieSoft.budgetnik.service.UserService;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -105,6 +106,15 @@ public class IncomeServiceImpl implements IncomeService {
   public List<IncomeResponseDto> findAllByUserAndType(UUID userId, Type type) {
     User user = userService.findById(userId);
     return incomeRepository.findAllByOwnerAndType(user, type).stream()
+        .map(income -> modelMapper.map(income, IncomeResponseDto.class))
+        .toList();
+  }
+
+  @Override
+  public List<IncomeResponseDto> getAllIncomesOfUserForPeriod(
+      UUID userId, LocalDate firstDate, LocalDate lastDate) {
+    User user = userService.findById(userId);
+    return incomeRepository.findIncomesForPeriod(user, firstDate, lastDate).stream()
         .map(income -> modelMapper.map(income, IncomeResponseDto.class))
         .toList();
   }

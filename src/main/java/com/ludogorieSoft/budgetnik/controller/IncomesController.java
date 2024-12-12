@@ -5,10 +5,9 @@ import com.ludogorieSoft.budgetnik.dto.response.IncomeResponseDto;
 import com.ludogorieSoft.budgetnik.model.enums.Type;
 import com.ludogorieSoft.budgetnik.service.IncomeService;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
-
-import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -84,6 +83,16 @@ public class IncomesController {
   public ResponseEntity<List<IncomeResponseDto>> getAllUserIncomesByType(
       @RequestParam("id") UUID id, @RequestParam("type") Type type) {
     List<IncomeResponseDto> response = incomeService.findAllByUserAndType(id, type);
+    return new ResponseEntity<>(response, HttpStatus.OK);
+  }
+
+  @GetMapping("/users/period")
+  public ResponseEntity<List<IncomeResponseDto>> getAllUserIncomesForPeriod(
+      @RequestParam("id") UUID id,
+      @RequestParam("startDate") LocalDate startDate,
+      @RequestParam("endDate") LocalDate endDate) {
+    List<IncomeResponseDto> response =
+        incomeService.getAllIncomesOfUserForPeriod(id, startDate, endDate);
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 }

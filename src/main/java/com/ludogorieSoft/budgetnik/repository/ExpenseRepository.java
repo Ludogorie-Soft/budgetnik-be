@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,4 +33,8 @@ public interface ExpenseRepository extends JpaRepository<Expense, UUID> {
     BigDecimal calculateSumOfUserExpensesByType(
             @Param("userId") UUID userId,
             @Param("type") Type type);
+
+    @Query("SELECT e FROM Expense e WHERE e.owner = :owner AND e.date >= :startDate AND e.date <= :endDate")
+    List<Expense> findExpensesForPeriod(@Param("owner") User owner, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
 }
