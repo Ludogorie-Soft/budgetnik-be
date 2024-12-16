@@ -1,11 +1,9 @@
 package com.ludogorieSoft.budgetnik.service;
 
 import com.ludogorieSoft.budgetnik.dto.request.IncomeRequestDto;
-import com.ludogorieSoft.budgetnik.dto.response.ExpenseResponseDto;
 import com.ludogorieSoft.budgetnik.dto.response.IncomeResponseDto;
-import com.ludogorieSoft.budgetnik.model.Income;
+import com.ludogorieSoft.budgetnik.model.IncomeCategory;
 import com.ludogorieSoft.budgetnik.model.enums.Type;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;

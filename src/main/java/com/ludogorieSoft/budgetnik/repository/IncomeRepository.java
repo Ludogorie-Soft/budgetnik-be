@@ -2,6 +2,7 @@ package com.ludogorieSoft.budgetnik.repository;
 
 import com.ludogorieSoft.budgetnik.model.Expense;
 import com.ludogorieSoft.budgetnik.model.Income;
+import com.ludogorieSoft.budgetnik.model.IncomeCategory;
 import com.ludogorieSoft.budgetnik.model.User;
 
 import java.math.BigDecimal;
@@ -28,7 +29,7 @@ public interface IncomeRepository extends JpaRepository<Income, UUID> {
             "AND (:category IS NULL OR i.category = :category)")
     BigDecimal calculateTotalSumByUserIdAndCategory(
             @Param("userId") UUID userId,
-            @Param("category") String category);
+            @Param("category") IncomeCategory category);
 
     @Query("SELECT COALESCE(SUM(i.sum), 0) FROM Income i WHERE i.owner.id = :userId " +
             "AND (:type IS NULL OR i.type = :type)")

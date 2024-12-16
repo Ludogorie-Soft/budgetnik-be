@@ -4,9 +4,11 @@ import com.ludogorieSoft.budgetnik.dto.request.IncomeRequestDto;
 import com.ludogorieSoft.budgetnik.dto.response.IncomeResponseDto;
 import com.ludogorieSoft.budgetnik.exception.IncomeNotFoundException;
 import com.ludogorieSoft.budgetnik.model.Income;
+import com.ludogorieSoft.budgetnik.model.IncomeCategory;
 import com.ludogorieSoft.budgetnik.model.User;
 import com.ludogorieSoft.budgetnik.model.enums.Type;
 import com.ludogorieSoft.budgetnik.repository.IncomeRepository;
+import com.ludogorieSoft.budgetnik.service.IncomeCategoryService;
 import com.ludogorieSoft.budgetnik.service.IncomeService;
 import com.ludogorieSoft.budgetnik.service.UserService;
 import java.math.BigDecimal;
@@ -24,6 +26,7 @@ public class IncomeServiceImpl implements IncomeService {
   private final UserService userService;
   private final ModelMapper modelMapper;
   private final IncomeRepository incomeRepository;
+  private final IncomeCategoryService incomeCategoryService;
 
   @Override
   public IncomeResponseDto createIncome(IncomeRequestDto incomeRequestDto) {
@@ -39,7 +42,9 @@ public class IncomeServiceImpl implements IncomeService {
       income.setOneTimeIncome(incomeRequestDto.getOneTimeIncome());
     }
 
-    income.setCategory(incomeRequestDto.getCategory());
+    IncomeCategory incomeCategory =
+        incomeCategoryService.getCategory(incomeRequestDto.getCategory());
+    income.setCategory(incomeCategory);
     income.setDate(incomeRequestDto.getDate());
     income.setSum(incomeRequestDto.getSum());
 
@@ -76,7 +81,8 @@ public class IncomeServiceImpl implements IncomeService {
 
   @Override
   public BigDecimal calculateSumOfAllIncomesOfUserByCategory(UUID userId, String category) {
-    return incomeRepository.calculateTotalSumByUserIdAndCategory(userId, category);
+    IncomeCategory incomeCategory = incomeCategoryService.getCategory(category);
+    return incomeRepository.calculateTotalSumByUserIdAndCategory(userId, incomeCategory);
   }
 
   @Override
@@ -91,6 +97,9 @@ public class IncomeServiceImpl implements IncomeService {
       income.setOneTimeIncome(incomeRequestDto.getOneTimeIncome());
     }
 
+    IncomeCategory incomeCategory =
+        incomeCategoryService.getCategory(incomeRequestDto.getCategory());
+    income.setCategory(incomeCategory);
     income.setDate(incomeRequestDto.getDate());
 
     incomeRepository.save(income);

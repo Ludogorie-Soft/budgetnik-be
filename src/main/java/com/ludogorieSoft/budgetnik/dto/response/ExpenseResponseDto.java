@@ -15,7 +15,7 @@ public class ExpenseResponseDto {
     private Type type;
     private Regularity regularity;
     private LocalDate date;
-    private String category;
+    private CategoryResponseDto expenseCategory;
     private BigDecimal sum;
     private String oneTimeIncome;
 }

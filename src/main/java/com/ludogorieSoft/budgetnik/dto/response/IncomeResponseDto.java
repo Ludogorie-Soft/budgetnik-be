@@ -11,11 +11,11 @@ import lombok.Data;
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class IncomeResponseDto {
-    private UUID id;
-    private Type type;
-    private Regularity regularity;
-    private LocalDate date;
-    private String category;
-    private BigDecimal sum;
-    private String oneTimeIncome;
+  private UUID id;
+  private Type type;
+  private Regularity regularity;
+  private LocalDate date;
+  private CategoryResponseDto incomeCategory;
+  private BigDecimal sum;
+  private String oneTimeIncome;
 }

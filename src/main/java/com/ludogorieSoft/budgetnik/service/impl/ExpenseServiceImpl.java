@@ -4,9 +4,11 @@ import com.ludogorieSoft.budgetnik.dto.request.ExpenseRequestDto;
 import com.ludogorieSoft.budgetnik.dto.response.ExpenseResponseDto;
 import com.ludogorieSoft.budgetnik.exception.ExpenseNotFoundException;
 import com.ludogorieSoft.budgetnik.model.Expense;
+import com.ludogorieSoft.budgetnik.model.ExpenseCategory;
 import com.ludogorieSoft.budgetnik.model.User;
 import com.ludogorieSoft.budgetnik.model.enums.Type;
 import com.ludogorieSoft.budgetnik.repository.ExpenseRepository;
+import com.ludogorieSoft.budgetnik.service.ExpenseCategoryService;
 import com.ludogorieSoft.budgetnik.service.ExpenseService;
 import com.ludogorieSoft.budgetnik.service.UserService;
 import java.math.BigDecimal;
@@ -24,6 +26,7 @@ public class ExpenseServiceImpl implements ExpenseService {
   private final ExpenseRepository expenseRepository;
   private final UserService userService;
   private final ModelMapper modelMapper;
+  private final ExpenseCategoryService expenseCategoryService;
 
   @Override
   public ExpenseResponseDto createExpense(ExpenseRequestDto expenseRequestDto) {
@@ -39,7 +42,9 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     expense.setDate(expenseRequestDto.getDate());
     expense.setSum(expenseRequestDto.getSum());
-    expense.setCategory(expenseRequestDto.getCategory());
+    ExpenseCategory expenseCategory =
+        expenseCategoryService.getCategory(expenseRequestDto.getCategory());
+    expense.setCategory(expenseCategory);
 
     expenseRepository.save(expense);
     return modelMapper.map(expense, ExpenseResponseDto.class);
@@ -74,7 +79,8 @@ public class ExpenseServiceImpl implements ExpenseService {
 
   @Override
   public BigDecimal calculateSumOfAllExpensesOfUserByCategory(UUID userId, String category) {
-    return expenseRepository.calculateTotalSumByUserIdAndCategory(userId, category);
+    ExpenseCategory expenseCategory = expenseCategoryService.getCategory(category);
+    return expenseRepository.calculateTotalSumByUserIdAndCategory(userId, expenseCategory);
   }
 
   @Override
@@ -89,8 +95,9 @@ public class ExpenseServiceImpl implements ExpenseService {
     } else {
       expense.setOneTimeExpense(expenseRequestDto.getOneTimeExpense());
     }
-
-    expense.setCategory(expenseRequestDto.getCategory());
+    ExpenseCategory expenseCategory =
+        expenseCategoryService.getCategory(expenseRequestDto.getCategory());
+    expense.setCategory(expenseCategory);
     expense.setDate(expenseRequestDto.getDate());
     expenseRepository.save(expense);
     return modelMapper.map(expense, ExpenseResponseDto.class);
@@ -110,11 +117,12 @@ public class ExpenseServiceImpl implements ExpenseService {
   }
 
   @Override
-  public List<ExpenseResponseDto> getAllExpensesOfUserForPeriod(UUID userId, LocalDate firstDate, LocalDate lastDate) {
+  public List<ExpenseResponseDto> getAllExpensesOfUserForPeriod(
+      UUID userId, LocalDate firstDate, LocalDate lastDate) {
     User user = userService.findById(userId);
     return expenseRepository.findExpensesForPeriod(user, firstDate, lastDate).stream()
-            .map(expense -> modelMapper.map(expense, ExpenseResponseDto.class))
-            .toList();
+        .map(expense -> modelMapper.map(expense, ExpenseResponseDto.class))
+        .toList();
   }
 
   private Expense findById(UUID id) {
