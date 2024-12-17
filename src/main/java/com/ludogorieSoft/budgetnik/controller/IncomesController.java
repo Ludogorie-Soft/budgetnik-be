@@ -106,4 +106,15 @@ public class IncomesController {
         incomeService.getSumOfAllIncomesOfUserForPeriodByCategory(id, category, startDate, endDate);
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
+
+  @GetMapping("/users/type/period")
+  public ResponseEntity<BigDecimal> calculateSumOfUserIncomesByTypeAndPeriod(
+      @RequestParam("id") UUID id,
+      @RequestParam("type") Type type,
+      @RequestParam("startDate") LocalDate startDate,
+      @RequestParam("endDate") LocalDate endDate) {
+    BigDecimal response =
+        incomeService.calculateSumOfUserIncomesByTypeAndPeriod(id, type, startDate, endDate);
+    return new ResponseEntity<>(response, HttpStatus.OK);
+  }
 }

@@ -130,8 +130,15 @@ public class ExpenseServiceImpl implements ExpenseService {
       UUID id, String category, LocalDate firstDate, LocalDate lastDate) {
     User user = userService.findById(id);
     ExpenseCategory expenseCategory = expenseCategoryService.getCategory(category);
-    return expenseRepository
-        .calculateSumOfExpensesByCategory(user, expenseCategory, firstDate, lastDate);
+    return expenseRepository.calculateSumOfExpensesByCategory(
+        user, expenseCategory, firstDate, lastDate);
+  }
+
+  @Override
+  public BigDecimal calculateSumOfUserExpensesByTypeAndPeriod(
+      UUID userId, Type type, LocalDate startDate, LocalDate endDate) {
+    return expenseRepository.calculateSumOfUserExpensesByTypeAndPeriod(
+        userId, type, startDate, endDate);
   }
 
   private Expense findById(UUID id) {

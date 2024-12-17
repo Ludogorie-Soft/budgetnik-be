@@ -37,6 +37,15 @@ public interface IncomeRepository extends JpaRepository<Income, UUID> {
       @Param("userId") UUID userId, @Param("type") Type type);
 
   @Query(
+      "SELECT COALESCE(SUM(i.sum), 0) FROM Income i WHERE i.owner.id = :userId "
+          + "AND (:type IS NULL OR i.type = :type) AND i.date >= :startDate AND i.date <= :endDate")
+  BigDecimal calculateSumOfUserIncomesByTypeAndPeriod(
+      @Param("userId") UUID userId,
+      @Param("type") Type type,
+      @Param("startDate") LocalDate startDate,
+      @Param("endDate") LocalDate endDate);
+
+  @Query(
       "SELECT i FROM Income i WHERE i.owner = :owner AND i.date >= :startDate AND i.date <= :endDate")
   List<Income> findIncomesForPeriod(
       @Param("owner") User owner,
@@ -44,9 +53,11 @@ public interface IncomeRepository extends JpaRepository<Income, UUID> {
       @Param("endDate") LocalDate endDate);
 
   @Query(
-          "SELECT COALESCE(SUM(i.sum), 0) FROM Income i WHERE i.owner = :user "
-                  + "AND (:category IS NULL OR i.category = :category) AND i.date >= :startDate AND i.date <= :endDate")
+      "SELECT COALESCE(SUM(i.sum), 0) FROM Income i WHERE i.owner = :user "
+          + "AND (:category IS NULL OR i.category = :category) AND i.date >= :startDate AND i.date <= :endDate")
   BigDecimal calculateSumOfIncomesByCategory(
-          @Param("user") User user, @Param("category") IncomeCategory category, @Param("startDate") LocalDate startDate,
-          @Param("endDate") LocalDate endDate);
+      @Param("user") User user,
+      @Param("category") IncomeCategory category,
+      @Param("startDate") LocalDate startDate,
+      @Param("endDate") LocalDate endDate);
 }

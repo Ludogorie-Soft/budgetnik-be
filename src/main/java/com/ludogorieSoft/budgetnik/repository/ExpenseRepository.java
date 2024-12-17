@@ -2,7 +2,6 @@ package com.ludogorieSoft.budgetnik.repository;
 
 import com.ludogorieSoft.budgetnik.model.Expense;
 import com.ludogorieSoft.budgetnik.model.ExpenseCategory;
-import com.ludogorieSoft.budgetnik.model.IncomeCategory;
 import com.ludogorieSoft.budgetnik.model.User;
 import com.ludogorieSoft.budgetnik.model.enums.Type;
 import java.math.BigDecimal;
@@ -38,6 +37,15 @@ public interface ExpenseRepository extends JpaRepository<Expense, UUID> {
       @Param("userId") UUID userId, @Param("type") Type type);
 
   @Query(
+      "SELECT COALESCE(SUM(e.sum), 0) FROM Expense e WHERE e.owner.id = :userId "
+          + "AND (:type IS NULL OR e.type = :type) AND e.date >= :startDate AND e.date <= :endDate")
+  BigDecimal calculateSumOfUserExpensesByTypeAndPeriod(
+      @Param("userId") UUID userId,
+      @Param("type") Type type,
+      @Param("startDate") LocalDate startDate,
+      @Param("endDate") LocalDate endDate);
+
+  @Query(
       "SELECT e FROM Expense e WHERE e.owner = :owner AND e.date >= :startDate AND e.date <= :endDate")
   List<Expense> findExpensesForPeriod(
       @Param("owner") User owner,
@@ -45,9 +53,11 @@ public interface ExpenseRepository extends JpaRepository<Expense, UUID> {
       @Param("endDate") LocalDate endDate);
 
   @Query(
-          "SELECT COALESCE(SUM(e.sum), 0) FROM Expense e WHERE e.owner = :user "
-                  + "AND (:category IS NULL OR e.category = :category) AND e.date >= :startDate AND e.date <= :endDate")
+      "SELECT COALESCE(SUM(e.sum), 0) FROM Expense e WHERE e.owner = :user "
+          + "AND (:category IS NULL OR e.category = :category) AND e.date >= :startDate AND e.date <= :endDate")
   BigDecimal calculateSumOfExpensesByCategory(
-          @Param("user") User user, @Param("category") ExpenseCategory category, @Param("startDate") LocalDate startDate,
-          @Param("endDate") LocalDate endDate);
+      @Param("user") User user,
+      @Param("category") ExpenseCategory category,
+      @Param("startDate") LocalDate startDate,
+      @Param("endDate") LocalDate endDate);
 }

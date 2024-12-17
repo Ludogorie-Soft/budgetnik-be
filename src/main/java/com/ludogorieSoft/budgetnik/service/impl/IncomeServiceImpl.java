@@ -137,6 +137,13 @@ public class IncomeServiceImpl implements IncomeService {
         user, incomeCategory, firstDate, lastDate);
   }
 
+  @Override
+  public BigDecimal calculateSumOfUserIncomesByTypeAndPeriod(
+      UUID userId, Type type, LocalDate startDate, LocalDate endDate) {
+    return incomeRepository.calculateSumOfUserIncomesByTypeAndPeriod(
+        userId, type, startDate, endDate);
+  }
+
   private Income findById(UUID id) {
     return incomeRepository.findById(id).orElseThrow(IncomeNotFoundException::new);
   }

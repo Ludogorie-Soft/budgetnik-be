@@ -32,4 +32,7 @@ public interface IncomeService {
 
   BigDecimal getSumOfAllIncomesOfUserForPeriodByCategory(
       UUID id, String category, LocalDate firstDate, LocalDate lastDate);
+
+  BigDecimal calculateSumOfUserIncomesByTypeAndPeriod(
+      UUID userId, Type type, LocalDate startDate, LocalDate endDate);
 }

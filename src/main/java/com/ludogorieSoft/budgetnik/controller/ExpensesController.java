@@ -108,4 +108,15 @@ public class ExpensesController {
             id, category, startDate, endDate);
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
+
+  @GetMapping("/users/type/period")
+  public ResponseEntity<BigDecimal> calculateSumOfUserExpensesByTypeAndPeriod(
+      @RequestParam("id") UUID id,
+      @RequestParam("type") Type type,
+      @RequestParam("startDate") LocalDate startDate,
+      @RequestParam("endDate") LocalDate endDate) {
+    BigDecimal response =
+        expenseService.calculateSumOfUserExpensesByTypeAndPeriod(id, type, startDate, endDate);
+    return new ResponseEntity<>(response, HttpStatus.OK);
+  }
 }
