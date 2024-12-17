@@ -95,4 +95,15 @@ public class IncomesController {
         incomeService.getAllIncomesOfUserForPeriod(id, startDate, endDate);
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
+
+  @GetMapping("/users/category/period")
+  public ResponseEntity<BigDecimal> getAllUserIncomesForPeriodByCategory(
+      @RequestParam("id") UUID id,
+      @RequestParam("category") String category,
+      @RequestParam("startDate") LocalDate startDate,
+      @RequestParam("endDate") LocalDate endDate) {
+    BigDecimal response =
+        incomeService.getSumOfAllIncomesOfUserForPeriodByCategory(id, category, startDate, endDate);
+    return new ResponseEntity<>(response, HttpStatus.OK);
+  }
 }

@@ -125,6 +125,15 @@ public class ExpenseServiceImpl implements ExpenseService {
         .toList();
   }
 
+  @Override
+  public BigDecimal getSumOfAllExpensesOfUserForPeriodByCategory(
+      UUID id, String category, LocalDate firstDate, LocalDate lastDate) {
+    User user = userService.findById(id);
+    ExpenseCategory expenseCategory = expenseCategoryService.getCategory(category);
+    return expenseRepository
+        .calculateSumOfExpensesByCategory(user, expenseCategory, firstDate, lastDate);
+  }
+
   private Expense findById(UUID id) {
     return expenseRepository.findById(id).orElseThrow(ExpenseNotFoundException::new);
   }

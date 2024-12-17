@@ -89,9 +89,23 @@ public class ExpensesController {
 
   @GetMapping("/users/period")
   public ResponseEntity<List<ExpenseResponseDto>> getAllExpensesOfUserForPeriod(
-          @RequestParam("id") UUID id, @RequestParam("startDate")LocalDate startDate, @RequestParam("endDate") LocalDate endDate
-  ) {
-    List<ExpenseResponseDto> response = expenseService.getAllExpensesOfUserForPeriod(id, startDate, endDate);
-    return  new ResponseEntity<>(response, HttpStatus.OK);
+      @RequestParam("id") UUID id,
+      @RequestParam("startDate") LocalDate startDate,
+      @RequestParam("endDate") LocalDate endDate) {
+    List<ExpenseResponseDto> response =
+        expenseService.getAllExpensesOfUserForPeriod(id, startDate, endDate);
+    return new ResponseEntity<>(response, HttpStatus.OK);
+  }
+
+  @GetMapping("/users/category/period")
+  public ResponseEntity<BigDecimal> getAllExpensesOfUserForPeriodByCategory(
+      @RequestParam("id") UUID id,
+      @RequestParam("category") String category,
+      @RequestParam("startDate") LocalDate startDate,
+      @RequestParam("endDate") LocalDate endDate) {
+    BigDecimal response =
+        expenseService.getSumOfAllExpensesOfUserForPeriodByCategory(
+            id, category, startDate, endDate);
+    return new ResponseEntity<>(response, HttpStatus.OK);
   }
 }

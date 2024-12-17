@@ -128,6 +128,15 @@ public class IncomeServiceImpl implements IncomeService {
         .toList();
   }
 
+  @Override
+  public BigDecimal getSumOfAllIncomesOfUserForPeriodByCategory(
+      UUID id, String category, LocalDate firstDate, LocalDate lastDate) {
+    User user = userService.findById(id);
+    IncomeCategory incomeCategory = incomeCategoryService.getCategory(category);
+    return incomeRepository.calculateSumOfIncomesByCategory(
+        user, incomeCategory, firstDate, lastDate);
+  }
+
   private Income findById(UUID id) {
     return incomeRepository.findById(id).orElseThrow(IncomeNotFoundException::new);
   }
