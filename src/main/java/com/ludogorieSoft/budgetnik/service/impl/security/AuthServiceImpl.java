@@ -11,6 +11,7 @@ import com.ludogorieSoft.budgetnik.exception.UserLoginException;
 import com.ludogorieSoft.budgetnik.model.Token;
 import com.ludogorieSoft.budgetnik.model.User;
 import com.ludogorieSoft.budgetnik.model.VerificationToken;
+import com.ludogorieSoft.budgetnik.model.enums.TokenType;
 import com.ludogorieSoft.budgetnik.repository.UserRepository;
 import com.ludogorieSoft.budgetnik.repository.VerificationTokenRepository;
 import com.ludogorieSoft.budgetnik.service.AuthService;
@@ -27,7 +28,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -58,7 +58,7 @@ public class AuthServiceImpl implements AuthService {
 
     List<VerificationToken> verificationTokens =
         verificationTokenRepository.findByUserId(user.getId());
-    if (!verificationTokens.isEmpty()) {
+    if (!verificationTokens.isEmpty() && !user.isActivated()) {
       throw new ActivateUserException();
     }
 
@@ -76,11 +76,12 @@ public class AuthServiceImpl implements AuthService {
   }
 
   @Override
-  public AuthResponse getUserByJwt(String jwtToken) {
-    if (jwtToken == null || jwtToken.isEmpty()) {
+  public AuthResponse getUserByJwt(String token) {
+
+    if (token == null || token.isEmpty()) {
       throw new InvalidTokenException();
     }
-
+    String jwtToken = token.substring(7);
     Token accessToken = tokenService.findByToken(jwtToken);
 
     if (accessToken == null) {
@@ -102,9 +103,68 @@ public class AuthServiceImpl implements AuthService {
       throw new InvalidTokenException();
     }
 
+    List<Token> tokens = tokenService.findByUser(user);
+    Token refreshToken = tokens.stream().filter(x -> x.getTokenType() == TokenType.REFRESH).toList().get(0);
+
+    String refreshTokenString;
+
+    if (!jwtService.isTokenValid(refreshToken.getToken(), user)) {
+      refreshTokenString = jwtService.generateRefreshToken(user);
+      tokenService.saveToken(user, refreshTokenString, TokenType.REFRESH);
+    } else {
+      refreshTokenString = refreshToken.getToken();
+    }
+
     UserResponse userResponse = modelMapper.map(accessToken.getUser(), UserResponse.class);
 
-    return AuthResponse.builder().token(accessToken.getToken()).user(userResponse).build();
+    return AuthResponse.builder()
+            .token(accessToken.getToken())
+            .refreshToken(refreshTokenString)
+            .user(userResponse)
+            .build();
+  }
+
+  @Override
+  public AuthResponse refreshToken(String refreshToken) {
+    if (refreshToken == null || refreshToken.isEmpty()) {
+      throw new InvalidTokenException();
+    }
+
+    String userEmail;
+
+    try {
+      userEmail = jwtService.extractUsername(refreshToken);
+    } catch (JwtException exception) {
+      throw new InvalidTokenException();
+    }
+
+    if (userEmail == null) {
+      throw new InvalidTokenException();
+    }
+
+    Token token = tokenService.findByToken(refreshToken);
+    if (token != null && token.tokenType != TokenType.REFRESH) {
+      throw new InvalidTokenException();
+    }
+
+    User user = userService.findByEmail(userEmail);
+
+    if (!jwtService.isTokenValid(refreshToken, user)) {
+      tokenService.revokeToken(token);
+      throw new InvalidTokenException();
+    }
+
+    String accessToken = jwtService.generateToken(user);
+
+    tokenService.revokeAllUserTokens(user);
+    tokenService.saveToken(user, accessToken, TokenType.ACCESS);
+    tokenService.saveToken(user, refreshToken, TokenType.REFRESH);
+
+    return AuthResponse
+            .builder()
+            .token(accessToken)
+            .refreshToken(refreshToken)
+            .build();
   }
 
   @Override

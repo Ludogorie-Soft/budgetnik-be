@@ -16,6 +16,7 @@ import lombok.Setter;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AuthResponse {
     private String token;
+    private String refreshToken;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private UserResponse user;

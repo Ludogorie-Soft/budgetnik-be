@@ -1,6 +1,7 @@
 package com.ludogorieSoft.budgetnik.controller;
 
 import com.ludogorieSoft.budgetnik.dto.request.LoginRequest;
+import com.ludogorieSoft.budgetnik.dto.request.RefreshTokenDto;
 import com.ludogorieSoft.budgetnik.dto.request.RegisterRequest;
 import com.ludogorieSoft.budgetnik.dto.response.AuthResponse;
 import com.ludogorieSoft.budgetnik.event.OnConfirmRegistrationEvent;
@@ -60,6 +61,14 @@ public class AuthController {
   public ResponseEntity<AuthResponse> getCurrentUser(@RequestHeader("Authorization") String token) {
     AuthResponse authResponse = authService.getUserByJwt(token);
     return ResponseEntity.ok(authResponse);
+  }
+
+  @PostMapping("/refresh-token")
+  public ResponseEntity<AuthResponse> refreshToken(@RequestBody RefreshTokenDto refreshToken) {
+    AuthResponse authenticationResponse =
+        authService.refreshToken(refreshToken.getRefreshToken());
+    System.out.println("Refresh token!");
+    return ResponseEntity.ok(authenticationResponse);
   }
 
   @PostMapping("/forgot-password")

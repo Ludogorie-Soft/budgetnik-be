@@ -8,11 +8,7 @@ import com.ludogorieSoft.budgetnik.model.enums.TokenType;
 import com.ludogorieSoft.budgetnik.repository.TokenRepository;
 import com.ludogorieSoft.budgetnik.service.JwtService;
 import com.ludogorieSoft.budgetnik.service.TokenService;
-import jakarta.servlet.http.Cookie;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,9 +33,12 @@ public class TokenServiceImpl implements TokenService {
   @Override
   public AuthResponse generateAuthResponse(User user) {
     String jwtToken = jwtService.generateToken(user);
+    String refreshToken = jwtService.generateRefreshToken(user);
     saveToken(user, jwtToken, TokenType.ACCESS);
+    saveToken(user, refreshToken, TokenType.REFRESH);
     return AuthResponse.builder()
         .token(jwtToken)
+        .refreshToken(refreshToken)
         .user(modelMapper.map(user, UserResponse.class))
         .build();
   }
