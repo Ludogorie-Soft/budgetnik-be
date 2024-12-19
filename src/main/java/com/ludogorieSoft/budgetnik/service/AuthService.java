@@ -7,6 +7,7 @@ import com.ludogorieSoft.budgetnik.dto.response.UserResponse;
 import jakarta.servlet.http.Cookie;
 import org.springframework.http.ResponseEntity;
 
+import java.io.IOException;
 import java.util.function.Consumer;
 
 public interface AuthService {
@@ -15,6 +16,8 @@ public interface AuthService {
   AuthResponse login(LoginRequest loginRequest);
 
   AuthResponse getUserByJwt(String jwtToken);
+
+  AuthResponse refreshToken(String refreshToken);
 
   ResponseEntity<String> resetPassword(String token);
 
