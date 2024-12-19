@@ -5,7 +5,6 @@ import com.ludogorieSoft.budgetnik.config.jwt.JwtAuthenticationEntryPoint;
 import com.ludogorieSoft.budgetnik.config.jwt.JwtAuthenticationFilter;
 import com.ludogorieSoft.budgetnik.model.enums.Role;
 import java.util.Collections;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -21,6 +20,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -68,14 +68,15 @@ public class SecurityConfig {
   }
 
   private CorsConfigurationSource configurationSource() {
-    return request -> {
-      CorsConfiguration corsConfiguration = new CorsConfiguration();
-      corsConfiguration.setAllowedOrigins(Collections.singletonList("*"));
-      corsConfiguration.setAllowedMethods(Collections.singletonList("*"));
-      corsConfiguration.setAllowCredentials(true);
-      corsConfiguration.setAllowedHeaders(Collections.singletonList("*"));
-      corsConfiguration.setMaxAge(3600L);
-      return corsConfiguration;
-    };
+    CorsConfiguration corsConfiguration = new CorsConfiguration();
+    corsConfiguration.setAllowedOrigins(Collections.singletonList("*"));
+    corsConfiguration.setAllowedMethods(Collections.singletonList("*"));
+    corsConfiguration.setAllowCredentials(true); // Allow credentials
+    corsConfiguration.setAllowedHeaders(Collections.singletonList("*"));
+    corsConfiguration.setMaxAge(3600L);
+
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", corsConfiguration);
+    return source;
   }
 }
