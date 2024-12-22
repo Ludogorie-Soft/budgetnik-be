@@ -110,7 +110,7 @@ class IncomesControllerIntegrationTest {
         // THEN
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(incomeRequestDto.getCategory(), response.getBody().getCategory());
+        assertEquals(incomeRequestDto.getCategory(), response.getBody().getIncomeCategory());
         assertEquals(incomeRequestDto.getType(), response.getBody().getType());
     }
 
@@ -158,7 +158,7 @@ class IncomesControllerIntegrationTest {
         assertNotNull(createdIncome.getBody());
 
         IncomeRequestDto editRequest = incomeRequestDto;
-        editRequest.setSum(BigDecimal.TWO);
+        editRequest.setSum(BigDecimal.valueOf(2));
         editRequest.setRegularity(Regularity.DAILY);
 
         // WHEN
@@ -192,7 +192,7 @@ class IncomesControllerIntegrationTest {
         // THEN
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(createdIncome.getBody().getCategory(), response.getBody().getCategory());
+        assertEquals(createdIncome.getBody().getIncomeCategory(), response.getBody().getIncomeCategory());
     }
 
     @Test
@@ -226,7 +226,7 @@ class IncomesControllerIntegrationTest {
                                 + "/users/category/sum?id="
                                 + incomeRequestDto.getOwnerId()
                                 + "&category="
-                                + income1.getBody().getCategory(),
+                                + income1.getBody().getIncomeCategory(),
                         HttpMethod.GET,
                         new HttpEntity<>(null, headers),
                         BigDecimal.class);

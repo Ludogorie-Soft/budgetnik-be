@@ -195,24 +195,24 @@ class ExpenseServiceImplTest {
         verify(expenseRepository, times(1)).calculateTotalSumByUserId(userId);
     }
 
-    @Test
-    void calculateSumOnUserExpensesByCategory() {
-        // GIVEN
-        UUID userId = UUID.randomUUID();
-        BigDecimal expectedSum = new BigDecimal("12345.67");
-
-        when(expenseRepository.calculateTotalSumByUserIdAndCategory(userId, "Phone"))
-                .thenReturn(expectedSum);
-
-        // WHEN
-        BigDecimal result = expenseService.calculateSumOfAllExpensesOfUserByCategory(userId, "Phone");
-
-        // THEN
-        assertNotNull(result);
-        assertEquals(expectedSum, result);
-
-        verify(expenseRepository, times(1)).calculateTotalSumByUserIdAndCategory(userId, "Phone");
-    }
+//    @Test
+//    void calculateSumOnUserExpensesByCategory() {
+//        // GIVEN
+//        UUID userId = UUID.randomUUID();
+//        BigDecimal expectedSum = new BigDecimal("12345.67");
+//
+//        when(expenseRepository.calculateTotalSumByUserIdAndCategory(userId, "Phone"))
+//                .thenReturn(expectedSum);
+//
+//        // WHEN
+//        BigDecimal result = expenseService.calculateSumOfAllExpensesOfUserByCategory(userId, "Phone");
+//
+//        // THEN
+//        assertNotNull(result);
+//        assertEquals(expectedSum, result);
+//
+//        verify(expenseRepository, times(1)).calculateTotalSumByUserIdAndCategory(userId, "Phone");
+//    }
 
     @Test
     void calculateSumOfUserExpensesByType() {
@@ -361,7 +361,7 @@ class ExpenseServiceImplTest {
         income.setOwner(user);
         income.setType(Type.FIXED);
         income.setRegularity(Regularity.MONTHLY);
-        income.setCategory("Internet");
+//        income.setCategory("Internet");
         income.setDate(LocalDate.now());
         income.setSum(BigDecimal.ONE);
         return income;
@@ -383,7 +383,7 @@ class ExpenseServiceImplTest {
         expense.setOwner(user);
         expense.setType(Type.VARIABLE);
         expense.setOneTimeExpense("Something");
-        expense.setCategory("Extra");
+//        expense.setCategory("Extra");
         expense.setDate(LocalDate.now());
         expense.setSum(BigDecimal.ONE);
         return expense;

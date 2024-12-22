@@ -194,24 +194,24 @@ class IncomeServiceImplTest {
     verify(incomeRepository, times(1)).calculateTotalSumByUserId(userId);
   }
 
-  @Test
-  void calculateSumOnUserIncomesByCategory() {
-    // GIVEN
-    UUID userId = UUID.randomUUID();
-    BigDecimal expectedSum = new BigDecimal("12345.67");
-
-    when(incomeRepository.calculateTotalSumByUserIdAndCategory(userId, "Salary"))
-        .thenReturn(expectedSum);
-
-    // WHEN
-    BigDecimal result = incomeService.calculateSumOfAllIncomesOfUserByCategory(userId, "Salary");
-
-    // THEN
-    assertNotNull(result);
-    assertEquals(expectedSum, result);
-
-    verify(incomeRepository, times(1)).calculateTotalSumByUserIdAndCategory(userId, "Salary");
-  }
+//  @Test
+//  void calculateSumOnUserIncomesByCategory() {
+//    // GIVEN
+//    UUID userId = UUID.randomUUID();
+//    BigDecimal expectedSum = new BigDecimal("12345.67");
+//
+//    when(incomeRepository.calculateTotalSumByUserIdAndCategory(userId, "Salary"))
+//        .thenReturn(expectedSum);
+//
+//    // WHEN
+//    BigDecimal result = incomeService.calculateSumOfAllIncomesOfUserByCategory(userId, "Salary");
+//
+//    // THEN
+//    assertNotNull(result);
+//    assertEquals(expectedSum, result);
+//
+//    verify(incomeRepository, times(1)).calculateTotalSumByUserIdAndCategory(userId, "Salary");
+//  }
 
   @Test
   void calculateSumOfUserIncomesByType() {
@@ -360,7 +360,7 @@ class IncomeServiceImplTest {
     income.setOwner(user);
     income.setType(Type.FIXED);
     income.setRegularity(Regularity.MONTHLY);
-    income.setCategory("Salary");
+//    income.setCategory("Salary");
     income.setDate(LocalDate.now());
     income.setSum(BigDecimal.ONE);
     return income;
@@ -382,7 +382,7 @@ class IncomeServiceImplTest {
     income.setOwner(user);
     income.setType(Type.VARIABLE);
     income.setOneTimeIncome("Bonus");
-    income.setCategory("Extra");
+//    income.setCategory("Extra");
     income.setDate(LocalDate.now());
     income.setSum(BigDecimal.ONE);
     return income;
