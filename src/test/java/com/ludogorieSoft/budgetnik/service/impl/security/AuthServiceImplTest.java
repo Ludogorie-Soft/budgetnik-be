@@ -2,6 +2,7 @@ package com.ludogorieSoft.budgetnik.service.impl.security;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -19,6 +20,7 @@ import com.ludogorieSoft.budgetnik.exception.UserLoginException;
 import com.ludogorieSoft.budgetnik.model.Token;
 import com.ludogorieSoft.budgetnik.model.User;
 import com.ludogorieSoft.budgetnik.model.VerificationToken;
+import com.ludogorieSoft.budgetnik.model.enums.TokenType;
 import com.ludogorieSoft.budgetnik.repository.UserRepository;
 import com.ludogorieSoft.budgetnik.repository.VerificationTokenRepository;
 import com.ludogorieSoft.budgetnik.service.AuthService;
@@ -29,6 +31,7 @@ import io.jsonwebtoken.JwtException;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
@@ -39,7 +42,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -181,21 +183,37 @@ class AuthServiceImplTest {
   @Test
   void testGetUserByJwt_ValidToken() {
     // GIVEN
-    String validToken = "mock-jwt-token";
-    when(tokenService.findByToken(validToken)).thenReturn(token);
-    when(jwtService.isTokenValid(validToken, user)).thenReturn(true);
-    when(modelMapper.map(user, UserResponse.class)).thenReturn(userResponse);
+    String bearerToken = "Bearer mock-jwt-token";
+    String strippedToken = "mock-jwt-token";
+    Token accessToken = mock(Token.class);
+    Token refreshToken = mock(Token.class);
+    User currentUser = mock(User.class);
+    UserResponse currentUserResponse = mock(UserResponse.class);
+    List<Token> tokens = new ArrayList<>();
+
+    when(refreshToken.getTokenType()).thenReturn(TokenType.REFRESH);
+    when(refreshToken.getToken()).thenReturn("refresh-token");
+    tokens.add(refreshToken);
+
+    when(tokenService.findByToken(strippedToken)).thenReturn(accessToken);
+    when(accessToken.getToken()).thenReturn(strippedToken);
+    when(accessToken.getUser()).thenReturn(currentUser);
+    when(jwtService.isTokenValid(strippedToken, currentUser)).thenReturn(true);
+    when(modelMapper.map(currentUser, UserResponse.class)).thenReturn(currentUserResponse);
+    when(tokenService.findByUser(currentUser)).thenReturn(tokens);
 
     // WHEN
-    AuthResponse response = authenticationService.getUserByJwt(validToken);
+    AuthResponse response = authenticationService.getUserByJwt(bearerToken);
 
     // THEN
     assertNotNull(response);
-    assertEquals(validToken, response.getToken());
-    assertEquals(userResponse, response.getUser());
-    verify(tokenService, times(1)).findByToken(validToken);
-    verify(jwtService, times(1)).isTokenValid(validToken, user);
-    verify(modelMapper, times(1)).map(user, UserResponse.class);
+    assertEquals(strippedToken, response.getToken());
+    assertEquals(currentUserResponse, response.getUser());
+
+    verify(tokenService, times(1)).findByToken(strippedToken);
+    verify(jwtService, times(1)).isTokenValid(strippedToken, currentUser);
+    verify(modelMapper, times(1)).map(currentUser, UserResponse.class);
+    verify(tokenService, times(1)).findByUser(currentUser);
   }
 
   @Test
@@ -221,42 +239,54 @@ class AuthServiceImplTest {
   @Test
   void testGetUserByJwt_TokenNotFound() {
     // GIVEN
-    String invalidToken = "invalid-jwt-token";
-    when(tokenService.findByToken(invalidToken)).thenReturn(null);
+    String invalidToken = "Bearer invalid-jwt-token";
+    when(tokenService.findByToken("invalid-jwt-token")).thenReturn(null);
 
     // WHEN & THEN
     assertThrows(
-        InvalidTokenException.class, () -> authenticationService.getUserByJwt(invalidToken));
-    verify(tokenService, times(1)).findByToken(invalidToken);
+            InvalidTokenException.class, () -> authenticationService.getUserByJwt(invalidToken));
+    verify(tokenService, times(1)).findByToken("invalid-jwt-token");
     verifyNoInteractions(jwtService, modelMapper);
   }
 
   @Test
   void testGetUserByJwt_TokenInvalid() {
     // GIVEN
-    String validToken = "mock-jwt-token";
-    when(tokenService.findByToken(validToken)).thenReturn(token);
-    when(jwtService.isTokenValid(validToken, user)).thenReturn(false);
+    String validToken = "Bearer mock-jwt-token";
+    Token jwt = mock(Token.class);
+    User currentUser = mock(User.class);
+
+    when(tokenService.findByToken("mock-jwt-token")).thenReturn(jwt);
+    when(jwt.getToken()).thenReturn("mock-jwt-token");
+    when(jwt.getUser()).thenReturn(currentUser);
+    when(jwtService.isTokenValid("mock-jwt-token", currentUser)).thenReturn(false);
 
     // WHEN & THEN
     assertThrows(InvalidTokenException.class, () -> authenticationService.getUserByJwt(validToken));
-    verify(tokenService, times(1)).findByToken(validToken);
-    verify(jwtService, times(1)).isTokenValid(validToken, user);
-    verify(tokenService, times(1)).revokeAllUserTokens(user);
+
+    verify(tokenService).findByToken("mock-jwt-token");
+    verify(jwtService).isTokenValid("mock-jwt-token", currentUser);
+    verify(tokenService).revokeAllUserTokens(currentUser);
   }
 
   @Test
   void testGetUserByJwt_TokenValidationThrowsException() {
     // GIVEN
-    String validToken = "mock-jwt-token";
-    when(tokenService.findByToken(validToken)).thenReturn(token);
-    when(jwtService.isTokenValid(validToken, user)).thenThrow(new JwtException("Invalid JWT"));
+    String validToken = "Bearer mock-jwt-token";
+    Token jwt = mock(Token.class);
+    User currentUser = mock(User.class);
+
+    when(tokenService.findByToken("mock-jwt-token")).thenReturn(jwt);
+    when(jwt.getToken()).thenReturn("mock-jwt-token");
+    when(jwt.getUser()).thenReturn(currentUser);
+    when(jwtService.isTokenValid("mock-jwt-token", currentUser)).thenThrow(new JwtException("Invalid JWT"));
 
     // WHEN & THEN
     assertThrows(InvalidTokenException.class, () -> authenticationService.getUserByJwt(validToken));
-    verify(tokenService, times(1)).findByToken(validToken);
-    verify(jwtService, times(1)).isTokenValid(validToken, user);
-    verify(tokenService, times(1)).revokeAllUserTokens(user);
+
+    verify(tokenService).findByToken("mock-jwt-token");
+    verify(jwtService).isTokenValid("mock-jwt-token", currentUser);
+    verify(tokenService).revokeAllUserTokens(currentUser);
   }
 
   @Test

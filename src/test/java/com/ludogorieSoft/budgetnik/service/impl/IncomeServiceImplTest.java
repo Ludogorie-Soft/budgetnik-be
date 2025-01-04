@@ -10,16 +10,19 @@ import static org.mockito.Mockito.when;
 import com.ludogorieSoft.budgetnik.dto.request.IncomeRequestDto;
 import com.ludogorieSoft.budgetnik.dto.response.IncomeResponseDto;
 import com.ludogorieSoft.budgetnik.model.Income;
+import com.ludogorieSoft.budgetnik.model.IncomeCategory;
 import com.ludogorieSoft.budgetnik.model.User;
 import com.ludogorieSoft.budgetnik.model.enums.Regularity;
 import com.ludogorieSoft.budgetnik.model.enums.Type;
 import com.ludogorieSoft.budgetnik.repository.IncomeRepository;
+import com.ludogorieSoft.budgetnik.service.IncomeCategoryService;
 import com.ludogorieSoft.budgetnik.service.UserService;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -36,7 +39,16 @@ class IncomeServiceImplTest {
 
   @Mock private IncomeRepository incomeRepository;
 
+  @Mock private IncomeCategoryService incomeCategoryService;
+
   @InjectMocks private IncomeServiceImpl incomeService;
+
+  private IncomeCategory incomeCategory;
+
+  @BeforeEach
+  void setup() {
+      incomeCategory = getTestIncomeCategory();
+  }
 
   @Test
   void createFixedIncome_Success() {
@@ -200,7 +212,8 @@ class IncomeServiceImplTest {
     UUID userId = UUID.randomUUID();
     BigDecimal expectedSum = new BigDecimal("12345.67");
 
-    when(incomeRepository.calculateTotalSumByUserIdAndCategory(userId, "Salary"))
+    when(incomeCategoryService.getCategory("Salary")).thenReturn(incomeCategory);
+    when(incomeRepository.calculateTotalSumByUserIdAndCategory(userId, incomeCategory))
         .thenReturn(expectedSum);
 
     // WHEN
@@ -210,7 +223,7 @@ class IncomeServiceImplTest {
     assertNotNull(result);
     assertEquals(expectedSum, result);
 
-    verify(incomeRepository, times(1)).calculateTotalSumByUserIdAndCategory(userId, "Salary");
+    verify(incomeRepository, times(1)).calculateTotalSumByUserIdAndCategory(userId, incomeCategory);
   }
 
   @Test
@@ -355,12 +368,20 @@ class IncomeServiceImplTest {
     assertEquals(requestDto.getOneTimeIncome(), income.getOneTimeIncome());
   }
 
-  private static Income createFixedIncome(User user) {
+    private static IncomeCategory getTestIncomeCategory() {
+        IncomeCategory incomeCategory = new IncomeCategory();
+        incomeCategory.setId(UUID.randomUUID());
+        incomeCategory.setName("Salary");
+        incomeCategory.setBgName("Заплата");
+        return incomeCategory;
+    }
+
+  private Income createFixedIncome(User user) {
     Income income = new Income();
     income.setOwner(user);
     income.setType(Type.FIXED);
     income.setRegularity(Regularity.MONTHLY);
-    income.setCategory("Salary");
+    income.setCategory(incomeCategory);
     income.setDate(LocalDate.now());
     income.setSum(BigDecimal.ONE);
     return income;
@@ -377,12 +398,12 @@ class IncomeServiceImplTest {
     return requestDto;
   }
 
-  private static Income createVariableIncome(User user) {
+  private Income createVariableIncome(User user) {
     Income income = new Income();
     income.setOwner(user);
     income.setType(Type.VARIABLE);
     income.setOneTimeIncome("Bonus");
-    income.setCategory("Extra");
+    income.setCategory(incomeCategory);
     income.setDate(LocalDate.now());
     income.setSum(BigDecimal.ONE);
     return income;

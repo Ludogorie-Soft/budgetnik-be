@@ -55,9 +55,6 @@ class AuthControllerIntegrationTest {
 
   @Autowired private VerificationTokenRepository verificationTokenRepository;
 
-//  @Mock
-//  private ApplicationEventPublisher applicationEventPublisher;
-
   private RegisterRequest registerRequest;
   private LoginRequest loginRequest;
 
@@ -255,7 +252,7 @@ class AuthControllerIntegrationTest {
     assertNotNull(authResponse.getToken());
 
     HttpHeaders headers = new HttpHeaders();
-    headers.set("Authorization", authResponse.getToken());
+    headers.set("Authorization", "Bearer " + authResponse.getToken());
 
     // WHEN
     ResponseEntity<AuthResponse> response =

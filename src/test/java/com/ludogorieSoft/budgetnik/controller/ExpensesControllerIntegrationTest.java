@@ -3,13 +3,16 @@ package com.ludogorieSoft.budgetnik.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import com.ludogorieSoft.budgetnik.dto.request.CategoryRequestDto;
 import com.ludogorieSoft.budgetnik.dto.request.ExpenseRequestDto;
 import com.ludogorieSoft.budgetnik.dto.request.LoginRequest;
 import com.ludogorieSoft.budgetnik.dto.request.RegisterRequest;
 import com.ludogorieSoft.budgetnik.dto.response.AuthResponse;
+import com.ludogorieSoft.budgetnik.dto.response.CategoryResponseDto;
 import com.ludogorieSoft.budgetnik.dto.response.ExpenseResponseDto;
 import com.ludogorieSoft.budgetnik.model.enums.Regularity;
 import com.ludogorieSoft.budgetnik.model.enums.Type;
+import com.ludogorieSoft.budgetnik.repository.ExpenseCategoryRepository;
 import com.ludogorieSoft.budgetnik.repository.ExpenseRepository;
 import com.ludogorieSoft.budgetnik.repository.TokenRepository;
 import com.ludogorieSoft.budgetnik.repository.UserRepository;
@@ -45,12 +48,14 @@ class ExpensesControllerIntegrationTest {
   private static final String REGISTER_URL = "/api/auth/register";
   private static final String LOGIN_URL = "/api/auth/login";
   private static final String EXPENSE_URL = "/api/expenses";
+  private static final String CATEGORY_URL = "/api/categories/expenses";
 
   @Autowired private UserRepository userRepository;
   @Autowired private ExpenseRepository expenseRepository;
   @Autowired private TestRestTemplate testRestTemplate;
   @Autowired private VerificationTokenRepository verificationTokenRepository;
   @Autowired private TokenRepository tokenRepository;
+  @Autowired private ExpenseCategoryRepository expenseCategoryRepository;
 
   private HttpHeaders headers;
   private RegisterRequest registerRequest;
@@ -58,6 +63,8 @@ class ExpensesControllerIntegrationTest {
   private ExpenseRequestDto expenseRequestDto;
   private AuthResponse registerResponse;
   private AuthResponse authResponse;
+  private CategoryRequestDto categoryRequestDto;
+  private CategoryResponseDto categoryResponseDto;
 
   @BeforeEach
   void setup() {
@@ -65,6 +72,7 @@ class ExpensesControllerIntegrationTest {
     ResponseEntity<AuthResponse> userResponse = createUserInDb(registerRequest);
     registerResponse = userResponse.getBody();
     assertNotNull(registerResponse);
+    categoryRequestDto = createCategoryRequestDto();
     expenseRequestDto = createExpenseRequest(registerResponse.getUser().getId());
     verificationTokenRepository.deleteAll();
     loginRequest = createLoginDto();
@@ -74,6 +82,7 @@ class ExpensesControllerIntegrationTest {
     assertNotNull(authResponse);
     headers = new HttpHeaders();
     headers.set("Authorization", "Bearer " + authResponse.getToken());
+    categoryResponseDto = createCategoryInDb();
   }
 
   @AfterEach
@@ -82,6 +91,7 @@ class ExpensesControllerIntegrationTest {
     verificationTokenRepository.deleteAll();
     expenseRepository.deleteAll();
     userRepository.deleteAll();
+    expenseCategoryRepository.deleteAll();
   }
 
   @Test
@@ -111,7 +121,6 @@ class ExpensesControllerIntegrationTest {
     // THEN
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertNotNull(response.getBody());
-    assertEquals(expenseRequestDto.getCategory(), response.getBody().getCategory());
     assertEquals(expenseRequestDto.getType(), response.getBody().getType());
   }
 
@@ -193,7 +202,6 @@ class ExpensesControllerIntegrationTest {
     // THEN
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertNotNull(response.getBody());
-    assertEquals(createdExpense.getBody().getCategory(), response.getBody().getCategory());
   }
 
   @Test
@@ -210,35 +218,35 @@ class ExpensesControllerIntegrationTest {
     assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
   }
 
-  @Test
-  void testGetSumOfAllExpensesOfUserByCategory() {
-    // GIVEN
-    ResponseEntity<ExpenseResponseDto> expense1 = createExpenseInDb();
-    ResponseEntity<ExpenseResponseDto> expense2 = createExpenseInDb();
-    assertNotNull(expense1.getBody());
-    assertNotNull(expense2.getBody());
+    @Test
+    void testGetSumOfAllExpensesOfUserByCategory() {
+      // GIVEN
+      ResponseEntity<ExpenseResponseDto> expense1 = createExpenseInDb();
+      ResponseEntity<ExpenseResponseDto> expense2 = createExpenseInDb();
+      assertNotNull(expense1.getBody());
+      assertNotNull(expense2.getBody());
 
-    BigDecimal expectedSum = expense1.getBody().getSum().add(expense2.getBody().getSum());
+      BigDecimal expectedSum = expense1.getBody().getSum().add(expense2.getBody().getSum());
 
-    // WHEN
-    ResponseEntity<BigDecimal> response =
-        testRestTemplate.exchange(
-            EXPENSE_URL
-                + "/users/category/sum?id="
-                + expenseRequestDto.getOwnerId()
-                + "&category="
-                + expense1.getBody().getCategory(),
-            HttpMethod.GET,
-            new HttpEntity<>(null, headers),
-            BigDecimal.class);
+      // WHEN
+      ResponseEntity<BigDecimal> response =
+          testRestTemplate.exchange(
+              EXPENSE_URL
+                  + "/users/category/sum?id="
+                  + expenseRequestDto.getOwnerId()
+                  + "&category="
+                  + expense1.getBody().getExpenseCategory().getName(),
+              HttpMethod.GET,
+              new HttpEntity<>(null, headers),
+              BigDecimal.class);
 
-    // THEN
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertNotNull(response.getBody());
-    assertEquals(
-        expectedSum.setScale(2, RoundingMode.HALF_UP),
-        response.getBody().setScale(2, RoundingMode.HALF_UP));
-  }
+      // THEN
+      assertEquals(HttpStatus.OK, response.getStatusCode());
+      assertNotNull(response.getBody());
+      assertEquals(
+          expectedSum.setScale(2, RoundingMode.HALF_UP),
+          response.getBody().setScale(2, RoundingMode.HALF_UP));
+    }
 
   @Test
   void testGetSumOfAllExpensesOfUser() {
@@ -296,33 +304,6 @@ class ExpensesControllerIntegrationTest {
         response.getBody().setScale(2, RoundingMode.HALF_UP));
   }
 
-  @Test
-  void testGetAllExpensesOfUserByType() {
-    // GIVEN
-    ResponseEntity<ExpenseResponseDto> expense1 = createExpenseInDb();
-    ResponseEntity<ExpenseResponseDto> expense2 = createExpenseInDb();
-    ResponseEntity<ExpenseResponseDto> expense3 = createExpenseInDb();
-
-    assertNotNull(expense1.getBody());
-    assertNotNull(expense2.getBody());
-    assertNotNull(expense3.getBody());
-
-    // WHEN
-    ResponseEntity<String> response =
-        testRestTemplate.exchange(
-            EXPENSE_URL
-                + "/users/type?id="
-                + authResponse.getUser().getId()
-                + "&type="
-                + expense1.getBody().getType(),
-            HttpMethod.GET,
-            new HttpEntity<>(null, headers),
-            String.class);
-
-    // THEN
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-  }
-
   private ExpenseRequestDto createExpenseRequest(UUID userId) {
     ExpenseRequestDto requestDto = new ExpenseRequestDto();
     requestDto.setType(Type.FIXED);
@@ -360,5 +341,24 @@ class ExpensesControllerIntegrationTest {
         HttpMethod.POST,
         new HttpEntity<>(expenseRequestDto, headers),
         ExpenseResponseDto.class);
+  }
+
+  private CategoryRequestDto createCategoryRequestDto() {
+    CategoryRequestDto requestDto = new CategoryRequestDto();
+    requestDto.setName("internet");
+    requestDto.setBgName("Интернет");
+    return requestDto;
+  }
+
+  private CategoryResponseDto createCategoryInDb() {
+    ResponseEntity<CategoryResponseDto> response = testRestTemplate
+            .exchange(
+                    CATEGORY_URL,
+                    HttpMethod.POST,
+                    new HttpEntity<>(categoryRequestDto, headers),
+                    CategoryResponseDto.class);
+    assertEquals(HttpStatus.CREATED, response.getStatusCode());
+    assertNotNull(response.getBody());
+    return response.getBody();
   }
 }
