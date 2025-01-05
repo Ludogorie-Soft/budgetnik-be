@@ -60,9 +60,9 @@ class ExpensesControllerIntegrationTest {
   private HttpHeaders headers;
   private RegisterRequest registerRequest;
   private LoginRequest loginRequest;
-  private ExpenseRequestDto expenseRequestDto;
   private AuthResponse registerResponse;
   private AuthResponse authResponse;
+  private ExpenseRequestDto expenseRequestDto;
   private CategoryRequestDto categoryRequestDto;
   private CategoryResponseDto categoryResponseDto;
 
@@ -72,8 +72,6 @@ class ExpensesControllerIntegrationTest {
     ResponseEntity<AuthResponse> userResponse = createUserInDb(registerRequest);
     registerResponse = userResponse.getBody();
     assertNotNull(registerResponse);
-    categoryRequestDto = createCategoryRequestDto();
-    expenseRequestDto = createExpenseRequest(registerResponse.getUser().getId());
     verificationTokenRepository.deleteAll();
     loginRequest = createLoginDto();
     ResponseEntity<AuthResponse> loginResponse =
@@ -82,7 +80,9 @@ class ExpensesControllerIntegrationTest {
     assertNotNull(authResponse);
     headers = new HttpHeaders();
     headers.set("Authorization", "Bearer " + authResponse.getToken());
+    categoryRequestDto = createCategoryRequestDto();
     categoryResponseDto = createCategoryInDb();
+    expenseRequestDto = createExpenseRequest(authResponse.getUser().getId());
   }
 
   @AfterEach

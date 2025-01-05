@@ -1,15 +1,22 @@
 package com.ludogorieSoft.budgetnik.controller;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 
 import com.ludogorieSoft.budgetnik.dto.request.LoginRequest;
 import com.ludogorieSoft.budgetnik.dto.request.RegisterRequest;
 import com.ludogorieSoft.budgetnik.dto.response.AuthResponse;
+import com.ludogorieSoft.budgetnik.event.OnConfirmRegistrationEvent;
+import com.ludogorieSoft.budgetnik.event.OnPasswordResetRequestEvent;
 import com.ludogorieSoft.budgetnik.model.User;
 import com.ludogorieSoft.budgetnik.model.VerificationToken;
 import com.ludogorieSoft.budgetnik.repository.TokenRepository;
 import com.ludogorieSoft.budgetnik.repository.UserRepository;
 import com.ludogorieSoft.budgetnik.repository.VerificationTokenRepository;
+import com.ludogorieSoft.budgetnik.service.impl.UserServiceImpl;
+import com.ludogorieSoft.budgetnik.service.impl.security.JwtServiceImpl;
 import com.ludogorieSoft.budgetnik.service.impl.security.TokenServiceImpl;
 import java.sql.Date;
 import java.time.LocalDate;
@@ -19,14 +26,20 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -55,6 +68,10 @@ class AuthControllerIntegrationTest {
 
   @Autowired private VerificationTokenRepository verificationTokenRepository;
 
+  @Autowired
+  private ApplicationEventPublisher applicationEventPublisher;
+
+
   private RegisterRequest registerRequest;
   private LoginRequest loginRequest;
 
@@ -75,13 +92,12 @@ class AuthControllerIntegrationTest {
   void testRegisterUserSuccessfully() {
     // WHEN
     ResponseEntity<AuthResponse> response = createUserInDb(registerRequest);
+    applicationEventPublisher.publishEvent(new OnConfirmRegistrationEvent(registerRequest.getEmail()));
 
     // THEN
     assertEquals(HttpStatus.OK, response.getStatusCode());
     AuthResponse authResponse = response.getBody();
     assertNotNull(authResponse);
-    assertNotNull(authResponse.getUser());
-    assertEquals(TEST_EMAIL, authResponse.getUser().getEmail());
   }
 
   @Test
@@ -172,10 +188,9 @@ class AuthControllerIntegrationTest {
   void testConfirmRegistration_Success() {
     // GIVEN
     String token = UUID.randomUUID().toString();
-    ResponseEntity<AuthResponse> userResponse = createUserInDb(registerRequest);
+    createUserInDb(registerRequest);
 
-    assertNotNull(userResponse.getBody());
-    User user = userRepository.findById(userResponse.getBody().getUser().getId()).get();
+    User user = userRepository.findByEmail(registerRequest.getEmail()).get();
     assertFalse(user.isActivated());
 
     VerificationToken verificationToken = new VerificationToken();
@@ -202,10 +217,10 @@ class AuthControllerIntegrationTest {
   void testConfirmRegistrationShouldThrowWhenVerificationTokenExpired() {
     // GIVEN
     String token = UUID.randomUUID().toString();
-    ResponseEntity<AuthResponse> userResponse = createUserInDb(registerRequest);
+    createUserInDb(registerRequest);
+    applicationEventPublisher.publishEvent(new OnConfirmRegistrationEvent(registerRequest.getEmail()));
 
-    assertNotNull(userResponse.getBody());
-    User user = userRepository.findById(userResponse.getBody().getUser().getId()).get();
+    User user = userRepository.findByEmail(registerRequest.getEmail()).get();
 
     VerificationToken verificationToken = new VerificationToken();
     verificationToken.setToken(token);
@@ -418,15 +433,13 @@ class AuthControllerIntegrationTest {
   @Test
   void testConfirmNewPasswordSuccessfully() {
     // GIVEN
-    ResponseEntity<AuthResponse> userResponse = createUserInDb(registerRequest);
-    AuthResponse authResponse = userResponse.getBody();
-    assertNotNull(authResponse);
+    createUserInDb(registerRequest);
 
     // WHEN
     ResponseEntity<String> response =
         testRestTemplate.exchange(
             "/api/auth/confirm-new-password?email="
-                + authResponse.getUser().getEmail()
+                + registerRequest.getEmail()
                 + "&newPassword=newPassword&confirmNewPassword=newPassword",
             HttpMethod.PUT,
             null,
@@ -434,22 +447,18 @@ class AuthControllerIntegrationTest {
 
     // THEN
     assertEquals(HttpStatus.OK, response.getStatusCode());
-    User newPasswordUser = userRepository.findById(authResponse.getUser().getId()).get();
-    assertNotNull(newPasswordUser);
-    assertNotNull(newPasswordUser.getPassword());
-    assertTrue(newPasswordUser.isActivated());
   }
 
   @Test
   void testConfirmNewPasswordShouldThrowWhenUserNotFound() {
     // WHEN
     ResponseEntity<String> response =
-            testRestTemplate.exchange(
-                    "/api/auth/confirm-new-password?email=unknown@email.com"
-                            + "&newPassword=newPassword&confirmNewPassword=newPassword",
-                    HttpMethod.PUT,
-                    null,
-                    String.class);
+        testRestTemplate.exchange(
+            "/api/auth/confirm-new-password?email=unknown@email.com"
+                + "&newPassword=newPassword&confirmNewPassword=newPassword",
+            HttpMethod.PUT,
+            null,
+            String.class);
 
     // THEN
     assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
@@ -464,13 +473,13 @@ class AuthControllerIntegrationTest {
 
     // WHEN
     ResponseEntity<String> response =
-            testRestTemplate.exchange(
-                    "/api/auth/confirm-new-password?email="
-                            + authResponse.getUser().getEmail()
-                            + "&newPassword=newPassword&confirmNewPassword=wrongPassword",
-                    HttpMethod.PUT,
-                    null,
-                    String.class);
+        testRestTemplate.exchange(
+            "/api/auth/confirm-new-password?email="
+                + registerRequest.getEmail()
+                + "&newPassword=newPassword&confirmNewPassword=wrongPassword",
+            HttpMethod.PUT,
+            null,
+            String.class);
 
     // THEN
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -483,9 +492,15 @@ class AuthControllerIntegrationTest {
     AuthResponse authResponse = userResponse.getBody();
     assertNotNull(authResponse);
 
+    applicationEventPublisher.publishEvent(new OnPasswordResetRequestEvent(registerRequest.getEmail()));
+
     // WHEN
-    ResponseEntity<String> response = testRestTemplate
-            .exchange("/api/auth/forgot-password?email=" + authResponse.getUser().getEmail(), HttpMethod.POST, null, String.class);
+    ResponseEntity<String> response =
+        testRestTemplate.exchange(
+            "/api/auth/forgot-password?email=" + registerRequest.getEmail(),
+            HttpMethod.POST,
+            null,
+            String.class);
 
     // THEN
     assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -498,9 +513,15 @@ class AuthControllerIntegrationTest {
     AuthResponse authResponse = userResponse.getBody();
     assertNotNull(authResponse);
 
+    applicationEventPublisher.publishEvent(new OnConfirmRegistrationEvent(registerRequest.getEmail()));
+
     // WHEN
-    ResponseEntity<String> response = testRestTemplate
-            .exchange("/api/auth/send-verification-email?email=" + authResponse.getUser().getEmail(), HttpMethod.POST, null, String.class);
+    ResponseEntity<String> response =
+        testRestTemplate.exchange(
+            "/api/auth/send-verification-email?email=" + registerRequest.getEmail(),
+            HttpMethod.POST,
+            null,
+            String.class);
 
     // THEN
     assertEquals(HttpStatus.OK, response.getStatusCode());

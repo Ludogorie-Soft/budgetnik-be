@@ -33,12 +33,10 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@TestPropertySource(locations = "classpath:application-test.properties")
 @ActiveProfiles("test")
 class IncomesControllerIntegrationTest {
   private static final String TEST_NAME = "Test Name";
@@ -60,9 +58,9 @@ class IncomesControllerIntegrationTest {
   private HttpHeaders headers;
   private RegisterRequest registerRequest;
   private LoginRequest loginRequest;
-  private IncomeRequestDto incomeRequestDto;
   private AuthResponse registerResponse;
   private AuthResponse authResponse;
+  private IncomeRequestDto incomeRequestDto;
   private CategoryRequestDto categoryRequestDto;
   private CategoryResponseDto categoryResponseDto;
 
@@ -72,17 +70,17 @@ class IncomesControllerIntegrationTest {
     ResponseEntity<AuthResponse> userResponse = createUserInDb(registerRequest);
     registerResponse = userResponse.getBody();
     assertNotNull(registerResponse);
-    incomeRequestDto = createIncomeRequest(registerResponse.getUser().getId());
     verificationTokenRepository.deleteAll();
     loginRequest = createLoginDto();
     ResponseEntity<AuthResponse> loginResponse =
-        testRestTemplate.postForEntity(LOGIN_URL, loginRequest, AuthResponse.class);
+            testRestTemplate.postForEntity(LOGIN_URL, loginRequest, AuthResponse.class);
     authResponse = loginResponse.getBody();
     assertNotNull(authResponse);
     headers = new HttpHeaders();
     headers.set("Authorization", "Bearer " + authResponse.getToken());
     categoryRequestDto = createCategoryRequestDto();
     categoryResponseDto = createCategoryInDb();
+    incomeRequestDto = createIncomeRequest(authResponse.getUser().getId());
   }
 
   @AfterEach
@@ -104,26 +102,26 @@ class IncomesControllerIntegrationTest {
     assertEquals(incomeResponseDto.getSum(), incomeResponseDto.getSum());
   }
 
-  @Test
-  void getIncomeSuccessfully() {
-    // GIVEN
-    ResponseEntity<IncomeResponseDto> incomeResponse = createIncomeInDb();
-    assertNotNull(incomeResponse.getBody());
+      @Test
+      void getIncomeSuccessfully() {
+          // GIVEN
+          ResponseEntity<IncomeResponseDto> incomeResponse = createIncomeInDb();
+          assertNotNull(incomeResponse.getBody());
 
-    // WHEN
-    ResponseEntity<IncomeResponseDto> response =
-        testRestTemplate.exchange(
-            INCOMES_URL + "?id=" + incomeResponse.getBody().getId(),
-            HttpMethod.GET,
-            new HttpEntity<>(null, headers),
-            IncomeResponseDto.class);
+          // WHEN
+          ResponseEntity<IncomeResponseDto> response =
+                  testRestTemplate.exchange(
+                          INCOMES_URL + "?id=" + incomeResponse.getBody().getId(),
+                          HttpMethod.GET,
+                          new HttpEntity<>(null, headers),
+                          IncomeResponseDto.class);
 
-    // THEN
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertNotNull(response.getBody());
-    assertEquals(incomeRequestDto.getCategory(), response.getBody().getIncomeCategory().getName());
-    assertEquals(incomeRequestDto.getType(), response.getBody().getType());
-  }
+          // THEN
+          assertEquals(HttpStatus.OK, response.getStatusCode());
+          assertNotNull(response.getBody());
+          assertEquals(incomeRequestDto.getCategory(), response.getBody().getIncomeCategory().getName());
+          assertEquals(incomeRequestDto.getType(), response.getBody().getType());
+      }
 
   @Test
   void testGetIncomeShouldThrowWhenIncomeNotFound() {
