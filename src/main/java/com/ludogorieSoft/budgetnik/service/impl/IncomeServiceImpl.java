@@ -6,6 +6,7 @@ import com.ludogorieSoft.budgetnik.exception.IncomeNotFoundException;
 import com.ludogorieSoft.budgetnik.model.Income;
 import com.ludogorieSoft.budgetnik.model.IncomeCategory;
 import com.ludogorieSoft.budgetnik.model.User;
+import com.ludogorieSoft.budgetnik.model.enums.Regularity;
 import com.ludogorieSoft.budgetnik.model.enums.Type;
 import com.ludogorieSoft.budgetnik.repository.IncomeRepository;
 import com.ludogorieSoft.budgetnik.service.IncomeCategoryService;
@@ -38,6 +39,12 @@ public class IncomeServiceImpl implements IncomeService {
 
     if (incomeRequestDto.getType().equals(Type.FIXED)) {
       income.setRegularity(incomeRequestDto.getRegularity());
+
+      fillFixedIncomeRelation(incomeRequestDto, income);
+
+      if (incomeRequestDto.isAutoCreate()) {
+        income.setAutoCreate(true);
+      }
     } else {
       income.setOneTimeIncome(incomeRequestDto.getOneTimeIncome());
     }
@@ -45,10 +52,17 @@ public class IncomeServiceImpl implements IncomeService {
     IncomeCategory incomeCategory =
         incomeCategoryService.getCategory(incomeRequestDto.getCategory());
     income.setCategory(incomeCategory);
-    income.setDate(incomeRequestDto.getDate());
+    income.setCreationDate(incomeRequestDto.getCreationDate());
     income.setSum(incomeRequestDto.getSum());
 
-    incomeRepository.save(income);
+    Income createdIncome = incomeRepository.save(income);
+
+    if (incomeRequestDto.getRelatedIncomeId() != null) {
+      Income relatedIncome = findById(incomeRequestDto.getRelatedIncomeId());
+      relatedIncome.setRelatedIncome(createdIncome);
+      incomeRepository.save(relatedIncome);
+    }
+
     return modelMapper.map(income, IncomeResponseDto.class);
   }
 
@@ -69,6 +83,13 @@ public class IncomeServiceImpl implements IncomeService {
   @Override
   public IncomeResponseDto deleteIncome(UUID id) {
     Income income = findById(id);
+
+    Income relatedIncome = incomeRepository.findByRelatedIncomeId(income.getId()).orElse(null);
+
+    if (relatedIncome != null) {
+      relatedIncome.setRelatedIncome(null);
+    }
+
     IncomeResponseDto response = modelMapper.map(income, IncomeResponseDto.class);
     incomeRepository.delete(income);
     return response;
@@ -93,6 +114,12 @@ public class IncomeServiceImpl implements IncomeService {
 
     if (incomeRequestDto.getType().equals(Type.FIXED)) {
       income.setRegularity(incomeRequestDto.getRegularity());
+
+      fillFixedIncomeRelation(incomeRequestDto, income);
+
+      if (incomeRequestDto.isAutoCreate()) {
+        income.setAutoCreate(true);
+      }
     } else {
       income.setOneTimeIncome(incomeRequestDto.getOneTimeIncome());
     }
@@ -100,7 +127,7 @@ public class IncomeServiceImpl implements IncomeService {
     IncomeCategory incomeCategory =
         incomeCategoryService.getCategory(incomeRequestDto.getCategory());
     income.setCategory(incomeCategory);
-    income.setDate(incomeRequestDto.getDate());
+    income.setCreationDate(incomeRequestDto.getCreationDate());
 
     incomeRepository.save(income);
     return modelMapper.map(income, IncomeResponseDto.class);
@@ -144,7 +171,39 @@ public class IncomeServiceImpl implements IncomeService {
         userId, type, startDate, endDate);
   }
 
+  @Override
+  public List<IncomeResponseDto> findAllIncomesByDueDateAndType(LocalDate date, Type type) {
+    return incomeRepository.findByDueDateAndRelatedIncomeIsNullAndType(date, type).stream()
+            .map(income -> modelMapper.map(income, IncomeResponseDto.class))
+            .toList();
+  }
+
   private Income findById(UUID id) {
     return incomeRepository.findById(id).orElseThrow(IncomeNotFoundException::new);
+  }
+
+  private void fillFixedIncomeRelation(IncomeRequestDto incomeRequestDto, Income income) {
+
+    LocalDate today = incomeRequestDto.getCreationDate();
+    LocalDate tomorrow = today.plusDays(1);
+    LocalDate oneWeekLater = today.plusWeeks(1);
+    LocalDate oneMonthLater = today.plusMonths(1);
+    LocalDate threeMonthsLater = today.plusMonths(3);
+    LocalDate sixMonthsLater = today.plusMonths(6);
+    LocalDate oneYearLater = today.plusYears(1);
+
+    if (incomeRequestDto.getRegularity().equals(Regularity.DAILY)) {
+      income.setDueDate(tomorrow);
+    } else if (incomeRequestDto.getRegularity().equals(Regularity.WEEKLY)) {
+      income.setDueDate(oneWeekLater);
+    } else if (incomeRequestDto.getRegularity().equals(Regularity.MONTHLY)) {
+      income.setDueDate(oneMonthLater);
+    } else if (incomeRequestDto.getRegularity().equals(Regularity.QUARTERLY)) {
+      income.setDueDate(threeMonthsLater);
+    } else if (incomeRequestDto.getRegularity().equals(Regularity.SIX_MONTHS)) {
+      income.setDueDate(sixMonthsLater);
+    } else if (incomeRequestDto.getRegularity().equals(Regularity.ANNUAL)) {
+      income.setDueDate(oneYearLater);
+    }
   }
 }

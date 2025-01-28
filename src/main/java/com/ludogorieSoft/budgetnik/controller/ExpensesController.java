@@ -119,4 +119,12 @@ public class ExpensesController {
         expenseService.calculateSumOfUserExpensesByTypeAndPeriod(id, type, startDate, endDate);
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
+
+  @GetMapping("/users/due-date")
+  public ResponseEntity<List<ExpenseResponseDto>> findAllFixedExpensesByDueDate(
+      @RequestParam("date") LocalDate date) {
+    List<ExpenseResponseDto> response =
+        expenseService.findAllExpensesByDueDateAndType(date, Type.FIXED);
+    return new ResponseEntity<>(response, HttpStatus.OK);
+  }
 }

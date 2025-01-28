@@ -337,7 +337,7 @@ class IncomesControllerIntegrationTest {
     IncomeRequestDto requestDto = new IncomeRequestDto();
     requestDto.setType(Type.FIXED);
     requestDto.setCategory("Salary");
-    requestDto.setDate(LocalDate.now());
+    requestDto.setCreationDate(LocalDate.now());
     requestDto.setRegularity(Regularity.MONTHLY);
     requestDto.setSum(BigDecimal.TEN);
     requestDto.setOwnerId(userId);

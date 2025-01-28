@@ -7,6 +7,7 @@ import com.ludogorieSoft.budgetnik.model.enums.Type;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -38,7 +39,7 @@ public interface IncomeRepository extends JpaRepository<Income, UUID> {
 
   @Query(
       "SELECT COALESCE(SUM(i.sum), 0) FROM Income i WHERE i.owner.id = :userId "
-          + "AND (:type IS NULL OR i.type = :type) AND i.date >= :startDate AND i.date <= :endDate")
+          + "AND (:type IS NULL OR i.type = :type) AND i.creationDate >= :startDate AND i.creationDate <= :endDate")
   BigDecimal calculateSumOfUserIncomesByTypeAndPeriod(
       @Param("userId") UUID userId,
       @Param("type") Type type,
@@ -46,7 +47,7 @@ public interface IncomeRepository extends JpaRepository<Income, UUID> {
       @Param("endDate") LocalDate endDate);
 
   @Query(
-      "SELECT i FROM Income i WHERE i.owner = :owner AND i.date >= :startDate AND i.date <= :endDate")
+      "SELECT i FROM Income i WHERE i.owner = :owner AND i.creationDate >= :startDate AND i.creationDate <= :endDate")
   List<Income> findIncomesForPeriod(
       @Param("owner") User owner,
       @Param("startDate") LocalDate startDate,
@@ -54,10 +55,14 @@ public interface IncomeRepository extends JpaRepository<Income, UUID> {
 
   @Query(
       "SELECT COALESCE(SUM(i.sum), 0) FROM Income i WHERE i.owner = :user "
-          + "AND (:category IS NULL OR i.category = :category) AND i.date >= :startDate AND i.date <= :endDate")
+          + "AND (:category IS NULL OR i.category = :category) AND i.creationDate >= :startDate AND i.creationDate <= :endDate")
   BigDecimal calculateSumOfIncomesByCategory(
       @Param("user") User user,
       @Param("category") IncomeCategory category,
       @Param("startDate") LocalDate startDate,
       @Param("endDate") LocalDate endDate);
+
+  Optional<Income> findByRelatedIncomeId(UUID relatedIncomeId);
+
+  List<Income> findByDueDateAndRelatedIncomeIsNullAndType(LocalDate dueDate, Type type);
 }

@@ -382,7 +382,7 @@ class IncomeServiceImplTest {
     income.setType(Type.FIXED);
     income.setRegularity(Regularity.MONTHLY);
     income.setCategory(incomeCategory);
-    income.setDate(LocalDate.now());
+    income.setCreationDate(LocalDate.now());
     income.setSum(BigDecimal.ONE);
     return income;
   }
@@ -393,7 +393,7 @@ class IncomeServiceImplTest {
     requestDto.setType(Type.FIXED);
     requestDto.setRegularity(Regularity.MONTHLY);
     requestDto.setCategory("Salary");
-    requestDto.setDate(LocalDate.now());
+    requestDto.setCreationDate(LocalDate.now());
     requestDto.setSum(BigDecimal.ONE);
     return requestDto;
   }
@@ -404,7 +404,7 @@ class IncomeServiceImplTest {
     income.setType(Type.VARIABLE);
     income.setOneTimeIncome("Bonus");
     income.setCategory(incomeCategory);
-    income.setDate(LocalDate.now());
+    income.setCreationDate(LocalDate.now());
     income.setSum(BigDecimal.ONE);
     return income;
   }
@@ -415,7 +415,7 @@ class IncomeServiceImplTest {
     requestDto.setType(Type.VARIABLE);
     requestDto.setOneTimeIncome("Bonus");
     requestDto.setCategory("Extra");
-    requestDto.setDate(LocalDate.now());
+    requestDto.setCreationDate(LocalDate.now());
     requestDto.setSum(BigDecimal.ONE);
     return requestDto;
   }

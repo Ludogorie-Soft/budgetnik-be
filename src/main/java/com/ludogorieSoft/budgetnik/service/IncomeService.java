@@ -35,4 +35,6 @@ public interface IncomeService {
 
   BigDecimal calculateSumOfUserIncomesByTypeAndPeriod(
       UUID userId, Type type, LocalDate startDate, LocalDate endDate);
+
+  List<IncomeResponseDto> findAllIncomesByDueDateAndType(LocalDate date, Type type);
 }

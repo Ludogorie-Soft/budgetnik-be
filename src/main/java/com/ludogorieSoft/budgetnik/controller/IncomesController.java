@@ -117,4 +117,10 @@ public class IncomesController {
         incomeService.calculateSumOfUserIncomesByTypeAndPeriod(id, type, startDate, endDate);
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
+
+  @GetMapping("/users/due-date")
+  public ResponseEntity<List<IncomeResponseDto>> findAllFixedIncomesByDueDate(@RequestParam("date") LocalDate date) {
+    List<IncomeResponseDto> response = incomeService.findAllIncomesByDueDateAndType(date, Type.FIXED);
+    return new ResponseEntity<>(response, HttpStatus.OK);
+  }
 }

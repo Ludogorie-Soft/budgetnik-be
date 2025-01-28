@@ -14,8 +14,11 @@ public class IncomeResponseDto {
   private UUID id;
   private Type type;
   private Regularity regularity;
-  private LocalDate date;
+  private LocalDate creationDate;
   private CategoryResponseDto incomeCategory;
   private BigDecimal sum;
   private String oneTimeIncome;
+  private LocalDate dueDate;
+  private IncomeResponseDto relatedIncome;
+  private boolean autoCreate;
 }

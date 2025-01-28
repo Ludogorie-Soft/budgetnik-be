@@ -67,7 +67,6 @@ public class AuthController {
   public ResponseEntity<AuthResponse> refreshToken(@RequestBody RefreshTokenDto refreshToken) {
     AuthResponse authenticationResponse =
         authService.refreshToken(refreshToken.getRefreshToken());
-    System.out.println("Refresh token!");
     return ResponseEntity.ok(authenticationResponse);
   }
 

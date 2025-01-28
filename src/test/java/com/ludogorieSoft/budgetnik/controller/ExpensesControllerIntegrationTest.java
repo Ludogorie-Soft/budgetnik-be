@@ -308,7 +308,7 @@ class ExpensesControllerIntegrationTest {
     ExpenseRequestDto requestDto = new ExpenseRequestDto();
     requestDto.setType(Type.FIXED);
     requestDto.setCategory("internet");
-    requestDto.setDate(LocalDate.now());
+    requestDto.setCreationDate(LocalDate.now());
     requestDto.setRegularity(Regularity.MONTHLY);
     requestDto.setSum(BigDecimal.TEN);
     requestDto.setOwnerId(userId);

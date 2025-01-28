@@ -383,7 +383,7 @@ class ExpenseServiceImplTest {
     income.setType(Type.FIXED);
     income.setRegularity(Regularity.MONTHLY);
     income.setCategory(expenseCategory);
-    income.setDate(LocalDate.now());
+    income.setCreationDate(LocalDate.now());
     income.setSum(BigDecimal.ONE);
     return income;
   }
@@ -394,7 +394,7 @@ class ExpenseServiceImplTest {
     requestDto.setType(Type.FIXED);
     requestDto.setRegularity(Regularity.MONTHLY);
     requestDto.setCategory("Salary");
-    requestDto.setDate(LocalDate.now());
+    requestDto.setCreationDate(LocalDate.now());
     requestDto.setSum(BigDecimal.ONE);
     return requestDto;
   }
@@ -405,7 +405,7 @@ class ExpenseServiceImplTest {
     expense.setType(Type.VARIABLE);
     expense.setOneTimeExpense("Something");
     expense.setCategory(expenseCategory);
-    expense.setDate(LocalDate.now());
+    expense.setCreationDate(LocalDate.now());
     expense.setSum(BigDecimal.ONE);
     return expense;
   }
@@ -416,7 +416,7 @@ class ExpenseServiceImplTest {
     requestDto.setType(Type.VARIABLE);
     requestDto.setOneTimeExpense("Something");
     requestDto.setCategory("Extra");
-    requestDto.setDate(LocalDate.now());
+    requestDto.setCreationDate(LocalDate.now());
     requestDto.setSum(BigDecimal.ONE);
     return requestDto;
   }

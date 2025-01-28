@@ -11,9 +11,11 @@ import lombok.Data;
 public class ExpenseRequestDto {
   private Type type;
   private Regularity regularity;
-  private LocalDate date;
+  private LocalDate creationDate;
   private String category;
   private BigDecimal sum;
   private String oneTimeExpense;
   private UUID ownerId;
+  private UUID relatedExpenseId;
+  private boolean autoCreate;
 }

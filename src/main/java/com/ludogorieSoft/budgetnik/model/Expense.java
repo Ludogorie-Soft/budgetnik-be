@@ -10,15 +10,12 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -42,11 +39,19 @@ public class Expense {
   @Enumerated(EnumType.STRING)
   private Regularity regularity;
 
-  private LocalDate date;
+  private LocalDate creationDate;
 
   private BigDecimal sum;
 
   private String oneTimeExpense;
+
+  private LocalDate dueDate;
+
+  private boolean autoCreate = false;
+
+  @OneToOne
+  @JoinColumn(name = "related_expense_id")
+  private Expense relatedExpense;
 
   @ManyToOne
   @JoinColumn(name = "category_id", nullable = false)

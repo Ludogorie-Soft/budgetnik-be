@@ -11,9 +11,11 @@ import lombok.Data;
 public class IncomeRequestDto {
   private Type type;
   private Regularity regularity;
-  private LocalDate date;
+  private LocalDate creationDate;
   private String category;
   private BigDecimal sum;
   private String oneTimeIncome;
   private UUID ownerId;
+  private UUID relatedIncomeId;
+  private boolean autoCreate;
 }

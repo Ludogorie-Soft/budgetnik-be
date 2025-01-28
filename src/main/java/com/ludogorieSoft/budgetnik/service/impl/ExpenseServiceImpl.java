@@ -6,6 +6,7 @@ import com.ludogorieSoft.budgetnik.exception.ExpenseNotFoundException;
 import com.ludogorieSoft.budgetnik.model.Expense;
 import com.ludogorieSoft.budgetnik.model.ExpenseCategory;
 import com.ludogorieSoft.budgetnik.model.User;
+import com.ludogorieSoft.budgetnik.model.enums.Regularity;
 import com.ludogorieSoft.budgetnik.model.enums.Type;
 import com.ludogorieSoft.budgetnik.repository.ExpenseRepository;
 import com.ludogorieSoft.budgetnik.service.ExpenseCategoryService;
@@ -36,17 +37,28 @@ public class ExpenseServiceImpl implements ExpenseService {
     expense.setType(expenseRequestDto.getType());
     if (expenseRequestDto.getType().equals(Type.FIXED)) {
       expense.setRegularity(expenseRequestDto.getRegularity());
+
+      fillFixedExpenseRelation(expenseRequestDto, expense);
+
+      if (expenseRequestDto.isAutoCreate()) {
+        expense.setAutoCreate(true);
+      }
     } else {
       expense.setOneTimeExpense(expenseRequestDto.getOneTimeExpense());
     }
 
-    expense.setDate(expenseRequestDto.getDate());
+    expense.setCreationDate(expenseRequestDto.getCreationDate());
     expense.setSum(expenseRequestDto.getSum());
     ExpenseCategory expenseCategory =
         expenseCategoryService.getCategory(expenseRequestDto.getCategory());
     expense.setCategory(expenseCategory);
 
-    expenseRepository.save(expense);
+    Expense createdExpense = expenseRepository.save(expense);
+    if (expenseRequestDto.getRelatedExpenseId() != null) {
+      Expense relatedExpense = findById(expenseRequestDto.getRelatedExpenseId());
+      relatedExpense.setRelatedExpense(createdExpense);
+      expenseRepository.save(relatedExpense);
+    }
     return modelMapper.map(expense, ExpenseResponseDto.class);
   }
 
@@ -67,6 +79,13 @@ public class ExpenseServiceImpl implements ExpenseService {
   @Override
   public ExpenseResponseDto deleteExpense(UUID id) {
     Expense expense = findById(id);
+
+    Expense relatedExpense = expenseRepository.findByRelatedExpenseId(expense.getId()).orElse(null);
+
+    if (relatedExpense != null) {
+      relatedExpense.setRelatedExpense(null);
+    }
+
     ExpenseResponseDto response = modelMapper.map(expense, ExpenseResponseDto.class);
     expenseRepository.delete(expense);
     return response;
@@ -92,13 +111,19 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     if (expenseRequestDto.getType().equals(Type.FIXED)) {
       expense.setRegularity(expenseRequestDto.getRegularity());
+
+      fillFixedExpenseRelation(expenseRequestDto, expense);
+
+      if (expenseRequestDto.isAutoCreate()) {
+        expense.setAutoCreate(true);
+      }
     } else {
       expense.setOneTimeExpense(expenseRequestDto.getOneTimeExpense());
     }
     ExpenseCategory expenseCategory =
         expenseCategoryService.getCategory(expenseRequestDto.getCategory());
     expense.setCategory(expenseCategory);
-    expense.setDate(expenseRequestDto.getDate());
+    expense.setCreationDate(expenseRequestDto.getCreationDate());
     expenseRepository.save(expense);
     return modelMapper.map(expense, ExpenseResponseDto.class);
   }
@@ -141,7 +166,39 @@ public class ExpenseServiceImpl implements ExpenseService {
         userId, type, startDate, endDate);
   }
 
+  @Override
+  public List<ExpenseResponseDto> findAllExpensesByDueDateAndType(LocalDate date, Type type) {
+    return expenseRepository.findByDueDateAndRelatedExpenseIsNullAndType(date, type).stream()
+        .map(expense -> modelMapper.map(expense, ExpenseResponseDto.class))
+        .toList();
+  }
+
   private Expense findById(UUID id) {
     return expenseRepository.findById(id).orElseThrow(ExpenseNotFoundException::new);
+  }
+
+  private void fillFixedExpenseRelation(ExpenseRequestDto expenseRequestDto, Expense expense) {
+
+    LocalDate today = expenseRequestDto.getCreationDate();
+    LocalDate tomorrow = today.plusDays(1);
+    LocalDate oneWeekLater = today.plusWeeks(1);
+    LocalDate oneMonthLater = today.plusMonths(1);
+    LocalDate threeMonthsLater = today.plusMonths(3);
+    LocalDate sixMonthsLater = today.plusMonths(6);
+    LocalDate oneYearLater = today.plusYears(1);
+
+    if (expenseRequestDto.getRegularity().equals(Regularity.DAILY)) {
+      expense.setDueDate(tomorrow);
+    } else if (expenseRequestDto.getRegularity().equals(Regularity.WEEKLY)) {
+      expense.setDueDate(oneWeekLater);
+    } else if (expenseRequestDto.getRegularity().equals(Regularity.MONTHLY)) {
+      expense.setDueDate(oneMonthLater);
+    } else if (expenseRequestDto.getRegularity().equals(Regularity.QUARTERLY)) {
+      expense.setDueDate(threeMonthsLater);
+    } else if (expenseRequestDto.getRegularity().equals(Regularity.SIX_MONTHS)) {
+      expense.setDueDate(sixMonthsLater);
+    } else if (expenseRequestDto.getRegularity().equals(Regularity.ANNUAL)) {
+      expense.setDueDate(oneYearLater);
+    }
   }
 }
