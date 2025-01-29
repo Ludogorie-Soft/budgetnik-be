@@ -20,11 +20,15 @@ import java.util.UUID;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class IncomeServiceImpl implements IncomeService {
+
+  private static final Logger logger = LoggerFactory.getLogger(IncomeServiceImpl.class);
 
   private final UserService userService;
   private final ModelMapper modelMapper;
@@ -59,9 +63,11 @@ public class IncomeServiceImpl implements IncomeService {
     if (incomeRequestDto.getRelatedIncomeId() != null) {
       Income relatedIncome = findById(incomeRequestDto.getRelatedIncomeId());
       relatedIncome.setRelatedIncome(createdIncome);
+      logger.info("Income with id " + createdIncome.getId() + " is set as related income of income with id " + relatedIncome.getId());
       incomeRepository.save(relatedIncome);
     }
 
+    logger.info("Created income with id " + createdIncome.getId());
     return modelMapper.map(income, IncomeResponseDto.class);
   }
 
@@ -91,6 +97,7 @@ public class IncomeServiceImpl implements IncomeService {
 
     IncomeResponseDto response = modelMapper.map(income, IncomeResponseDto.class);
     incomeRepository.delete(income);
+    logger.info("Deleted income with id " + response.getId());
     return response;
   }
 
@@ -125,6 +132,7 @@ public class IncomeServiceImpl implements IncomeService {
     income.setCreationDate(incomeRequestDto.getCreationDate());
 
     incomeRepository.save(income);
+    logger.info("Edited income with id " + income.getId());
     return modelMapper.map(income, IncomeResponseDto.class);
   }
 

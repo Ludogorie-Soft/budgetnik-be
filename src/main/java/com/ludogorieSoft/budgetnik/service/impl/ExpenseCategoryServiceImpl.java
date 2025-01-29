@@ -10,11 +10,15 @@ import com.ludogorieSoft.budgetnik.service.ExpenseCategoryService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class ExpenseCategoryServiceImpl implements ExpenseCategoryService {
+
+  private static final Logger logger = LoggerFactory.getLogger(ExpenseCategoryServiceImpl.class);
 
   private final ExpenseCategoryRepository expenseCategoryRepository;
   private final ModelMapper modelMapper;
@@ -28,6 +32,8 @@ public class ExpenseCategoryServiceImpl implements ExpenseCategoryService {
     expenseCategory.setName(categoryRequestDto.getName());
     expenseCategory.setBgName(categoryRequestDto.getBgName());
     expenseCategoryRepository.save(expenseCategory);
+
+    logger.info("Created category with name: " + categoryRequestDto.getName());
     return modelMapper.map(expenseCategory, CategoryResponseDto.class);
   }
 

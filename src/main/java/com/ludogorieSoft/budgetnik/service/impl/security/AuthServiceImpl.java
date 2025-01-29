@@ -24,6 +24,8 @@ import java.util.Calendar;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -34,6 +36,8 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
+
+  private static final Logger logger = LoggerFactory.getLogger(AuthServiceImpl.class);
 
   private static final String TOKEN_EXPIRED = "Изтекла сесия!";
 
@@ -71,7 +75,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     tokenService.revokeAllUserTokens(user);
-
+    logger.info("User with id " + user.getId() + " logged in!");
     return tokenService.generateAuthResponse(user);
   }
 
@@ -104,7 +108,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     List<Token> tokens = tokenService.findByUser(user);
-    Token refreshToken = tokens.stream().filter(x -> x.getTokenType() == TokenType.REFRESH).toList().get(0);
+    Token refreshToken =
+        tokens.stream().filter(x -> x.getTokenType() == TokenType.REFRESH).toList().get(0);
 
     String refreshTokenString;
 
@@ -116,12 +121,12 @@ public class AuthServiceImpl implements AuthService {
     }
 
     UserResponse userResponse = modelMapper.map(accessToken.getUser(), UserResponse.class);
-
+    logger.info("Get user by token with id " + user.getId());
     return AuthResponse.builder()
-            .token(accessToken.getToken())
-            .refreshToken(refreshTokenString)
-            .user(userResponse)
-            .build();
+        .token(accessToken.getToken())
+        .refreshToken(refreshTokenString)
+        .user(userResponse)
+        .build();
   }
 
   @Override
@@ -160,11 +165,8 @@ public class AuthServiceImpl implements AuthService {
     tokenService.saveToken(user, accessToken, TokenType.ACCESS);
     tokenService.saveToken(user, refreshToken, TokenType.REFRESH);
 
-    return AuthResponse
-            .builder()
-            .token(accessToken)
-            .refreshToken(refreshToken)
-            .build();
+    logger.info("Token refreshed! User with id " + user.getId());
+    return AuthResponse.builder().token(accessToken).refreshToken(refreshToken).build();
   }
 
   @Override
@@ -185,6 +187,7 @@ public class AuthServiceImpl implements AuthService {
     user.setPassword(null);
     userRepository.save(user);
     revokeVerificationTokens(user);
+    logger.info("Password reset! User with id " + user.getId());
     return ResponseEntity.ok("Паролата е изтрита!");
   }
 
@@ -205,6 +208,7 @@ public class AuthServiceImpl implements AuthService {
     user.setActivated(true);
     userRepository.save(user);
     revokeVerificationTokens(user);
+    logger.info("Registration confirmed! User with id " + user.getId());
     return ResponseEntity.ok("Успешна регистрация!");
   }
 
@@ -221,6 +225,7 @@ public class AuthServiceImpl implements AuthService {
     user.setActivated(true);
     user.setPassword(encodedPassword);
     userRepository.save(user);
+    logger.info("New password confirmed! User with id " + user.getId());
     return ResponseEntity.ok("Паролата е променена успешно!");
   }
 

@@ -19,11 +19,15 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class ExpenseServiceImpl implements ExpenseService {
+
+  private static final Logger logger = LoggerFactory.getLogger(ExpenseServiceImpl.class);
 
   private final ExpenseRepository expenseRepository;
   private final UserService userService;
@@ -55,8 +59,14 @@ public class ExpenseServiceImpl implements ExpenseService {
     if (expenseRequestDto.getRelatedExpenseId() != null) {
       Expense relatedExpense = findById(expenseRequestDto.getRelatedExpenseId());
       relatedExpense.setRelatedExpense(createdExpense);
+      logger.info(
+          "Expense with id "
+              + createdExpense.getId()
+              + " is set as related expense of expense with id "
+              + relatedExpense.getId());
       expenseRepository.save(relatedExpense);
     }
+    logger.info("Created expense with id " + createdExpense.getId());
     return modelMapper.map(expense, ExpenseResponseDto.class);
   }
 
@@ -86,6 +96,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     ExpenseResponseDto response = modelMapper.map(expense, ExpenseResponseDto.class);
     expenseRepository.delete(expense);
+    logger.info("Deleted expense with id " + response.getId());
     return response;
   }
 
@@ -119,6 +130,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     expense.setCategory(expenseCategory);
     expense.setCreationDate(expenseRequestDto.getCreationDate());
     expenseRepository.save(expense);
+    logger.info("Edited expense with id " + expense.getId());
     return modelMapper.map(expense, ExpenseResponseDto.class);
   }
 

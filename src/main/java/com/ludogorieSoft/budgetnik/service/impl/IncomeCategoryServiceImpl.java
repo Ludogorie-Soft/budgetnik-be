@@ -10,11 +10,15 @@ import com.ludogorieSoft.budgetnik.service.IncomeCategoryService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class IncomeCategoryServiceImpl implements IncomeCategoryService {
+
+  private static final Logger logger = LoggerFactory.getLogger(IncomeCategoryServiceImpl.class);
 
   private final IncomeCategoryRepository incomeCategoryRepository;
   private final ModelMapper modelMapper;
@@ -29,6 +33,8 @@ public class IncomeCategoryServiceImpl implements IncomeCategoryService {
     incomeCategory.setName(categoryRequestDto.getName());
     incomeCategory.setBgName(categoryRequestDto.getBgName());
     incomeCategoryRepository.save(incomeCategory);
+
+    logger.info("Created income category with name: " + categoryRequestDto.getName());
     return modelMapper.map(incomeCategory, CategoryResponseDto.class);
   }
 

@@ -16,12 +16,16 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
+
+  private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
@@ -55,7 +59,10 @@ public class UserServiceImpl implements UserService {
             .activated(false)
             .build();
 
-    return userRepository.save(user);
+    User createdUser = userRepository.save(user);
+    logger.info("Created user with id " + createdUser.getId());
+
+    return createdUser;
   }
 
   @Override
@@ -87,7 +94,7 @@ public class UserServiceImpl implements UserService {
     if (user.getId().equals(currentUser.getId())) {
       throw new AccessDeniedException();
     }
-
+    logger.info("Deleted user with id " + user.getId());
     userRepository.delete(user);
   }
 
