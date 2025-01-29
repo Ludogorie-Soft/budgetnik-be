@@ -22,6 +22,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -65,6 +67,11 @@ class IncomeServiceImplTest {
     responseDto.setSum(BigDecimal.ONE);
 
     when(userService.findById(ownerId)).thenReturn(user);
+    when(incomeRepository.save(any(Income.class))).thenAnswer(invocation -> {
+      Income savedIncome = invocation.getArgument(0);
+      savedIncome.setId(UUID.randomUUID());
+      return savedIncome;
+    });
     when(modelMapper.map(any(Income.class), eq(IncomeResponseDto.class))).thenReturn(responseDto);
 
     // WHEN
@@ -94,6 +101,11 @@ class IncomeServiceImplTest {
     responseDto.setSum(BigDecimal.ONE);
 
     when(userService.findById(ownerId)).thenReturn(user);
+    when(incomeRepository.save(any(Income.class))).thenAnswer(invocation -> {
+      Income savedIncome = invocation.getArgument(0);
+      savedIncome.setId(UUID.randomUUID());
+      return savedIncome;
+    });
     when(modelMapper.map(any(Income.class), eq(IncomeResponseDto.class))).thenReturn(responseDto);
 
     // WHEN
@@ -384,6 +396,8 @@ class IncomeServiceImplTest {
     income.setCategory(incomeCategory);
     income.setCreationDate(LocalDate.now());
     income.setSum(BigDecimal.ONE);
+    income.setDueDate(LocalDate.now().plusMonths(1));
+    income.setAutoCreate(false);
     return income;
   }
 
@@ -395,6 +409,7 @@ class IncomeServiceImplTest {
     requestDto.setCategory("Salary");
     requestDto.setCreationDate(LocalDate.now());
     requestDto.setSum(BigDecimal.ONE);
+    requestDto.setAutoCreate(false);
     return requestDto;
   }
 
@@ -402,10 +417,13 @@ class IncomeServiceImplTest {
     Income income = new Income();
     income.setOwner(user);
     income.setType(Type.VARIABLE);
+    income.setRegularity(Regularity.MONTHLY);
     income.setOneTimeIncome("Bonus");
     income.setCategory(incomeCategory);
     income.setCreationDate(LocalDate.now());
     income.setSum(BigDecimal.ONE);
+    income.setDueDate(LocalDate.now().plusMonths(1));
+    income.setAutoCreate(false);
     return income;
   }
 
@@ -413,10 +431,12 @@ class IncomeServiceImplTest {
     IncomeRequestDto requestDto = new IncomeRequestDto();
     requestDto.setOwnerId(ownerId);
     requestDto.setType(Type.VARIABLE);
+    requestDto.setRegularity(Regularity.MONTHLY);
     requestDto.setOneTimeIncome("Bonus");
     requestDto.setCategory("Extra");
     requestDto.setCreationDate(LocalDate.now());
     requestDto.setSum(BigDecimal.ONE);
+    requestDto.setAutoCreate(false);
     return requestDto;
   }
 }
