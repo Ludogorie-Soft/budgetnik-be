@@ -12,12 +12,11 @@ import com.ludogorieSoft.budgetnik.repository.IncomeRepository;
 import com.ludogorieSoft.budgetnik.service.IncomeCategoryService;
 import com.ludogorieSoft.budgetnik.service.IncomeService;
 import com.ludogorieSoft.budgetnik.service.UserService;
+import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
-
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -42,33 +41,27 @@ public class IncomeServiceImpl implements IncomeService {
 
     User user = userService.findById(incomeRequestDto.getOwnerId());
     income.setOwner(user);
-    income.setType(incomeRequestDto.getType());
-
-    if (incomeRequestDto.getType().equals(Type.FIXED)) {
-      income.setRegularity(incomeRequestDto.getRegularity());
-      fillFixedIncomeRelation(incomeRequestDto, income);
-      income.setAutoCreate(incomeRequestDto.isAutoCreate());
-    } else {
-      income.setOneTimeIncome(incomeRequestDto.getOneTimeIncome());
-    }
-
-    IncomeCategory incomeCategory =
-        incomeCategoryService.getCategory(incomeRequestDto.getCategory());
-    income.setCategory(incomeCategory);
     income.setCreationDate(incomeRequestDto.getCreationDate());
+    income.setType(incomeRequestDto.getType());
+    income.setRegularity(incomeRequestDto.getRegularity());
+    income.setAutoCreate(incomeRequestDto.isAutoCreate());
+    income.setOneTimeIncome(incomeRequestDto.getOneTimeIncome());
     income.setSum(incomeRequestDto.getSum());
 
+    setIncomeCategory(incomeRequestDto, income);
+    setIncomeDueDate(incomeRequestDto, income);
     Income createdIncome = incomeRepository.save(income);
 
     if (incomeRequestDto.getRelatedIncomeId() != null) {
       Income relatedIncome = findById(incomeRequestDto.getRelatedIncomeId());
-      relatedIncome.setRelatedIncome(createdIncome);
-      logger.info("Income with id " + createdIncome.getId() + " is set as related income of income with id " + relatedIncome.getId());
+      relatedIncome.getRelatedIncomes().add(createdIncome);
+      setIncomeDueDate(incomeRequestDto, relatedIncome);
+      createdIncome.setRelatedIncome(relatedIncome);
       incomeRepository.save(relatedIncome);
     }
 
     logger.info("Created income with id " + createdIncome.getId());
-    return modelMapper.map(income, IncomeResponseDto.class);
+    return modelMapper.map(createdIncome, IncomeResponseDto.class);
   }
 
   @Override
@@ -86,13 +79,19 @@ public class IncomeServiceImpl implements IncomeService {
   }
 
   @Override
+  @Transactional
   public IncomeResponseDto deleteIncome(UUID id) {
     Income income = findById(id);
 
-    Income relatedIncome = incomeRepository.findByRelatedIncomeId(income.getId()).orElse(null);
+    if (income.getRelatedIncome() != null) {
+      Income relatedIncome = findById(income.getRelatedIncome().getId());
 
-    if (relatedIncome != null) {
-      relatedIncome.setRelatedIncome(null);
+      List<Income> relatedIncomes = relatedIncome.getRelatedIncomes();
+
+      relatedIncomes.removeIf(current -> current.getId() == income.getId());
+
+      relatedIncome.setRelatedIncomes(relatedIncomes);
+      incomeRepository.save(relatedIncome);
     }
 
     IncomeResponseDto response = modelMapper.map(income, IncomeResponseDto.class);
@@ -117,19 +116,13 @@ public class IncomeServiceImpl implements IncomeService {
     Income income = findById(incomeId);
     income.setSum(incomeRequestDto.getSum());
     income.setType(incomeRequestDto.getType());
-
-    if (incomeRequestDto.getType().equals(Type.FIXED)) {
-      income.setRegularity(incomeRequestDto.getRegularity());
-      fillFixedIncomeRelation(incomeRequestDto, income);
-      income.setAutoCreate(incomeRequestDto.isAutoCreate());
-    } else {
-      income.setOneTimeIncome(incomeRequestDto.getOneTimeIncome());
-    }
-
-    IncomeCategory incomeCategory =
-        incomeCategoryService.getCategory(incomeRequestDto.getCategory());
-    income.setCategory(incomeCategory);
     income.setCreationDate(incomeRequestDto.getCreationDate());
+    income.setRegularity(incomeRequestDto.getRegularity());
+    income.setAutoCreate(incomeRequestDto.isAutoCreate());
+    income.setOneTimeIncome(incomeRequestDto.getOneTimeIncome());
+
+    setIncomeCategory(incomeRequestDto, income);
+    setIncomeDueDate(incomeRequestDto, income);
 
     incomeRepository.save(income);
     logger.info("Edited income with id " + income.getId());
@@ -175,17 +168,18 @@ public class IncomeServiceImpl implements IncomeService {
   }
 
   @Override
-  public List<IncomeResponseDto> findAllFixedIncomesByDueDate(LocalDate date, Type type) {
-    return incomeRepository.findByDueDateAndRelatedIncomeIsNullAndType(date, type).stream()
-            .map(income -> modelMapper.map(income, IncomeResponseDto.class))
-            .toList();
+  public List<IncomeResponseDto> findAllFixedIncomesBeforeThanEqualDueDate(
+      LocalDate date, Type type) {
+    return incomeRepository.findByDueDateLessThanEqualAndType(date, type).stream()
+        .map(income -> modelMapper.map(income, IncomeResponseDto.class))
+        .toList();
   }
 
   private Income findById(UUID id) {
     return incomeRepository.findById(id).orElseThrow(IncomeNotFoundException::new);
   }
 
-  private void fillFixedIncomeRelation(IncomeRequestDto incomeRequestDto, Income income) {
+  private void setIncomeDueDate(IncomeRequestDto incomeRequestDto, Income income) {
 
     LocalDate today = incomeRequestDto.getCreationDate();
     LocalDate tomorrow = today.plusDays(1);
@@ -208,5 +202,11 @@ public class IncomeServiceImpl implements IncomeService {
     } else if (incomeRequestDto.getRegularity().equals(Regularity.ANNUAL)) {
       income.setDueDate(oneYearLater);
     }
+  }
+
+  private void setIncomeCategory(IncomeRequestDto incomeRequestDto, Income income) {
+    IncomeCategory incomeCategory =
+        incomeCategoryService.getCategory(incomeRequestDto.getCategory());
+    income.setCategory(incomeCategory);
   }
 }

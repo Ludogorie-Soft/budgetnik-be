@@ -38,36 +38,37 @@ public class ExpenseServiceImpl implements ExpenseService {
   @Transactional
   public ExpenseResponseDto createExpense(ExpenseRequestDto expenseRequestDto) {
     Expense expense = new Expense();
+
     User user = userService.findById(expenseRequestDto.getOwnerId());
     expense.setOwner(user);
+    expense.setCreationDate(expenseRequestDto.getCreationDate());
     expense.setType(expenseRequestDto.getType());
-    if (expenseRequestDto.getType().equals(Type.FIXED)) {
-      expense.setRegularity(expenseRequestDto.getRegularity());
-      fillFixedExpenseRelation(expenseRequestDto, expense);
-      expense.setAutoCreate(expenseRequestDto.isAutoCreate());
-    } else {
-      expense.setOneTimeExpense(expenseRequestDto.getOneTimeExpense());
+    expense.setRegularity(expenseRequestDto.getRegularity());
+    expense.setAutoCreate(expenseRequestDto.isAutoCreate());
+    expense.setOneTimeExpense(expenseRequestDto.getOneTimeExpense());
+    expense.setSum(expenseRequestDto.getSum());
+
+    setExpenseCategory(expenseRequestDto, expense);
+    setExpenseDueDate(expenseRequestDto, expense);
+
+    Expense createdExpense = expenseRepository.save(expense);
+
+    if (expenseRequestDto.getRelatedExpenseId() != null) {
+      Expense relatedExpense = findById(expenseRequestDto.getRelatedExpenseId());
+      relatedExpense.getRelatedExpenses().add(createdExpense);
+      setExpenseDueDate(expenseRequestDto, relatedExpense);
+      createdExpense.setRelatedExpense(relatedExpense);
+      expenseRepository.save(relatedExpense);
     }
 
-    expense.setCreationDate(expenseRequestDto.getCreationDate());
-    expense.setSum(expenseRequestDto.getSum());
+    logger.info("Created expense with id " + createdExpense.getId());
+    return modelMapper.map(createdExpense, ExpenseResponseDto.class);
+  }
+
+  private void setExpenseCategory(ExpenseRequestDto expenseRequestDto, Expense expense) {
     ExpenseCategory expenseCategory =
         expenseCategoryService.getCategory(expenseRequestDto.getCategory());
     expense.setCategory(expenseCategory);
-
-    Expense createdExpense = expenseRepository.save(expense);
-    if (expenseRequestDto.getRelatedExpenseId() != null) {
-      Expense relatedExpense = findById(expenseRequestDto.getRelatedExpenseId());
-      relatedExpense.setRelatedExpense(createdExpense);
-      logger.info(
-          "Expense with id "
-              + createdExpense.getId()
-              + " is set as related expense of expense with id "
-              + relatedExpense.getId());
-      expenseRepository.save(relatedExpense);
-    }
-    logger.info("Created expense with id " + createdExpense.getId());
-    return modelMapper.map(expense, ExpenseResponseDto.class);
   }
 
   @Override
@@ -85,13 +86,19 @@ public class ExpenseServiceImpl implements ExpenseService {
   }
 
   @Override
+  @Transactional
   public ExpenseResponseDto deleteExpense(UUID id) {
     Expense expense = findById(id);
 
-    Expense relatedExpense = expenseRepository.findByRelatedExpenseId(expense.getId()).orElse(null);
+    if (expense.getOneTimeExpense() != null) {
+      Expense relatedExpense = findById(expense.getRelatedExpense().getId());
 
-    if (relatedExpense != null) {
-      relatedExpense.setRelatedExpense(null);
+      List<Expense> relatedExpenses = relatedExpense.getRelatedExpenses();
+
+      relatedExpenses.removeIf(current -> current.getId() == expense.getId());
+
+      relatedExpense.setRelatedExpenses(relatedExpenses);
+      expenseRepository.save(relatedExpense);
     }
 
     ExpenseResponseDto response = modelMapper.map(expense, ExpenseResponseDto.class);
@@ -117,18 +124,14 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     expense.setSum(expenseRequestDto.getSum());
     expense.setType(expenseRequestDto.getType());
-
-    if (expenseRequestDto.getType().equals(Type.FIXED)) {
-      expense.setRegularity(expenseRequestDto.getRegularity());
-      fillFixedExpenseRelation(expenseRequestDto, expense);
-      expense.setAutoCreate(expenseRequestDto.isAutoCreate());
-    } else {
-      expense.setOneTimeExpense(expenseRequestDto.getOneTimeExpense());
-    }
-    ExpenseCategory expenseCategory =
-        expenseCategoryService.getCategory(expenseRequestDto.getCategory());
-    expense.setCategory(expenseCategory);
+    expense.setRegularity(expenseRequestDto.getRegularity());
+    expense.setAutoCreate(expenseRequestDto.isAutoCreate());
+    expense.setOneTimeExpense(expenseRequestDto.getOneTimeExpense());
     expense.setCreationDate(expenseRequestDto.getCreationDate());
+
+    setExpenseCategory(expenseRequestDto, expense);
+    setExpenseDueDate(expenseRequestDto, expense);
+
     expenseRepository.save(expense);
     logger.info("Edited expense with id " + expense.getId());
     return modelMapper.map(expense, ExpenseResponseDto.class);
@@ -173,8 +176,9 @@ public class ExpenseServiceImpl implements ExpenseService {
   }
 
   @Override
-  public List<ExpenseResponseDto> findAllFixedExpensesByDueDate(LocalDate date, Type type) {
-    return expenseRepository.findByDueDateAndRelatedExpenseIsNullAndType(date, type).stream()
+  public List<ExpenseResponseDto> findAllFixedExpensesBeforeThanEqualDueDate(
+      LocalDate date, Type type) {
+    return expenseRepository.findByDueDateLessThanEqualAndType(date, type).stream()
         .map(expense -> modelMapper.map(expense, ExpenseResponseDto.class))
         .toList();
   }
@@ -183,7 +187,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     return expenseRepository.findById(id).orElseThrow(ExpenseNotFoundException::new);
   }
 
-  private void fillFixedExpenseRelation(ExpenseRequestDto expenseRequestDto, Expense expense) {
+  private void setExpenseDueDate(ExpenseRequestDto expenseRequestDto, Expense expense) {
 
     LocalDate today = expenseRequestDto.getCreationDate();
     LocalDate tomorrow = today.plusDays(1);

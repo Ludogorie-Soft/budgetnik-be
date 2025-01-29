@@ -3,6 +3,7 @@ package com.ludogorieSoft.budgetnik.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ludogorieSoft.budgetnik.model.enums.Regularity;
 import com.ludogorieSoft.budgetnik.model.enums.Type;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -11,11 +12,13 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -49,9 +52,12 @@ public class Expense {
 
   private boolean autoCreate = false;
 
-  @OneToOne
+  @ManyToOne
   @JoinColumn(name = "related_expense_id")
   private Expense relatedExpense;
+
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<Expense> relatedExpenses;
 
   @ManyToOne
   @JoinColumn(name = "category_id", nullable = false)
