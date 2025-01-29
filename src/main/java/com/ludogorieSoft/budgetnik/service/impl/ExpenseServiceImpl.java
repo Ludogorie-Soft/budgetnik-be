@@ -12,6 +12,7 @@ import com.ludogorieSoft.budgetnik.repository.ExpenseRepository;
 import com.ludogorieSoft.budgetnik.service.ExpenseCategoryService;
 import com.ludogorieSoft.budgetnik.service.ExpenseService;
 import com.ludogorieSoft.budgetnik.service.UserService;
+import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -30,6 +31,7 @@ public class ExpenseServiceImpl implements ExpenseService {
   private final ExpenseCategoryService expenseCategoryService;
 
   @Override
+  @Transactional
   public ExpenseResponseDto createExpense(ExpenseRequestDto expenseRequestDto) {
     Expense expense = new Expense();
     User user = userService.findById(expenseRequestDto.getOwnerId());
@@ -37,12 +39,8 @@ public class ExpenseServiceImpl implements ExpenseService {
     expense.setType(expenseRequestDto.getType());
     if (expenseRequestDto.getType().equals(Type.FIXED)) {
       expense.setRegularity(expenseRequestDto.getRegularity());
-
       fillFixedExpenseRelation(expenseRequestDto, expense);
-
-      if (expenseRequestDto.isAutoCreate()) {
-        expense.setAutoCreate(true);
-      }
+      expense.setAutoCreate(expenseRequestDto.isAutoCreate());
     } else {
       expense.setOneTimeExpense(expenseRequestDto.getOneTimeExpense());
     }
@@ -111,12 +109,8 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     if (expenseRequestDto.getType().equals(Type.FIXED)) {
       expense.setRegularity(expenseRequestDto.getRegularity());
-
       fillFixedExpenseRelation(expenseRequestDto, expense);
-
-      if (expenseRequestDto.isAutoCreate()) {
-        expense.setAutoCreate(true);
-      }
+      expense.setAutoCreate(expenseRequestDto.isAutoCreate());
     } else {
       expense.setOneTimeExpense(expenseRequestDto.getOneTimeExpense());
     }

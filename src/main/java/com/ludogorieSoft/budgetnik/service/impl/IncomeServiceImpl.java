@@ -16,6 +16,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -30,6 +32,7 @@ public class IncomeServiceImpl implements IncomeService {
   private final IncomeCategoryService incomeCategoryService;
 
   @Override
+  @Transactional
   public IncomeResponseDto createIncome(IncomeRequestDto incomeRequestDto) {
     Income income = new Income();
 
@@ -39,12 +42,8 @@ public class IncomeServiceImpl implements IncomeService {
 
     if (incomeRequestDto.getType().equals(Type.FIXED)) {
       income.setRegularity(incomeRequestDto.getRegularity());
-
       fillFixedIncomeRelation(incomeRequestDto, income);
-
-      if (incomeRequestDto.isAutoCreate()) {
-        income.setAutoCreate(true);
-      }
+      income.setAutoCreate(incomeRequestDto.isAutoCreate());
     } else {
       income.setOneTimeIncome(incomeRequestDto.getOneTimeIncome());
     }
@@ -114,12 +113,8 @@ public class IncomeServiceImpl implements IncomeService {
 
     if (incomeRequestDto.getType().equals(Type.FIXED)) {
       income.setRegularity(incomeRequestDto.getRegularity());
-
       fillFixedIncomeRelation(incomeRequestDto, income);
-
-      if (incomeRequestDto.isAutoCreate()) {
-        income.setAutoCreate(true);
-      }
+      income.setAutoCreate(incomeRequestDto.isAutoCreate());
     } else {
       income.setOneTimeIncome(incomeRequestDto.getOneTimeIncome());
     }
