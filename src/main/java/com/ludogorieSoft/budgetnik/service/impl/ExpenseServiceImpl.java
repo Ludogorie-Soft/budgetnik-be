@@ -167,7 +167,7 @@ public class ExpenseServiceImpl implements ExpenseService {
   }
 
   @Override
-  public List<ExpenseResponseDto> findAllExpensesByDueDateAndType(LocalDate date, Type type) {
+  public List<ExpenseResponseDto> findAllFixedExpensesByDueDate(LocalDate date, Type type) {
     return expenseRepository.findByDueDateAndRelatedExpenseIsNullAndType(date, type).stream()
         .map(expense -> modelMapper.map(expense, ExpenseResponseDto.class))
         .toList();

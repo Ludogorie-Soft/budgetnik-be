@@ -120,7 +120,7 @@ public class IncomesController {
 
   @GetMapping("/users/due-date")
   public ResponseEntity<List<IncomeResponseDto>> findAllFixedIncomesByDueDate(@RequestParam("date") LocalDate date) {
-    List<IncomeResponseDto> response = incomeService.findAllIncomesByDueDateAndType(date, Type.FIXED);
+    List<IncomeResponseDto> response = incomeService.findAllFixedIncomesByDueDate(date, Type.FIXED);
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 }

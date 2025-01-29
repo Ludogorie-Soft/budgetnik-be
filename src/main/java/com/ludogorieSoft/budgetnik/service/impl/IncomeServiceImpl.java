@@ -172,7 +172,7 @@ public class IncomeServiceImpl implements IncomeService {
   }
 
   @Override
-  public List<IncomeResponseDto> findAllIncomesByDueDateAndType(LocalDate date, Type type) {
+  public List<IncomeResponseDto> findAllFixedIncomesByDueDate(LocalDate date, Type type) {
     return incomeRepository.findByDueDateAndRelatedIncomeIsNullAndType(date, type).stream()
             .map(income -> modelMapper.map(income, IncomeResponseDto.class))
             .toList();
