@@ -45,7 +45,7 @@ public class IncomeServiceImpl implements IncomeService {
     income.setType(incomeRequestDto.getType());
     income.setRegularity(incomeRequestDto.getRegularity());
     income.setAutoCreate(incomeRequestDto.isAutoCreate());
-    income.setOneTimeIncome(incomeRequestDto.getOneTimeIncome());
+    income.setDescription(incomeRequestDto.getDescription());
     income.setSum(incomeRequestDto.getSum());
 
     setIncomeCategory(incomeRequestDto, income);
@@ -119,7 +119,7 @@ public class IncomeServiceImpl implements IncomeService {
     income.setCreationDate(incomeRequestDto.getCreationDate());
     income.setRegularity(incomeRequestDto.getRegularity());
     income.setAutoCreate(incomeRequestDto.isAutoCreate());
-    income.setOneTimeIncome(incomeRequestDto.getOneTimeIncome());
+    income.setDescription(incomeRequestDto.getDescription());
 
     setIncomeCategory(incomeRequestDto, income);
     setIncomeDueDate(incomeRequestDto, income);

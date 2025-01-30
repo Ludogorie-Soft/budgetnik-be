@@ -45,7 +45,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     expense.setType(expenseRequestDto.getType());
     expense.setRegularity(expenseRequestDto.getRegularity());
     expense.setAutoCreate(expenseRequestDto.isAutoCreate());
-    expense.setOneTimeExpense(expenseRequestDto.getOneTimeExpense());
+    expense.setDescription(expenseRequestDto.getDescription());
     expense.setSum(expenseRequestDto.getSum());
 
     setExpenseCategory(expenseRequestDto, expense);
@@ -90,7 +90,7 @@ public class ExpenseServiceImpl implements ExpenseService {
   public ExpenseResponseDto deleteExpense(UUID id) {
     Expense expense = findById(id);
 
-    if (expense.getOneTimeExpense() != null) {
+    if (expense.getRelatedExpense() != null) {
       Expense relatedExpense = findById(expense.getRelatedExpense().getId());
 
       List<Expense> relatedExpenses = relatedExpense.getRelatedExpenses();
@@ -126,7 +126,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     expense.setType(expenseRequestDto.getType());
     expense.setRegularity(expenseRequestDto.getRegularity());
     expense.setAutoCreate(expenseRequestDto.isAutoCreate());
-    expense.setOneTimeExpense(expenseRequestDto.getOneTimeExpense());
+    expense.setDescription(expenseRequestDto.getDescription());
     expense.setCreationDate(expenseRequestDto.getCreationDate());
 
     setExpenseCategory(expenseRequestDto, expense);

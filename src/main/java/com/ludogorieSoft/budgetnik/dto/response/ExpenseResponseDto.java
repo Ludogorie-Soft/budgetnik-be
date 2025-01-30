@@ -17,7 +17,7 @@ public class ExpenseResponseDto {
     private LocalDate creationDate;
     private CategoryResponseDto expenseCategory;
     private BigDecimal sum;
-    private String oneTimeIncome;
+    private String description;
     private LocalDate dueDate;
     private UUID relatedExpenseId;
     private boolean autoCreate;

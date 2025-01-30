@@ -376,7 +376,7 @@ class ExpenseServiceImplTest {
 
     assertEquals(requestDto.getSum(), expense.getSum());
     assertEquals(Type.VARIABLE, expense.getType());
-    assertEquals(requestDto.getOneTimeExpense(), expense.getOneTimeExpense());
+    assertEquals(requestDto.getDescription(), expense.getDescription());
   }
 
   private static ExpenseCategory getTestExpenseCategory() {
@@ -414,7 +414,7 @@ class ExpenseServiceImplTest {
     Expense expense = new Expense();
     expense.setOwner(user);
     expense.setType(Type.VARIABLE);
-    expense.setOneTimeExpense("Something");
+    expense.setDescription("Something");
     expense.setCategory(expenseCategory);
     expense.setCreationDate(LocalDate.now());
     expense.setSum(BigDecimal.ONE);
@@ -426,7 +426,7 @@ class ExpenseServiceImplTest {
     requestDto.setOwnerId(ownerId);
     requestDto.setType(Type.VARIABLE);
     requestDto.setRegularity(Regularity.MONTHLY);
-    requestDto.setOneTimeExpense("Something");
+    requestDto.setDescription("Something");
     requestDto.setCategory("Extra");
     requestDto.setCreationDate(LocalDate.now());
     requestDto.setSum(BigDecimal.ONE);

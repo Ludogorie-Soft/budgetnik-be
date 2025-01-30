@@ -14,7 +14,7 @@ public class ExpenseRequestDto {
   private LocalDate creationDate;
   private String category;
   private BigDecimal sum;
-  private String oneTimeExpense;
+  private String description;
   private UUID ownerId;
   private UUID relatedExpenseId;
   private boolean autoCreate;

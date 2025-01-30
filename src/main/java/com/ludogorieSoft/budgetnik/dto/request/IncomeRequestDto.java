@@ -14,7 +14,7 @@ public class IncomeRequestDto {
   private LocalDate creationDate;
   private String category;
   private BigDecimal sum;
-  private String oneTimeIncome;
+  private String description;
   private UUID ownerId;
   private UUID relatedIncomeId;
   private boolean autoCreate;

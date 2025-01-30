@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -377,7 +376,7 @@ class IncomeServiceImplTest {
 
     assertEquals(requestDto.getSum(), income.getSum());
     assertEquals(Type.VARIABLE, income.getType());
-    assertEquals(requestDto.getOneTimeIncome(), income.getOneTimeIncome());
+    assertEquals(requestDto.getDescription(), income.getDescription());
   }
 
     private static IncomeCategory getTestIncomeCategory() {
@@ -418,7 +417,7 @@ class IncomeServiceImplTest {
     income.setOwner(user);
     income.setType(Type.VARIABLE);
     income.setRegularity(Regularity.MONTHLY);
-    income.setOneTimeIncome("Bonus");
+    income.setDescription("Bonus");
     income.setCategory(incomeCategory);
     income.setCreationDate(LocalDate.now());
     income.setSum(BigDecimal.ONE);
@@ -432,7 +431,7 @@ class IncomeServiceImplTest {
     requestDto.setOwnerId(ownerId);
     requestDto.setType(Type.VARIABLE);
     requestDto.setRegularity(Regularity.MONTHLY);
-    requestDto.setOneTimeIncome("Bonus");
+    requestDto.setDescription("Bonus");
     requestDto.setCategory("Extra");
     requestDto.setCreationDate(LocalDate.now());
     requestDto.setSum(BigDecimal.ONE);
