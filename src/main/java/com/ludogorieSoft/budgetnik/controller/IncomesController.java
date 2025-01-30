@@ -119,8 +119,8 @@ public class IncomesController {
   }
 
   @GetMapping("/users/due-date")
-  public ResponseEntity<List<IncomeResponseDto>> findAllFixedIncomesByDueDate(@RequestParam("date") LocalDate date) {
-    List<IncomeResponseDto> response = incomeService.findAllFixedIncomesBeforeThanEqualDueDate(date, Type.FIXED);
+  public ResponseEntity<List<IncomeResponseDto>> findAllFixedIncomesByDueDate(@RequestParam("id") UUID id, @RequestParam("date") LocalDate date) {
+    List<IncomeResponseDto> response = incomeService.findAllFixedIncomesBeforeThanEqualDueDate(date, Type.FIXED, id);
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 }

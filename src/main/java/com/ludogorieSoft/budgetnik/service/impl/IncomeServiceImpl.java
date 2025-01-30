@@ -169,8 +169,8 @@ public class IncomeServiceImpl implements IncomeService {
 
   @Override
   public List<IncomeResponseDto> findAllFixedIncomesBeforeThanEqualDueDate(
-      LocalDate date, Type type) {
-    return incomeRepository.findByDueDateLessThanEqualAndType(date, type).stream()
+      LocalDate date, Type type, UUID userId) {
+    return incomeRepository.findByDueDateLessThanEqualAndTypeAndOwnerId(date, type, userId).stream()
         .map(income -> modelMapper.map(income, IncomeResponseDto.class))
         .toList();
   }

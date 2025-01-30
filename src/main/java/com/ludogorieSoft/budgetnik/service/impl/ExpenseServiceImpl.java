@@ -177,8 +177,8 @@ public class ExpenseServiceImpl implements ExpenseService {
 
   @Override
   public List<ExpenseResponseDto> findAllFixedExpensesBeforeThanEqualDueDate(
-      LocalDate date, Type type) {
-    return expenseRepository.findByDueDateLessThanEqualAndType(date, type).stream()
+      LocalDate date, Type type, UUID userId) {
+    return expenseRepository.findByDueDateLessThanEqualAndTypeAndOwnerId(date, type, userId).stream()
         .map(expense -> modelMapper.map(expense, ExpenseResponseDto.class))
         .toList();
   }

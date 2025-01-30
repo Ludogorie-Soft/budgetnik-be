@@ -35,5 +35,5 @@ public interface ExpenseService {
 
   BigDecimal calculateSumOfUserExpensesByTypeAndPeriod(UUID userId, Type type, LocalDate startDate, LocalDate endDate);
 
-  List<ExpenseResponseDto> findAllFixedExpensesBeforeThanEqualDueDate(LocalDate date, Type type);
+  List<ExpenseResponseDto> findAllFixedExpensesBeforeThanEqualDueDate(LocalDate date, Type type, UUID userId);
     }

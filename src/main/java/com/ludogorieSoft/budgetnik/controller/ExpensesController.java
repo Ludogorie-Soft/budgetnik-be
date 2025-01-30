@@ -122,9 +122,9 @@ public class ExpensesController {
 
   @GetMapping("/users/due-date")
   public ResponseEntity<List<ExpenseResponseDto>> findAllFixedExpensesByDueDate(
-      @RequestParam("date") LocalDate date) {
+      @RequestParam("id") UUID id, @RequestParam("date") LocalDate date) {
     List<ExpenseResponseDto> response =
-        expenseService.findAllFixedExpensesBeforeThanEqualDueDate(date, Type.FIXED);
+        expenseService.findAllFixedExpensesBeforeThanEqualDueDate(date, Type.FIXED, id);
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 }

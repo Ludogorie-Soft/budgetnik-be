@@ -61,5 +61,5 @@ public interface IncomeRepository extends JpaRepository<Income, UUID> {
       @Param("startDate") LocalDate startDate,
       @Param("endDate") LocalDate endDate);
 
-  List<Income> findByDueDateLessThanEqualAndType(LocalDate dueDate, Type type);
+  List<Income> findByDueDateLessThanEqualAndTypeAndOwnerId(LocalDate dueDate, Type type, UUID userId);
 }
