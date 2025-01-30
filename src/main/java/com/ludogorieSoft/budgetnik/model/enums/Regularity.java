@@ -6,5 +6,6 @@ public enum Regularity {
     MONTHLY,
     QUARTERLY,
     SIX_MONTHS,
-    ANNUAL
+    ANNUAL,
+    ONE_TIME
 }
