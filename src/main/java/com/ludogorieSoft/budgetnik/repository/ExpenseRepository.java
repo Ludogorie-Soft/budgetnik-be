@@ -63,5 +63,8 @@ public interface ExpenseRepository extends JpaRepository<Expense, UUID> {
       @Param("startDate") LocalDate startDate,
       @Param("endDate") LocalDate endDate);
 
-  List<Expense> findByDueDateLessThanEqualAndTypeAndOwnerId(LocalDate dueDate, Type type, UUID userId);
+  List<Expense> findByDueDateLessThanEqualAndTypeAndOwnerId(
+      LocalDate dueDate, Type type, UUID userId);
+
+  List<Expense> findByRelatedExpenseIdAndOwnerId(UUID relatedExpenseId, UUID ownerId);
 }

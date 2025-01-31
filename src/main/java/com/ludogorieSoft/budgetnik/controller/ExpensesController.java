@@ -127,4 +127,11 @@ public class ExpensesController {
         expenseService.findAllFixedExpensesBeforeThanEqualDueDate(date, Type.FIXED, id);
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
+
+  @GetMapping("/users/related-expenses")
+  public ResponseEntity<List<ExpenseResponseDto>> findRelatedExpenses(
+      @RequestParam("expenseId") UUID expenseId, @RequestParam("userId") UUID userId) {
+    List<ExpenseResponseDto> response = expenseService.findRelatedExpenses(expenseId, userId);
+    return new ResponseEntity<>(response, HttpStatus.OK);
+  }
 }

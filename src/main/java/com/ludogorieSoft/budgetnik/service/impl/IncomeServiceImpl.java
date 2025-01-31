@@ -175,6 +175,13 @@ public class IncomeServiceImpl implements IncomeService {
         .toList();
   }
 
+  @Override
+  public List<IncomeResponseDto> findRelatedIncomes(UUID incomeId, UUID userId) {
+    return incomeRepository.findByRelatedIncomeIdAndOwnerId(incomeId, userId).stream()
+        .map(income -> modelMapper.map(income, IncomeResponseDto.class))
+        .toList();
+  }
+
   private Income findById(UUID id) {
     return incomeRepository.findById(id).orElseThrow(IncomeNotFoundException::new);
   }

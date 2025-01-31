@@ -37,4 +37,6 @@ public interface IncomeService {
       UUID userId, Type type, LocalDate startDate, LocalDate endDate);
 
   List<IncomeResponseDto> findAllFixedIncomesBeforeThanEqualDueDate(LocalDate date, Type type, UUID userId);
+
+  List<IncomeResponseDto> findRelatedIncomes(UUID incomeId, UUID userId);
 }

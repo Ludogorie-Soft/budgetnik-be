@@ -33,7 +33,11 @@ public interface ExpenseService {
   BigDecimal getSumOfAllExpensesOfUserForPeriodByCategory(
       UUID id, String category, LocalDate firstDate, LocalDate lastDate);
 
-  BigDecimal calculateSumOfUserExpensesByTypeAndPeriod(UUID userId, Type type, LocalDate startDate, LocalDate endDate);
+  BigDecimal calculateSumOfUserExpensesByTypeAndPeriod(
+      UUID userId, Type type, LocalDate startDate, LocalDate endDate);
 
-  List<ExpenseResponseDto> findAllFixedExpensesBeforeThanEqualDueDate(LocalDate date, Type type, UUID userId);
-    }
+  List<ExpenseResponseDto> findAllFixedExpensesBeforeThanEqualDueDate(
+      LocalDate date, Type type, UUID userId);
+
+  List<ExpenseResponseDto> findRelatedExpenses(UUID expenseId, UUID userId);
+}

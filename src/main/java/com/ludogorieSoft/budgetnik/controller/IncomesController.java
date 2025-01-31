@@ -123,4 +123,13 @@ public class IncomesController {
     List<IncomeResponseDto> response = incomeService.findAllFixedIncomesBeforeThanEqualDueDate(date, Type.FIXED, id);
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
+
+  @GetMapping("/users/related-incomes")
+  public ResponseEntity<List<IncomeResponseDto>> findAllRelatedIncomes(
+          @RequestParam("incomeId") UUID incomeId,
+          @RequestParam("userId") UUID userId
+  ) {
+    List<IncomeResponseDto> response = incomeService.findRelatedIncomes(incomeId, userId);
+    return new ResponseEntity<>(response, HttpStatus.OK);
+  }
 }
