@@ -20,5 +20,4 @@ public class ExpenseResponseDto {
     private String description;
     private LocalDate dueDate;
     private UUID relatedExpenseId;
-    private boolean autoCreate;
 }

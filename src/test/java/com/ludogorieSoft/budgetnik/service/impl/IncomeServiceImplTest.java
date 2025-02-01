@@ -22,7 +22,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -396,7 +395,6 @@ class IncomeServiceImplTest {
     income.setCreationDate(LocalDate.now());
     income.setSum(BigDecimal.ONE);
     income.setDueDate(LocalDate.now().plusMonths(1));
-    income.setAutoCreate(false);
     return income;
   }
 
@@ -408,7 +406,6 @@ class IncomeServiceImplTest {
     requestDto.setCategory("Salary");
     requestDto.setCreationDate(LocalDate.now());
     requestDto.setSum(BigDecimal.ONE);
-    requestDto.setAutoCreate(false);
     return requestDto;
   }
 
@@ -422,7 +419,6 @@ class IncomeServiceImplTest {
     income.setCreationDate(LocalDate.now());
     income.setSum(BigDecimal.ONE);
     income.setDueDate(LocalDate.now().plusMonths(1));
-    income.setAutoCreate(false);
     return income;
   }
 
@@ -435,7 +431,6 @@ class IncomeServiceImplTest {
     requestDto.setCategory("Extra");
     requestDto.setCreationDate(LocalDate.now());
     requestDto.setSum(BigDecimal.ONE);
-    requestDto.setAutoCreate(false);
     return requestDto;
   }
 }

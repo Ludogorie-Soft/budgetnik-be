@@ -49,8 +49,6 @@ public class Expense {
 
   private LocalDate dueDate;
 
-  private boolean autoCreate = false;
-
   @ManyToOne
   @JoinColumn(name = "related_expense_id")
   private Expense relatedExpense;

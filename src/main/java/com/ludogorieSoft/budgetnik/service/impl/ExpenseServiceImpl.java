@@ -44,7 +44,6 @@ public class ExpenseServiceImpl implements ExpenseService {
     expense.setCreationDate(expenseRequestDto.getCreationDate());
     expense.setType(expenseRequestDto.getType());
     expense.setRegularity(expenseRequestDto.getRegularity());
-    expense.setAutoCreate(expenseRequestDto.isAutoCreate());
     expense.setDescription(expenseRequestDto.getDescription());
     expense.setSum(expenseRequestDto.getSum());
 
@@ -125,7 +124,6 @@ public class ExpenseServiceImpl implements ExpenseService {
     expense.setSum(expenseRequestDto.getSum());
     expense.setType(expenseRequestDto.getType());
     expense.setRegularity(expenseRequestDto.getRegularity());
-    expense.setAutoCreate(expenseRequestDto.isAutoCreate());
     expense.setDescription(expenseRequestDto.getDescription());
     expense.setCreationDate(expenseRequestDto.getCreationDate());
 

@@ -64,11 +64,13 @@ class ExpenseServiceImplTest {
     responseDto.setSum(BigDecimal.ONE);
 
     when(userService.findById(ownerId)).thenReturn(user);
-    when(expenseRepository.save(any(Expense.class))).thenAnswer(invocation -> {
-      Expense savedExpense = invocation.getArgument(0);
-      savedExpense.setId(UUID.randomUUID());
-      return savedExpense;
-    });
+    when(expenseRepository.save(any(Expense.class)))
+        .thenAnswer(
+            invocation -> {
+              Expense savedExpense = invocation.getArgument(0);
+              savedExpense.setId(UUID.randomUUID());
+              return savedExpense;
+            });
     when(modelMapper.map(any(Expense.class), eq(ExpenseResponseDto.class))).thenReturn(responseDto);
 
     // WHEN
@@ -98,11 +100,13 @@ class ExpenseServiceImplTest {
     responseDto.setSum(BigDecimal.ONE);
 
     when(userService.findById(ownerId)).thenReturn(user);
-    when(expenseRepository.save(any(Expense.class))).thenAnswer(invocation -> {
-      Expense savedExpense = invocation.getArgument(0);
-      savedExpense.setId(UUID.randomUUID());
-      return savedExpense;
-    });
+    when(expenseRepository.save(any(Expense.class)))
+        .thenAnswer(
+            invocation -> {
+              Expense savedExpense = invocation.getArgument(0);
+              savedExpense.setId(UUID.randomUUID());
+              return savedExpense;
+            });
     when(modelMapper.map(any(Expense.class), eq(ExpenseResponseDto.class))).thenReturn(responseDto);
 
     // WHEN
@@ -406,7 +410,6 @@ class ExpenseServiceImplTest {
     requestDto.setCategory("Salary");
     requestDto.setCreationDate(LocalDate.now());
     requestDto.setSum(BigDecimal.ONE);
-    requestDto.setAutoCreate(false);
     return requestDto;
   }
 
@@ -430,7 +433,6 @@ class ExpenseServiceImplTest {
     requestDto.setCategory("Extra");
     requestDto.setCreationDate(LocalDate.now());
     requestDto.setSum(BigDecimal.ONE);
-    requestDto.setAutoCreate(false);
     return requestDto;
   }
 }

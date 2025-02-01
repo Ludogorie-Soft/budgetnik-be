@@ -50,8 +50,6 @@ public class Income {
 
   private LocalDate dueDate;
 
-  private boolean autoCreate = false;
-
   @ManyToOne
   @JoinColumn(name = "related_income_id")
   private Income relatedIncome;

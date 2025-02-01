@@ -17,5 +17,4 @@ public class ExpenseRequestDto {
   private String description;
   private UUID ownerId;
   private UUID relatedExpenseId;
-  private boolean autoCreate;
 }

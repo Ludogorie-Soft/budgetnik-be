@@ -17,5 +17,4 @@ public class IncomeRequestDto {
   private String description;
   private UUID ownerId;
   private UUID relatedIncomeId;
-  private boolean autoCreate;
 }

@@ -20,5 +20,4 @@ public class IncomeResponseDto {
   private String description;
   private LocalDate dueDate;
   private UUID relatedIncomeId;
-  private boolean autoCreate;
 }
