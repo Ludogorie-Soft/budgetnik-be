@@ -83,7 +83,7 @@ public class IncomeServiceImpl implements IncomeService {
   public IncomeResponseDto deleteIncome(UUID id) {
     Income income = findById(id);
 
-    if (!income.getRelatedIncomes().isEmpty()) {
+    if (income.getRelatedIncomes() != null) {
       for (Income related : income.getRelatedIncomes()) {
         related.setRelatedIncome(null);
         incomeRepository.save(related);
