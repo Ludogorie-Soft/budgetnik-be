@@ -54,7 +54,7 @@ public class Income {
   @JoinColumn(name = "related_income_id")
   private Income relatedIncome;
 
-  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany()
   private List<Income> relatedIncomes;
 
   @ManyToOne

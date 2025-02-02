@@ -89,6 +89,13 @@ public class ExpenseServiceImpl implements ExpenseService {
   public ExpenseResponseDto deleteExpense(UUID id) {
     Expense expense = findById(id);
 
+    if (!expense.getRelatedExpenses().isEmpty()) {
+      for (Expense related : expense.getRelatedExpenses()) {
+        related.setRelatedExpense(null);
+        expenseRepository.save(related);
+      }
+    }
+
     if (expense.getRelatedExpense() != null) {
       Expense relatedExpense = findById(expense.getRelatedExpense().getId());
 

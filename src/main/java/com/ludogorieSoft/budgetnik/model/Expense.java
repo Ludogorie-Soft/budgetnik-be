@@ -53,7 +53,7 @@ public class Expense {
   @JoinColumn(name = "related_expense_id")
   private Expense relatedExpense;
 
-  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany()
   private List<Expense> relatedExpenses;
 
   @ManyToOne

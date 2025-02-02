@@ -3,6 +3,7 @@ package com.ludogorieSoft.budgetnik.service.impl;
 import com.ludogorieSoft.budgetnik.dto.request.IncomeRequestDto;
 import com.ludogorieSoft.budgetnik.dto.response.IncomeResponseDto;
 import com.ludogorieSoft.budgetnik.exception.IncomeNotFoundException;
+import com.ludogorieSoft.budgetnik.model.Expense;
 import com.ludogorieSoft.budgetnik.model.Income;
 import com.ludogorieSoft.budgetnik.model.IncomeCategory;
 import com.ludogorieSoft.budgetnik.model.User;
@@ -81,6 +82,13 @@ public class IncomeServiceImpl implements IncomeService {
   @Transactional
   public IncomeResponseDto deleteIncome(UUID id) {
     Income income = findById(id);
+
+    if (!income.getRelatedIncomes().isEmpty()) {
+      for (Income related : income.getRelatedIncomes()) {
+        related.setRelatedIncome(null);
+        incomeRepository.save(related);
+      }
+    }
 
     if (income.getRelatedIncome() != null) {
       Income relatedIncome = findById(income.getRelatedIncome().getId());
