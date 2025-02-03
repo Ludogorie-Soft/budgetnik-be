@@ -266,7 +266,7 @@ class AuthServiceImplTest {
 
     verify(tokenService).findByToken("mock-jwt-token");
     verify(jwtService).isTokenValid("mock-jwt-token", currentUser);
-    verify(tokenService).revokeAllUserTokens(currentUser);
+//    verify(tokenService).revokeAllUserTokens(currentUser);
   }
 
   @Test
@@ -286,7 +286,7 @@ class AuthServiceImplTest {
 
     verify(tokenService).findByToken("mock-jwt-token");
     verify(jwtService).isTokenValid("mock-jwt-token", currentUser);
-    verify(tokenService).revokeAllUserTokens(currentUser);
+//    verify(tokenService).revokeAllUserTokens(currentUser);
   }
 
   @Test
@@ -294,17 +294,15 @@ class AuthServiceImplTest {
     // GIVEN
     RegisterRequest registerRequest = new RegisterRequest();
     User user = new User();
-    AuthResponse expectedResponse = new AuthResponse();
 
     when(userService.createUser(registerRequest)).thenReturn(user);
-    when(tokenService.generateAuthResponse(user)).thenReturn(expectedResponse);
 
     // WHEN
-    AuthResponse actualResponse = authenticationService.register(registerRequest);
+    authenticationService.register(registerRequest);
 
     // THEN
-    assertEquals(expectedResponse, actualResponse);
-    verify(tokenService, times(1)).generateAuthResponse(user);
+    verify(userService, times(1)).createUser(registerRequest);
+    verify(modelMapper, times(1)).map(user, UserResponse.class);
   }
 
   @Test
@@ -313,10 +311,9 @@ class AuthServiceImplTest {
     when(userService.findByEmail(loginRequest.getEmail())).thenReturn(user);
 
     // WHEN
-    AuthResponse actualResponse = authenticationService.login(loginRequest);
+    authenticationService.login(loginRequest);
 
     // THEN
-    verify(tokenService, times(1)).revokeAllUserTokens(user);
     verify(tokenService, times(1)).generateAuthResponse(user);
   }
 
@@ -334,7 +331,6 @@ class AuthServiceImplTest {
 
     assertNotNull(exception);
     verify(authenticationManager, never()).authenticate(any());
-    verify(tokenService, never()).revokeAllUserTokens(any());
   }
 
   @Test
@@ -354,7 +350,6 @@ class AuthServiceImplTest {
         assertThrows(UserLoginException.class, () -> authenticationService.login(loginRequest));
 
     assertEquals("Грешен имейл или парола!", exception.getMessage());
-    verify(tokenService, never()).revokeAllUserTokens(any());
   }
 
   @Test

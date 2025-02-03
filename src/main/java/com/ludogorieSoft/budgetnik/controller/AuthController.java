@@ -4,6 +4,7 @@ import com.ludogorieSoft.budgetnik.dto.request.LoginRequest;
 import com.ludogorieSoft.budgetnik.dto.request.RefreshTokenDto;
 import com.ludogorieSoft.budgetnik.dto.request.RegisterRequest;
 import com.ludogorieSoft.budgetnik.dto.response.AuthResponse;
+import com.ludogorieSoft.budgetnik.dto.response.UserResponse;
 import com.ludogorieSoft.budgetnik.event.OnConfirmRegistrationEvent;
 import com.ludogorieSoft.budgetnik.event.OnPasswordResetRequestEvent;
 import com.ludogorieSoft.budgetnik.model.User;
@@ -32,10 +33,10 @@ public class AuthController {
   private final ApplicationEventPublisher applicationEventPublisher;
 
   @PostMapping("/register")
-  public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
-    AuthResponse authResponse = authService.register(request);
+  public ResponseEntity<UserResponse> register(@RequestBody RegisterRequest request) {
+    UserResponse userResponse = authService.register(request);
     sendVerificationEmail(request.getEmail());
-    return ResponseEntity.ok(authResponse);
+    return ResponseEntity.ok(userResponse);
   }
 
   @PutMapping("/confirm-registration")
@@ -65,8 +66,7 @@ public class AuthController {
 
   @PostMapping("/refresh-token")
   public ResponseEntity<AuthResponse> refreshToken(@RequestBody RefreshTokenDto refreshToken) {
-    AuthResponse authenticationResponse =
-        authService.refreshToken(refreshToken.getRefreshToken());
+    AuthResponse authenticationResponse = authService.refreshToken(refreshToken.getRefreshToken());
     return ResponseEntity.ok(authenticationResponse);
   }
 

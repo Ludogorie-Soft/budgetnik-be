@@ -51,9 +51,9 @@ public class AuthServiceImpl implements AuthService {
   private final PasswordEncoder passwordEncoder;
 
   @Override
-  public AuthResponse register(RegisterRequest registerRequest) {
+  public UserResponse register(RegisterRequest registerRequest) {
     User user = userService.createUser(registerRequest);
-    return tokenService.generateAuthResponse(user);
+    return modelMapper.map(user, UserResponse.class);
   }
 
   @Override
@@ -74,7 +74,6 @@ public class AuthServiceImpl implements AuthService {
       throw new UserLoginException("Грешен имейл или парола!");
     }
 
-    tokenService.revokeAllUserTokens(user);
     logger.info("User with id " + user.getId() + " logged in!");
     return tokenService.generateAuthResponse(user);
   }
@@ -103,7 +102,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
     if (!isTokenValid) {
-      tokenService.revokeAllUserTokens(user);
       throw new InvalidTokenException();
     }
 
@@ -155,13 +153,11 @@ public class AuthServiceImpl implements AuthService {
     User user = userService.findByEmail(userEmail);
 
     if (!jwtService.isTokenValid(refreshToken, user)) {
-      tokenService.revokeToken(token);
       throw new InvalidTokenException();
     }
 
     String accessToken = jwtService.generateToken(user);
 
-    tokenService.revokeAllUserTokens(user);
     tokenService.saveToken(user, accessToken, TokenType.ACCESS);
     tokenService.saveToken(user, refreshToken, TokenType.REFRESH);
 

@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.function.Consumer;
 
 public interface AuthService {
-  AuthResponse register(RegisterRequest registerRequest);
+  UserResponse register(RegisterRequest registerRequest);
 
   AuthResponse login(LoginRequest loginRequest);
 

@@ -68,16 +68,6 @@ public class TokenServiceImpl implements TokenService {
   }
 
   @Override
-  public void revokeToken(Token token) {
-    tokenRepository.delete(token);
-  }
-
-  @Override
-  public void revokeAllUserTokens(User user) {
-    tokenRepository.deleteAll(tokenRepository.findAllByUser(user));
-  }
-
-  @Override
   @Transactional
   public void logoutToken(String jwt) {
     Token storedToken = tokenRepository.findByToken(jwt).orElse(null);
@@ -86,7 +76,6 @@ public class TokenServiceImpl implements TokenService {
       return;
     }
 
-    revokeAllUserTokens(storedToken.getUser());
     SecurityContextHolder.clearContext();
   }
 }
