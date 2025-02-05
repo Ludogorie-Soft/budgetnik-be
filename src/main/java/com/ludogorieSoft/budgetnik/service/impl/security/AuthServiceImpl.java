@@ -39,7 +39,8 @@ public class AuthServiceImpl implements AuthService {
 
   private static final Logger logger = LoggerFactory.getLogger(AuthServiceImpl.class);
 
-  private static final String TOKEN_EXPIRED = "Изтекла сесия!";
+  private static final String TOKEN_EXPIRED =
+      "Изтекла сесия! Моля влезте отново във вашият акаунт!";
 
   private final UserService userService;
   private final TokenService tokenService;
@@ -97,7 +98,7 @@ public class AuthServiceImpl implements AuthService {
 
     try {
       isTokenValid = jwtService.isTokenValid(accessToken.getToken(), user);
-    } catch (JwtException jwtException) {
+    } catch (InvalidTokenException jwtException) {
       isTokenValid = false;
     }
 

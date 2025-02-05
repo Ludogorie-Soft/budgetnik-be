@@ -27,7 +27,6 @@ import com.ludogorieSoft.budgetnik.service.AuthService;
 import com.ludogorieSoft.budgetnik.service.JwtService;
 import com.ludogorieSoft.budgetnik.service.TokenService;
 import com.ludogorieSoft.budgetnik.service.UserService;
-import io.jsonwebtoken.JwtException;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -67,7 +66,7 @@ class AuthServiceImplTest {
   private UserResponse userResponse;
   private VerificationToken mockVerificationToken;
 
-  private static final String TOKEN_EXPIRED = "Изтекла сесия!";
+  private static final String TOKEN_EXPIRED = "Изтекла сесия! Моля влезте отново във вашият акаунт!";
 
   @BeforeEach
   void setUp() {
@@ -218,11 +217,8 @@ class AuthServiceImplTest {
 
   @Test
   void testGetUserByJwt_NullToken() {
-    // GIVEN
-    String nullToken = null;
-
     // WHEN & THEN
-    assertThrows(InvalidTokenException.class, () -> authenticationService.getUserByJwt(nullToken));
+    assertThrows(InvalidTokenException.class, () -> authenticationService.getUserByJwt(null));
     verifyNoInteractions(tokenService, jwtService, modelMapper);
   }
 
@@ -266,7 +262,6 @@ class AuthServiceImplTest {
 
     verify(tokenService).findByToken("mock-jwt-token");
     verify(jwtService).isTokenValid("mock-jwt-token", currentUser);
-//    verify(tokenService).revokeAllUserTokens(currentUser);
   }
 
   @Test
@@ -279,30 +274,29 @@ class AuthServiceImplTest {
     when(tokenService.findByToken("mock-jwt-token")).thenReturn(jwt);
     when(jwt.getToken()).thenReturn("mock-jwt-token");
     when(jwt.getUser()).thenReturn(currentUser);
-    when(jwtService.isTokenValid("mock-jwt-token", currentUser)).thenThrow(new JwtException("Invalid JWT"));
+    when(jwtService.isTokenValid("mock-jwt-token", currentUser)).thenThrow(new InvalidTokenException());
 
     // WHEN & THEN
     assertThrows(InvalidTokenException.class, () -> authenticationService.getUserByJwt(validToken));
 
     verify(tokenService).findByToken("mock-jwt-token");
     verify(jwtService).isTokenValid("mock-jwt-token", currentUser);
-//    verify(tokenService).revokeAllUserTokens(currentUser);
   }
 
   @Test
   void testRegisterUser_Success() {
     // GIVEN
     RegisterRequest registerRequest = new RegisterRequest();
-    User user = new User();
+    User testUser = new User();
 
-    when(userService.createUser(registerRequest)).thenReturn(user);
+    when(userService.createUser(registerRequest)).thenReturn(testUser);
 
     // WHEN
     authenticationService.register(registerRequest);
 
     // THEN
     verify(userService, times(1)).createUser(registerRequest);
-    verify(modelMapper, times(1)).map(user, UserResponse.class);
+    verify(modelMapper, times(1)).map(testUser, UserResponse.class);
   }
 
   @Test
