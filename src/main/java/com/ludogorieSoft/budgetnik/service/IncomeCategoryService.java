@@ -9,4 +9,5 @@ public interface IncomeCategoryService {
     CategoryResponseDto createCategory(CategoryRequestDto categoryRequestDto);
     IncomeCategory getCategory(String name);
     List<CategoryResponseDto> getAllCategories();
+    void deleteCategory(String name);
 }

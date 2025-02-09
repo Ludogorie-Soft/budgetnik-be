@@ -67,4 +67,6 @@ public interface ExpenseRepository extends JpaRepository<Expense, UUID> {
       LocalDate dueDate, Type type, UUID userId);
 
   List<Expense> findByRelatedExpenseIdAndOwnerId(UUID relatedExpenseId, UUID ownerId);
+
+  List<Expense> findByCategory(ExpenseCategory category);
 }

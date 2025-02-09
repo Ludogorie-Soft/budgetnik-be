@@ -9,4 +9,5 @@ public interface ExpenseCategoryService {
     CategoryResponseDto createCategory(CategoryRequestDto categoryRequestDto1);
     ExpenseCategory getCategory(String name);
     List<CategoryResponseDto> getAllCategories();
+    void deleteCategory(String name);
 }

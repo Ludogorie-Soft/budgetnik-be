@@ -2,10 +2,13 @@ package com.ludogorieSoft.budgetnik.service.impl;
 
 import com.ludogorieSoft.budgetnik.dto.request.CategoryRequestDto;
 import com.ludogorieSoft.budgetnik.dto.response.CategoryResponseDto;
+import com.ludogorieSoft.budgetnik.exception.CategoryException;
 import com.ludogorieSoft.budgetnik.exception.CategoryExistsException;
 import com.ludogorieSoft.budgetnik.exception.CategoryNotFoundException;
+import com.ludogorieSoft.budgetnik.model.Expense;
 import com.ludogorieSoft.budgetnik.model.ExpenseCategory;
 import com.ludogorieSoft.budgetnik.repository.ExpenseCategoryRepository;
+import com.ludogorieSoft.budgetnik.repository.ExpenseRepository;
 import com.ludogorieSoft.budgetnik.service.ExpenseCategoryService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +25,7 @@ public class ExpenseCategoryServiceImpl implements ExpenseCategoryService {
 
   private final ExpenseCategoryRepository expenseCategoryRepository;
   private final ModelMapper modelMapper;
+  private final ExpenseRepository expenseRepository;
 
   @Override
   public CategoryResponseDto createCategory(CategoryRequestDto categoryRequestDto) {
@@ -47,5 +51,24 @@ public class ExpenseCategoryServiceImpl implements ExpenseCategoryService {
     return expenseCategoryRepository.findAll().stream()
         .map(category -> modelMapper.map(category, CategoryResponseDto.class))
         .toList();
+  }
+
+  @Override
+  public void deleteCategory(String name) {
+    if (name.equals("other")) {
+      throw new CategoryException();
+    }
+    ExpenseCategory expenseCategory = getCategory(name);
+    ExpenseCategory other = getCategory("other");
+
+    List<Expense> expenses = expenseRepository.findByCategory(expenseCategory);
+
+    if (!expenses.isEmpty()) {
+      for (Expense current : expenses) {
+        current.setCategory(other);
+      }
+      expenseRepository.saveAll(expenses);
+    }
+    expenseCategoryRepository.delete(expenseCategory);
   }
 }

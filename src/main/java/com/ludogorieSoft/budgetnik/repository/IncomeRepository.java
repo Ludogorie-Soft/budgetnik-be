@@ -64,4 +64,6 @@ public interface IncomeRepository extends JpaRepository<Income, UUID> {
   List<Income> findByDueDateLessThanEqualAndTypeAndOwnerId(LocalDate dueDate, Type type, UUID userId);
 
   List<Income> findByRelatedIncomeIdAndOwnerId(UUID relatedIncomeId, UUID ownerId);
+
+  List<Income> findByCategory(IncomeCategory category);
 }

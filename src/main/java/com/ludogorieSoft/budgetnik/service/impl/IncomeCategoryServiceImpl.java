@@ -2,10 +2,13 @@ package com.ludogorieSoft.budgetnik.service.impl;
 
 import com.ludogorieSoft.budgetnik.dto.request.CategoryRequestDto;
 import com.ludogorieSoft.budgetnik.dto.response.CategoryResponseDto;
+import com.ludogorieSoft.budgetnik.exception.CategoryException;
 import com.ludogorieSoft.budgetnik.exception.CategoryExistsException;
 import com.ludogorieSoft.budgetnik.exception.CategoryNotFoundException;
+import com.ludogorieSoft.budgetnik.model.Income;
 import com.ludogorieSoft.budgetnik.model.IncomeCategory;
 import com.ludogorieSoft.budgetnik.repository.IncomeCategoryRepository;
+import com.ludogorieSoft.budgetnik.repository.IncomeRepository;
 import com.ludogorieSoft.budgetnik.service.IncomeCategoryService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +25,7 @@ public class IncomeCategoryServiceImpl implements IncomeCategoryService {
 
   private final IncomeCategoryRepository incomeCategoryRepository;
   private final ModelMapper modelMapper;
+  private final IncomeRepository incomeRepository;
 
   @Override
   public CategoryResponseDto createCategory(CategoryRequestDto categoryRequestDto) {
@@ -48,5 +52,24 @@ public class IncomeCategoryServiceImpl implements IncomeCategoryService {
     return incomeCategoryRepository.findAll().stream()
         .map(category -> modelMapper.map(category, CategoryResponseDto.class))
         .toList();
+  }
+
+  @Override
+  public void deleteCategory(String name) {
+    if (name.equals("other")) {
+      throw new CategoryException();
+    }
+    IncomeCategory incomeCategory = getCategory(name);
+    IncomeCategory other = getCategory("other");
+
+    List<Income> incomes = incomeRepository.findByCategory(incomeCategory);
+
+    if (!incomes.isEmpty()) {
+      for (Income current : incomes) {
+        current.setCategory(other);
+      }
+      incomeRepository.saveAll(incomes);
+    }
+    incomeCategoryRepository.delete(incomeCategory);
   }
 }
