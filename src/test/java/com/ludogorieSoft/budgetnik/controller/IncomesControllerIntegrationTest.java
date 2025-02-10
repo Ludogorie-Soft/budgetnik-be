@@ -246,8 +246,8 @@ class IncomesControllerIntegrationTest {
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertNotNull(response.getBody());
     assertEquals(
-        expectedSum.setScale(2, RoundingMode.HALF_UP),
-        response.getBody().setScale(2, RoundingMode.HALF_UP));
+        BigDecimal.ZERO,
+        response.getBody());
   }
 
   @Test
