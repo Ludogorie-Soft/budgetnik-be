@@ -2,13 +2,11 @@ package com.ludogorieSoft.budgetnik.repository;
 
 import com.ludogorieSoft.budgetnik.model.Expense;
 import com.ludogorieSoft.budgetnik.model.ExpenseCategory;
-import com.ludogorieSoft.budgetnik.model.Income;
 import com.ludogorieSoft.budgetnik.model.User;
 import com.ludogorieSoft.budgetnik.model.enums.Type;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -28,6 +26,7 @@ public interface ExpenseRepository extends JpaRepository<Expense, UUID> {
 
   @Query(
       "SELECT COALESCE(SUM(e.sum), 0) FROM Expense e WHERE e.owner.id = :userId "
+          + "AND e.type <> com.ludogorieSoft.budgetnik.model.enums.Type.FIXED "
           + "AND (:category IS NULL OR e.category = :category)")
   BigDecimal calculateTotalSumByUserIdAndCategory(
       @Param("userId") UUID userId, @Param("category") ExpenseCategory category);
@@ -56,7 +55,9 @@ public interface ExpenseRepository extends JpaRepository<Expense, UUID> {
 
   @Query(
       "SELECT COALESCE(SUM(e.sum), 0) FROM Expense e WHERE e.owner = :user "
-          + "AND (:category IS NULL OR e.category = :category) AND e.creationDate >= :startDate AND e.creationDate <= :endDate")
+          + "AND (:category IS NULL OR e.category = :category) "
+          + "AND e.type <> com.ludogorieSoft.budgetnik.model.enums.Type.FIXED "
+          + "AND e.creationDate >= :startDate AND e.creationDate <= :endDate")
   BigDecimal calculateSumOfExpensesByCategory(
       @Param("user") User user,
       @Param("category") ExpenseCategory category,
