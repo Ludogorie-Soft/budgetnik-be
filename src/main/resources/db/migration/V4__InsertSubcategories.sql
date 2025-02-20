@@ -157,3 +157,12 @@ VALUES('8a26c739-7769-4160-96da-794dff657db9'::uuid, 'Дарения', 'donation
 INSERT INTO public.subcategory
 (id, bg_name, "name", expense_category_id, income_category_id)
 VALUES('146e421d-740f-4ead-958a-4106e6e40d5a'::uuid, 'Доброволчество', 'volunteering', '7ac171ce-96a8-41b9-b208-db45915e5391'::uuid, NULL);
+INSERT INTO public.subcategory
+(id, bg_name, "name", expense_category_id, income_category_id)
+VALUES('bf8c0aca-8dd7-435b-9a1e-62aa771b4526'::uuid, 'Регистрация', 'carRegistration', '7ac171ce-96a8-41b9-b208-db45915e53f9'::uuid, NULL);
+INSERT INTO public.subcategory
+(id, bg_name, "name", expense_category_id, income_category_id)
+VALUES('8715a2e0-b178-452b-94de-60a2a423986c'::uuid, 'Сервиз', 'carService', '7ac171ce-96a8-41b9-b208-db45915e53f9'::uuid, NULL);
+INSERT INTO public.subcategory
+(id, bg_name, "name", expense_category_id, income_category_id)
+VALUES('58b37699-f175-4573-abaf-0c6fa3ebe7f6'::uuid, 'Телефон', 'phone', '7ac171ce-96a8-41b9-b208-db45915e53f7'::uuid, NULL);
