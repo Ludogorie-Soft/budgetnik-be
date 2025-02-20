@@ -1,14 +1,18 @@
 package com.ludogorieSoft.budgetnik.service.impl;
 
 import com.ludogorieSoft.budgetnik.dto.request.CategoryRequestDto;
+import com.ludogorieSoft.budgetnik.dto.request.SubcategoryRequest;
 import com.ludogorieSoft.budgetnik.dto.response.CategoryResponseDto;
+import com.ludogorieSoft.budgetnik.dto.response.SubcategoryResponse;
 import com.ludogorieSoft.budgetnik.exception.CategoryException;
 import com.ludogorieSoft.budgetnik.exception.CategoryExistsException;
 import com.ludogorieSoft.budgetnik.exception.CategoryNotFoundException;
 import com.ludogorieSoft.budgetnik.model.Income;
 import com.ludogorieSoft.budgetnik.model.IncomeCategory;
+import com.ludogorieSoft.budgetnik.model.Subcategory;
 import com.ludogorieSoft.budgetnik.repository.IncomeCategoryRepository;
 import com.ludogorieSoft.budgetnik.repository.IncomeRepository;
+import com.ludogorieSoft.budgetnik.repository.SubcategoryRepository;
 import com.ludogorieSoft.budgetnik.service.IncomeCategoryService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +30,7 @@ public class IncomeCategoryServiceImpl implements IncomeCategoryService {
   private final IncomeCategoryRepository incomeCategoryRepository;
   private final ModelMapper modelMapper;
   private final IncomeRepository incomeRepository;
+  private final SubcategoryRepository subcategoryRepository;
 
   @Override
   public CategoryResponseDto createCategory(CategoryRequestDto categoryRequestDto) {
@@ -49,8 +54,21 @@ public class IncomeCategoryServiceImpl implements IncomeCategoryService {
 
   @Override
   public List<CategoryResponseDto> getAllCategories() {
-    return incomeCategoryRepository.findAll().stream()
-        .map(category -> modelMapper.map(category, CategoryResponseDto.class))
+    List<CategoryResponseDto> categories =
+        incomeCategoryRepository.findAll().stream()
+            .map(category -> modelMapper.map(category, CategoryResponseDto.class))
+            .toList();
+    return categories.stream()
+        .map(
+            category -> {
+              CategoryResponseDto response = modelMapper.map(category, CategoryResponseDto.class);
+              List<SubcategoryResponse> subcategoryResponses =
+                  category.getSubcategories().stream()
+                      .map(sub -> modelMapper.map(sub, SubcategoryResponse.class))
+                      .toList();
+              response.setSubcategories(subcategoryResponses);
+              return response;
+            })
         .toList();
   }
 
@@ -71,5 +89,21 @@ public class IncomeCategoryServiceImpl implements IncomeCategoryService {
       incomeRepository.saveAll(incomes);
     }
     incomeCategoryRepository.delete(incomeCategory);
+  }
+
+  @Override
+  public SubcategoryResponse attachIncomeSubcategory(SubcategoryRequest subcategoryRequest) {
+    IncomeCategory category = getCategory(subcategoryRequest.getCategoryName());
+
+    Subcategory subcategory = new Subcategory();
+    subcategory.setName(subcategoryRequest.getName());
+    subcategory.setBgName(subcategoryRequest.getBgName());
+    subcategory.setIncomeCategory(category);
+    subcategoryRepository.save(subcategory);
+
+    List<Subcategory> categorySubcategories = category.getSubcategories();
+    categorySubcategories.add(subcategory);
+
+    return modelMapper.map(subcategory, SubcategoryResponse.class);
   }
 }

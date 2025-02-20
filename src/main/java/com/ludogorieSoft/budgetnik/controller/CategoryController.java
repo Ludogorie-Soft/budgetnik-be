@@ -1,7 +1,9 @@
 package com.ludogorieSoft.budgetnik.controller;
 
 import com.ludogorieSoft.budgetnik.dto.request.CategoryRequestDto;
+import com.ludogorieSoft.budgetnik.dto.request.SubcategoryRequest;
 import com.ludogorieSoft.budgetnik.dto.response.CategoryResponseDto;
+import com.ludogorieSoft.budgetnik.dto.response.SubcategoryResponse;
 import com.ludogorieSoft.budgetnik.service.ExpenseCategoryService;
 import com.ludogorieSoft.budgetnik.service.IncomeCategoryService;
 import java.util.List;
@@ -60,5 +62,19 @@ public class CategoryController {
   public ResponseEntity<String> deleteIncomeCategory(@RequestParam("name") String name) {
     incomeCategoryService.deleteCategory(name);
     return new ResponseEntity<>("Категорията е изтрита успешно!", HttpStatus.NO_CONTENT);
+  }
+
+  @PostMapping("/incomes/subcategories")
+  public ResponseEntity<SubcategoryResponse> attachIncomeSubcategory(
+      @RequestBody SubcategoryRequest request) {
+    SubcategoryResponse response = incomeCategoryService.attachIncomeSubcategory(request);
+    return new ResponseEntity<>(response, HttpStatus.OK);
+  }
+
+  @PostMapping("/expenses/subcategories")
+  public ResponseEntity<SubcategoryResponse> attachExpenseSubcategory(
+      @RequestBody SubcategoryRequest request) {
+    SubcategoryResponse response = expenseCategoryService.attachExpenseSubcategory(request);
+    return new ResponseEntity<>(response, HttpStatus.OK);
   }
 }
