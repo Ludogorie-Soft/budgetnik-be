@@ -1,0 +1,2 @@
+-- V1__Baseline.sql
+-- This is an initial baseline. Existing database assumed.
