@@ -123,10 +123,10 @@ INSERT INTO public.subcategory
 VALUES('cdb4e60b-c1d9-4977-bcce-93474c274d64'::uuid, 'Облекло', 'clothing', '7ac171ce-96a8-41b9-b208-db45915e53d7'::uuid, NULL);
 INSERT INTO public.subcategory
 (id, bg_name, "name", expense_category_id, income_category_id)
-VALUES('57f7db9a-84d3-487a-9c81-760c2c8e3318'::uuid, 'Грижа за коса и кожа', 'skinAndHairCare', '7ac171ce-96a8-41b9-b208-db45915e53d7'::uuid, NULL);
+VALUES('57f7db9a-84d3-487a-9c81-760c2c8e3318'::uuid, 'Грижи за коса и кожа', 'skinAndHairCare', '7ac171ce-96a8-41b9-b208-db45915e53d7'::uuid, NULL);
 INSERT INTO public.subcategory
 (id, bg_name, "name", expense_category_id, income_category_id)
-VALUES('6655726f-2cd9-4da0-9e86-684a75622583'::uuid, 'Деца', 'children', '7ac171ce-96a8-41b9-b208-db45915e53d8'::uuid, NULL);
+VALUES('6655726f-2cd9-4da0-9e86-684a75622583'::uuid, 'Грижи за деца', 'children', '7ac171ce-96a8-41b9-b208-db45915e53d8'::uuid, NULL);
 INSERT INTO public.subcategory
 (id, bg_name, "name", expense_category_id, income_category_id)
 VALUES('cd8e1727-c00e-4bac-bde4-f7f540c894ac'::uuid, 'Домашни любимци', 'pets', '7ac171ce-96a8-41b9-b208-db45915e53d8'::uuid, NULL);

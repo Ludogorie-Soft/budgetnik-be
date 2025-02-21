@@ -44,10 +44,6 @@ VALUES('7ac171ce-96a8-41b9-b208-db45915e53d8'::uuid, 'family', 'Семейни �
 
 INSERT INTO public.expense_category
 (id, "name", bg_name)
-VALUES('7ac171ce-96a8-41b9-b208-db45915e53d9'::uuid, 'child', 'Грижи за деца');
-
-INSERT INTO public.expense_category
-(id, "name", bg_name)
 VALUES('7ac171ce-96a8-41b9-b208-db45915e5389'::uuid, 'credits', 'Дългове и кредити');
 
 INSERT INTO public.expense_category
