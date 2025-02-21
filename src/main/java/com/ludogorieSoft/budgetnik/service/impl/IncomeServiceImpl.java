@@ -3,13 +3,15 @@ package com.ludogorieSoft.budgetnik.service.impl;
 import com.ludogorieSoft.budgetnik.dto.request.IncomeRequestDto;
 import com.ludogorieSoft.budgetnik.dto.response.IncomeResponseDto;
 import com.ludogorieSoft.budgetnik.exception.IncomeNotFoundException;
-import com.ludogorieSoft.budgetnik.model.Expense;
+import com.ludogorieSoft.budgetnik.exception.SubcategoryNotFoundException;
 import com.ludogorieSoft.budgetnik.model.Income;
 import com.ludogorieSoft.budgetnik.model.IncomeCategory;
+import com.ludogorieSoft.budgetnik.model.Subcategory;
 import com.ludogorieSoft.budgetnik.model.User;
 import com.ludogorieSoft.budgetnik.model.enums.Regularity;
 import com.ludogorieSoft.budgetnik.model.enums.Type;
 import com.ludogorieSoft.budgetnik.repository.IncomeRepository;
+import com.ludogorieSoft.budgetnik.repository.SubcategoryRepository;
 import com.ludogorieSoft.budgetnik.service.IncomeCategoryService;
 import com.ludogorieSoft.budgetnik.service.IncomeService;
 import com.ludogorieSoft.budgetnik.service.UserService;
@@ -34,6 +36,7 @@ public class IncomeServiceImpl implements IncomeService {
   private final ModelMapper modelMapper;
   private final IncomeRepository incomeRepository;
   private final IncomeCategoryService incomeCategoryService;
+  private final SubcategoryRepository subcategoryRepository;
 
   @Override
   @Transactional
@@ -49,6 +52,7 @@ public class IncomeServiceImpl implements IncomeService {
     income.setSum(incomeRequestDto.getSum());
 
     setIncomeCategory(incomeRequestDto, income);
+    setSubcategory(incomeRequestDto, income);
     setIncomeDueDate(incomeRequestDto, income);
     Income createdIncome = incomeRepository.save(income);
 
@@ -128,6 +132,7 @@ public class IncomeServiceImpl implements IncomeService {
     income.setDescription(incomeRequestDto.getDescription());
 
     setIncomeCategory(incomeRequestDto, income);
+    setSubcategory(incomeRequestDto, income);
     setIncomeDueDate(incomeRequestDto, income);
 
     incomeRepository.save(income);
@@ -221,5 +226,10 @@ public class IncomeServiceImpl implements IncomeService {
     IncomeCategory incomeCategory =
         incomeCategoryService.getCategory(incomeRequestDto.getCategory());
     income.setCategory(incomeCategory);
+  }
+
+  private void setSubcategory(IncomeRequestDto incomeRequestDto, Income income) {
+    Subcategory subcategory = subcategoryRepository.findByName(incomeRequestDto.getSubcategory()).orElseThrow(SubcategoryNotFoundException::new);
+    income.setSubcategory(subcategory);
   }
 }

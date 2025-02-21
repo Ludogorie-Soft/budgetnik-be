@@ -61,6 +61,10 @@ public class Expense {
   private ExpenseCategory category;
 
   @ManyToOne
+  @JoinColumn(name = "subcategory_id")
+  private Subcategory subcategory;
+
+  @ManyToOne
   @JoinColumn(name = "owner_id")
   @JsonIgnore
   private User owner;

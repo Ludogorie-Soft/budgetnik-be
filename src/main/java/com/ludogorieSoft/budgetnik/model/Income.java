@@ -62,6 +62,10 @@ public class Income {
   private IncomeCategory category;
 
   @ManyToOne
+  @JoinColumn(name = "subcategory_id")
+  private Subcategory subcategory;
+
+  @ManyToOne
   @JoinColumn(name = "owner_id")
   @JsonIgnore
   private User owner;

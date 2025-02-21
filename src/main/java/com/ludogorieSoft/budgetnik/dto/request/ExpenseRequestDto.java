@@ -13,6 +13,7 @@ public class ExpenseRequestDto {
   private Regularity regularity;
   private LocalDate creationDate;
   private String category;
+  private String subcategory;
   private BigDecimal sum;
   private String description;
   private UUID ownerId;

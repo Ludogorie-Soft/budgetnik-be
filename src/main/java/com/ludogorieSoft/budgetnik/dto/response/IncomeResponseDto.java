@@ -16,6 +16,7 @@ public class IncomeResponseDto {
   private Regularity regularity;
   private LocalDate creationDate;
   private CategoryResponseDto incomeCategory;
+  private SubcategoryResponse subcategory;
   private BigDecimal sum;
   private String description;
   private LocalDate dueDate;

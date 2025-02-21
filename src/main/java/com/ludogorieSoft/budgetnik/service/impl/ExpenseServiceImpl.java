@@ -3,12 +3,15 @@ package com.ludogorieSoft.budgetnik.service.impl;
 import com.ludogorieSoft.budgetnik.dto.request.ExpenseRequestDto;
 import com.ludogorieSoft.budgetnik.dto.response.ExpenseResponseDto;
 import com.ludogorieSoft.budgetnik.exception.ExpenseNotFoundException;
+import com.ludogorieSoft.budgetnik.exception.SubcategoryNotFoundException;
 import com.ludogorieSoft.budgetnik.model.Expense;
 import com.ludogorieSoft.budgetnik.model.ExpenseCategory;
+import com.ludogorieSoft.budgetnik.model.Subcategory;
 import com.ludogorieSoft.budgetnik.model.User;
 import com.ludogorieSoft.budgetnik.model.enums.Regularity;
 import com.ludogorieSoft.budgetnik.model.enums.Type;
 import com.ludogorieSoft.budgetnik.repository.ExpenseRepository;
+import com.ludogorieSoft.budgetnik.repository.SubcategoryRepository;
 import com.ludogorieSoft.budgetnik.service.ExpenseCategoryService;
 import com.ludogorieSoft.budgetnik.service.ExpenseService;
 import com.ludogorieSoft.budgetnik.service.UserService;
@@ -33,6 +36,7 @@ public class ExpenseServiceImpl implements ExpenseService {
   private final UserService userService;
   private final ModelMapper modelMapper;
   private final ExpenseCategoryService expenseCategoryService;
+  private final SubcategoryRepository subcategoryRepository;
 
   @Override
   @Transactional
@@ -48,6 +52,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     expense.setSum(expenseRequestDto.getSum());
 
     setExpenseCategory(expenseRequestDto, expense);
+    setSubcategory(expenseRequestDto, expense);
     setExpenseDueDate(expenseRequestDto, expense);
 
     Expense createdExpense = expenseRepository.save(expense);
@@ -62,12 +67,6 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     logger.info("Created expense with id " + createdExpense.getId());
     return modelMapper.map(createdExpense, ExpenseResponseDto.class);
-  }
-
-  private void setExpenseCategory(ExpenseRequestDto expenseRequestDto, Expense expense) {
-    ExpenseCategory expenseCategory =
-        expenseCategoryService.getCategory(expenseRequestDto.getCategory());
-    expense.setCategory(expenseCategory);
   }
 
   @Override
@@ -135,6 +134,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     expense.setCreationDate(expenseRequestDto.getCreationDate());
 
     setExpenseCategory(expenseRequestDto, expense);
+    setSubcategory(expenseRequestDto, expense);
     setExpenseDueDate(expenseRequestDto, expense);
 
     expenseRepository.save(expense);
@@ -224,5 +224,19 @@ public class ExpenseServiceImpl implements ExpenseService {
     } else if (expenseRequestDto.getRegularity().equals(Regularity.ANNUAL)) {
       expense.setDueDate(oneYearLater);
     }
+  }
+
+  private void setExpenseCategory(ExpenseRequestDto expenseRequestDto, Expense expense) {
+    ExpenseCategory expenseCategory =
+        expenseCategoryService.getCategory(expenseRequestDto.getCategory());
+    expense.setCategory(expenseCategory);
+  }
+
+  private void setSubcategory(ExpenseRequestDto expenseRequestDto, Expense expense) {
+    Subcategory subcategory =
+        subcategoryRepository
+            .findByName(expenseRequestDto.getSubcategory())
+            .orElseThrow(SubcategoryNotFoundException::new);
+    expense.setSubcategory(subcategory);
   }
 }
