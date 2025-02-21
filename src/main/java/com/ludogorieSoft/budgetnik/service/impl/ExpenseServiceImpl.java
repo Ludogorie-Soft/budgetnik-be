@@ -233,10 +233,12 @@ public class ExpenseServiceImpl implements ExpenseService {
   }
 
   private void setSubcategory(ExpenseRequestDto expenseRequestDto, Expense expense) {
-    Subcategory subcategory =
-        subcategoryRepository
-            .findByName(expenseRequestDto.getSubcategory())
-            .orElseThrow(SubcategoryNotFoundException::new);
-    expense.setSubcategory(subcategory);
+    if (!expenseRequestDto.getSubcategory().isEmpty()) {
+      Subcategory subcategory =
+          subcategoryRepository
+              .findByName(expenseRequestDto.getSubcategory())
+              .orElseThrow(SubcategoryNotFoundException::new);
+      expense.setSubcategory(subcategory);
+    }
   }
 }

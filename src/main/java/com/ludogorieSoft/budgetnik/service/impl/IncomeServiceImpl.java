@@ -229,7 +229,12 @@ public class IncomeServiceImpl implements IncomeService {
   }
 
   private void setSubcategory(IncomeRequestDto incomeRequestDto, Income income) {
-    Subcategory subcategory = subcategoryRepository.findByName(incomeRequestDto.getSubcategory()).orElseThrow(SubcategoryNotFoundException::new);
-    income.setSubcategory(subcategory);
+    if (!incomeRequestDto.getSubcategory().isEmpty()) {
+      Subcategory subcategory =
+          subcategoryRepository
+              .findByName(incomeRequestDto.getSubcategory())
+              .orElseThrow(SubcategoryNotFoundException::new);
+      income.setSubcategory(subcategory);
+    }
   }
 }
