@@ -11,10 +11,12 @@ import com.ludogorieSoft.budgetnik.dto.request.IncomeRequestDto;
 import com.ludogorieSoft.budgetnik.dto.response.IncomeResponseDto;
 import com.ludogorieSoft.budgetnik.model.Income;
 import com.ludogorieSoft.budgetnik.model.IncomeCategory;
+import com.ludogorieSoft.budgetnik.model.Subcategory;
 import com.ludogorieSoft.budgetnik.model.User;
 import com.ludogorieSoft.budgetnik.model.enums.Regularity;
 import com.ludogorieSoft.budgetnik.model.enums.Type;
 import com.ludogorieSoft.budgetnik.repository.IncomeRepository;
+import com.ludogorieSoft.budgetnik.repository.SubcategoryRepository;
 import com.ludogorieSoft.budgetnik.service.IncomeCategoryService;
 import com.ludogorieSoft.budgetnik.service.UserService;
 import java.math.BigDecimal;
@@ -43,11 +45,23 @@ class IncomeServiceImplTest {
 
   @InjectMocks private IncomeServiceImpl incomeService;
 
+  @Mock private SubcategoryRepository subcategoryRepository;
+
   private IncomeCategory incomeCategory;
+  private Subcategory subcategory;
 
   @BeforeEach
   void setup() {
-      incomeCategory = getTestIncomeCategory();
+    incomeCategory = getTestIncomeCategory();
+    subcategory = createSubcategory();
+  }
+
+  private Subcategory createSubcategory() {
+    subcategory = new Subcategory();
+    subcategory.setIncomeCategory(incomeCategory);
+    subcategory.setName("test");
+    subcategory.setBgName("Тест");
+    return subcategory;
   }
 
   @Test
@@ -65,11 +79,14 @@ class IncomeServiceImplTest {
     responseDto.setSum(BigDecimal.ONE);
 
     when(userService.findById(ownerId)).thenReturn(user);
-    when(incomeRepository.save(any(Income.class))).thenAnswer(invocation -> {
-      Income savedIncome = invocation.getArgument(0);
-      savedIncome.setId(UUID.randomUUID());
-      return savedIncome;
-    });
+    when(subcategoryRepository.findByName(any())).thenReturn(Optional.of(subcategory));
+    when(incomeRepository.save(any(Income.class)))
+        .thenAnswer(
+            invocation -> {
+              Income savedIncome = invocation.getArgument(0);
+              savedIncome.setId(UUID.randomUUID());
+              return savedIncome;
+            });
     when(modelMapper.map(any(Income.class), eq(IncomeResponseDto.class))).thenReturn(responseDto);
 
     // WHEN
@@ -99,11 +116,14 @@ class IncomeServiceImplTest {
     responseDto.setSum(BigDecimal.ONE);
 
     when(userService.findById(ownerId)).thenReturn(user);
-    when(incomeRepository.save(any(Income.class))).thenAnswer(invocation -> {
-      Income savedIncome = invocation.getArgument(0);
-      savedIncome.setId(UUID.randomUUID());
-      return savedIncome;
-    });
+    when(subcategoryRepository.findByName(any())).thenReturn(Optional.of(subcategory));
+    when(incomeRepository.save(any(Income.class)))
+        .thenAnswer(
+            invocation -> {
+              Income savedIncome = invocation.getArgument(0);
+              savedIncome.setId(UUID.randomUUID());
+              return savedIncome;
+            });
     when(modelMapper.map(any(Income.class), eq(IncomeResponseDto.class))).thenReturn(responseDto);
 
     // WHEN
@@ -321,6 +341,7 @@ class IncomeServiceImplTest {
     responseDto.setId(incomeId);
     responseDto.setSum(requestDto.getSum());
 
+    when(subcategoryRepository.findByName(any())).thenReturn(Optional.of(subcategory));
     when(incomeRepository.findById(incomeId)).thenReturn(Optional.of(income));
     when(incomeRepository.save(any(Income.class))).thenReturn(income);
     when(modelMapper.map(income, IncomeResponseDto.class)).thenReturn(responseDto);
@@ -357,6 +378,7 @@ class IncomeServiceImplTest {
     responseDto.setId(incomeId);
     responseDto.setSum(requestDto.getSum());
 
+    when(subcategoryRepository.findByName(any())).thenReturn(Optional.of(subcategory));
     when(incomeRepository.findById(incomeId)).thenReturn(Optional.of(income));
     when(incomeRepository.save(any(Income.class))).thenReturn(income);
     when(modelMapper.map(income, IncomeResponseDto.class)).thenReturn(responseDto);
@@ -378,13 +400,13 @@ class IncomeServiceImplTest {
     assertEquals(requestDto.getDescription(), income.getDescription());
   }
 
-    private static IncomeCategory getTestIncomeCategory() {
-        IncomeCategory incomeCategory = new IncomeCategory();
-        incomeCategory.setId(UUID.randomUUID());
-        incomeCategory.setName("Salary");
-        incomeCategory.setBgName("Заплата");
-        return incomeCategory;
-    }
+  private static IncomeCategory getTestIncomeCategory() {
+    IncomeCategory incomeCategory = new IncomeCategory();
+    incomeCategory.setId(UUID.randomUUID());
+    incomeCategory.setName("Salary");
+    incomeCategory.setBgName("Заплата");
+    return incomeCategory;
+  }
 
   private Income createFixedIncome(User user) {
     Income income = new Income();
@@ -406,6 +428,7 @@ class IncomeServiceImplTest {
     requestDto.setCategory("Salary");
     requestDto.setCreationDate(LocalDate.now());
     requestDto.setSum(BigDecimal.ONE);
+    requestDto.setSubcategory("Test_Subcategory");
     return requestDto;
   }
 
@@ -431,6 +454,7 @@ class IncomeServiceImplTest {
     requestDto.setCategory("Extra");
     requestDto.setCreationDate(LocalDate.now());
     requestDto.setSum(BigDecimal.ONE);
+    requestDto.setSubcategory("Test_Subcategory");
     return requestDto;
   }
 }

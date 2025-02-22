@@ -11,10 +11,12 @@ import com.ludogorieSoft.budgetnik.dto.request.ExpenseRequestDto;
 import com.ludogorieSoft.budgetnik.dto.response.ExpenseResponseDto;
 import com.ludogorieSoft.budgetnik.model.Expense;
 import com.ludogorieSoft.budgetnik.model.ExpenseCategory;
+import com.ludogorieSoft.budgetnik.model.Subcategory;
 import com.ludogorieSoft.budgetnik.model.User;
 import com.ludogorieSoft.budgetnik.model.enums.Regularity;
 import com.ludogorieSoft.budgetnik.model.enums.Type;
 import com.ludogorieSoft.budgetnik.repository.ExpenseRepository;
+import com.ludogorieSoft.budgetnik.repository.SubcategoryRepository;
 import com.ludogorieSoft.budgetnik.service.ExpenseCategoryService;
 import com.ludogorieSoft.budgetnik.service.UserService;
 import java.math.BigDecimal;
@@ -42,11 +44,15 @@ class ExpenseServiceImplTest {
 
   @InjectMocks private ExpenseServiceImpl expenseService;
 
+  @Mock private SubcategoryRepository subcategoryRepository;
+
   private ExpenseCategory expenseCategory;
+  private Subcategory subcategory;
 
   @BeforeEach
   void setup() {
     expenseCategory = getTestExpenseCategory();
+    subcategory = createSubcategory();
   }
 
   @Test
@@ -64,6 +70,7 @@ class ExpenseServiceImplTest {
     responseDto.setSum(BigDecimal.ONE);
 
     when(userService.findById(ownerId)).thenReturn(user);
+    when(subcategoryRepository.findByName(any())).thenReturn(Optional.of(subcategory));
     when(expenseRepository.save(any(Expense.class)))
         .thenAnswer(
             invocation -> {
@@ -100,6 +107,7 @@ class ExpenseServiceImplTest {
     responseDto.setSum(BigDecimal.ONE);
 
     when(userService.findById(ownerId)).thenReturn(user);
+    when(subcategoryRepository.findByName(any())).thenReturn(Optional.of(subcategory));
     when(expenseRepository.save(any(Expense.class)))
         .thenAnswer(
             invocation -> {
@@ -326,6 +334,7 @@ class ExpenseServiceImplTest {
     responseDto.setId(expenseId);
     responseDto.setSum(requestDto.getSum());
 
+    when(subcategoryRepository.findByName(any())).thenReturn(Optional.of(subcategory));
     when(expenseRepository.findById(expenseId)).thenReturn(Optional.of(expense));
     when(expenseRepository.save(any(Expense.class))).thenReturn(expense);
     when(modelMapper.map(expense, ExpenseResponseDto.class)).thenReturn(responseDto);
@@ -362,6 +371,7 @@ class ExpenseServiceImplTest {
     responseDto.setId(expenseId);
     responseDto.setSum(requestDto.getSum());
 
+    when(subcategoryRepository.findByName(any())).thenReturn(Optional.of(subcategory));
     when(expenseRepository.findById(expenseId)).thenReturn(Optional.of(expense));
     when(expenseRepository.save(any(Expense.class))).thenReturn(expense);
     when(modelMapper.map(expense, ExpenseResponseDto.class)).thenReturn(responseDto);
@@ -410,6 +420,7 @@ class ExpenseServiceImplTest {
     requestDto.setCategory("Salary");
     requestDto.setCreationDate(LocalDate.now());
     requestDto.setSum(BigDecimal.ONE);
+    requestDto.setSubcategory("Test_Subcategory");
     return requestDto;
   }
 
@@ -433,6 +444,15 @@ class ExpenseServiceImplTest {
     requestDto.setCategory("Extra");
     requestDto.setCreationDate(LocalDate.now());
     requestDto.setSum(BigDecimal.ONE);
+    requestDto.setSubcategory("Test_Subcategory");
     return requestDto;
+  }
+
+  private Subcategory createSubcategory() {
+    subcategory = new Subcategory();
+    subcategory.setExpenseCategory(expenseCategory);
+    subcategory.setName("test");
+    subcategory.setBgName("Тест");
+    return subcategory;
   }
 }

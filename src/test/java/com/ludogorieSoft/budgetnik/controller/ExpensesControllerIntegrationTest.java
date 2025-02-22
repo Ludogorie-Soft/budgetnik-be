@@ -312,6 +312,7 @@ class ExpensesControllerIntegrationTest {
     requestDto.setRegularity(Regularity.MONTHLY);
     requestDto.setSum(BigDecimal.TEN);
     requestDto.setOwnerId(userId);
+    requestDto.setSubcategory("");
     return requestDto;
   }
 
