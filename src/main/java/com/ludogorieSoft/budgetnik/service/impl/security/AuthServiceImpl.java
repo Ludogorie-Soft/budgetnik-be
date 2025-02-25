@@ -29,6 +29,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -84,40 +85,65 @@ public class AuthServiceImpl implements AuthService {
     if (token == null || token.isEmpty()) {
       throw new InvalidTokenException();
     }
-    String jwtToken = token.substring(7);
+
+    // Премахваме префикса "Bearer " ако има такъв
+    String jwtToken = token.startsWith("Bearer ") ? token.substring("Bearer ".length()) : token;
+
+    // Търсим токена в репото
     Token accessToken = tokenService.findByToken(jwtToken);
 
     if (accessToken == null) {
       throw new InvalidTokenException();
     }
 
+    // Проверяваме дали токенът е валиден
     User user = accessToken.getUser();
+    UserDetails userDetails = accessToken.getUser();
+    boolean isTokenValid;
 
-    boolean isTokenValid = jwtService.isTokenValid(accessToken.getToken(), user);
+    try {
+      isTokenValid = jwtService.isTokenValid(accessToken.getToken(), userDetails);
+    } catch (Exception e) {
+      isTokenValid = false;
+    }
+
+    // Мапваме отговорния потребител
+    UserResponse userResponse = modelMapper.map(accessToken.getUser(), UserResponse.class);
 
     if (!isTokenValid) {
-      throw new InvalidTokenException();
+      accessToken.setExpired(true);
+      accessToken.setRevoked(true);
+      tokenService.saveToken(accessToken);
+      // Вземаме всички токени за потребителя
+      List<Token> tokens = tokenService.findByUser(user);
+      Token refreshToken =
+          tokens.stream()
+              .filter(x -> x.getTokenType() == TokenType.REFRESH)
+              .findFirst()
+              .orElse(null);
+
+      String refreshTokenString;
+
+      if (refreshToken == null || !jwtService.isTokenValid(refreshToken.getToken(), user)) {
+        if (refreshToken != null) {
+          refreshToken.setExpired(true);
+          refreshToken.setRevoked(true);
+          tokenService.saveToken(refreshToken);
+        }
+        // Ако няма refresh токен или е невалиден, генерираме нов
+        refreshTokenString = jwtService.generateRefreshToken(user);
+        tokenService.saveToken(user, refreshTokenString, TokenType.REFRESH);
+      } else {
+        // Връщаме стария refresh токен
+        refreshTokenString = refreshToken.getToken();
+      }
     }
 
-    List<Token> tokens = tokenService.findByUser(user);
-    Token refreshToken =
-        tokens.stream().filter(x -> x.getTokenType() == TokenType.REFRESH).toList().get(0);
-
-    String refreshTokenString;
-
-    if (!jwtService.isTokenValid(refreshToken.getToken(), user)) {
-      refreshTokenString = jwtService.generateRefreshToken(user);
-      tokenService.saveToken(user, refreshTokenString, TokenType.REFRESH);
-    } else {
-      refreshTokenString = refreshToken.getToken();
-    }
-
-    UserResponse userResponse = modelMapper.map(accessToken.getUser(), UserResponse.class);
     logger.info("Get user by token with id " + user.getId());
-    return AuthResponse.builder()
-        .token(accessToken.getToken())
-        .user(userResponse)
-        .build();
+
+    String accessTokenString = jwtService.generateToken(user);
+    tokenService.saveToken(user, accessTokenString, TokenType.ACCESS);
+    return AuthResponse.builder().token(accessTokenString).user(userResponse).build();
   }
 
   @Override

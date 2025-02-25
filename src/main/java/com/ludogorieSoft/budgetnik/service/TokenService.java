@@ -14,4 +14,5 @@ public interface TokenService {
 //    void revokeToken(Token token);
 //    void revokeAllUserTokens(User user);
     void logoutToken(String jwt);
+    void saveToken(Token token);
 }

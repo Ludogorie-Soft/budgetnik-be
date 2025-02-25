@@ -2,6 +2,7 @@ package com.ludogorieSoft.budgetnik.config.jwt;
 
 import com.ludogorieSoft.budgetnik.dto.response.UserResponse;
 import com.ludogorieSoft.budgetnik.exception.InvalidTokenException;
+import com.ludogorieSoft.budgetnik.model.Token;
 import com.ludogorieSoft.budgetnik.model.User;
 import com.ludogorieSoft.budgetnik.model.enums.TokenType;
 import com.ludogorieSoft.budgetnik.repository.TokenRepository;
@@ -31,6 +32,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   public static final String JWT_PREFIX = "Bearer ";
   public static final String USER_KEY = "user";
   public static final String AUTH_PATH = "/api/auth";
+  public static final String MY_PROFILE_PATH = "/api/auth/my-profile";
 
   private final JwtService jwtService;
   private final UserService userService;
@@ -81,23 +83,41 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       if (jwtService.isTokenValid(jwt, userDetails) && isTokenValid) {
         setAuthentication(userDetails, request);
       } else {
+        Token token =
+            tokenService.findByUser(user).stream()
+                .filter(
+                    x -> (x.getTokenType() == TokenType.ACCESS) && !x.isExpired() && x.isRevoked())
+                .toList()
+                .get(0);
+        token.setExpired(true);
+        token.setRevoked(true);
+        tokenService.saveToken(token);
 
-        String refreshToken = request.getHeader("Refresh-Token");
+        Token refreshToken =
+            tokenService.findByUser(user).stream()
+                .filter(
+                    x -> (x.getTokenType() == TokenType.REFRESH) && !x.isExpired() && x.isRevoked())
+                .toList()
+                .get(0);
 
-        if (refreshToken != null && jwtService.isTokenValid(refreshToken, userDetails)) {
-
+        if (refreshToken != null && jwtService.isTokenValid(refreshToken.getToken(), userDetails)) {
           String newAccessToken = jwtService.generateToken(userDetails);
           String newRefreshToken = jwtService.generateRefreshToken(userDetails);
 
           tokenService.saveToken(user, newAccessToken, TokenType.ACCESS);
           tokenService.saveToken(user, newRefreshToken, TokenType.REFRESH);
 
-          response.setHeader("Authorization", "Bearer " + newAccessToken);
-          response.setHeader("Refresh-Token", newRefreshToken);
+          response.setHeader(JWT_HEADER, JWT_PREFIX + newAccessToken);
 
           setAuthentication(userDetails, request);
         } else {
-          throw new InvalidTokenException();
+          if (refreshToken != null) {
+            refreshToken.setExpired(true);
+            refreshToken.setRevoked(true);
+            tokenService.saveToken(refreshToken);
+          } else {
+            throw new InvalidTokenException();
+          }
         }
       }
 

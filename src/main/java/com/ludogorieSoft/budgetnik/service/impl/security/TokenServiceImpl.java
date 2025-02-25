@@ -64,7 +64,7 @@ public class TokenServiceImpl implements TokenService {
             .revoked(false)
             .build();
 
-    tokenRepository.save(token);
+    saveToken(token);
   }
 
   @Override
@@ -75,10 +75,15 @@ public class TokenServiceImpl implements TokenService {
     if (storedToken != null) {
       storedToken.setExpired(true);
       storedToken.setRevoked(true);
-      tokenRepository.save(storedToken);
+      saveToken(storedToken);
     }
 
     SecurityContextHolder.clearContext();
+  }
+
+  @Override
+  public void saveToken(Token token) {
+    tokenRepository.save(token);
   }
 
   @Scheduled(cron = "0 0 0 * * ?")
