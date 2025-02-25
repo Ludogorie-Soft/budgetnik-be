@@ -116,7 +116,6 @@ public class AuthServiceImpl implements AuthService {
     logger.info("Get user by token with id " + user.getId());
     return AuthResponse.builder()
         .token(accessToken.getToken())
-        .refreshToken(refreshTokenString)
         .user(userResponse)
         .build();
   }

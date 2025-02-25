@@ -9,10 +9,10 @@ import com.ludogorieSoft.budgetnik.repository.TokenRepository;
 import com.ludogorieSoft.budgetnik.service.JwtService;
 import com.ludogorieSoft.budgetnik.service.TokenService;
 import java.util.List;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,7 +39,6 @@ public class TokenServiceImpl implements TokenService {
     saveToken(user, refreshToken, TokenType.REFRESH);
     return AuthResponse.builder()
         .token(jwtToken)
-        .refreshToken(refreshToken)
         .user(modelMapper.map(user, UserResponse.class))
         .build();
   }
@@ -63,7 +62,6 @@ public class TokenServiceImpl implements TokenService {
             .tokenType(tokenType)
             .expired(false)
             .revoked(false)
-            .deviceId(UUID.randomUUID())
             .build();
 
     tokenRepository.save(token);
@@ -74,10 +72,18 @@ public class TokenServiceImpl implements TokenService {
   public void logoutToken(String jwt) {
     Token storedToken = tokenRepository.findByToken(jwt).orElse(null);
 
-    if (storedToken == null) {
-      return;
+    if (storedToken != null) {
+      storedToken.setExpired(true);
+      storedToken.setRevoked(true);
+      tokenRepository.save(storedToken);
     }
 
     SecurityContextHolder.clearContext();
+  }
+
+  @Scheduled(cron = "0 0 0 * * ?")
+  public void deleteOldExpiredTokens() {
+    List<Token> expiredTokens = tokenRepository.findAllByExpiredTrue();
+    tokenRepository.deleteAll(expiredTokens);
   }
 }
