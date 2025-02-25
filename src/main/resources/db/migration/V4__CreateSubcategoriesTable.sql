@@ -1,4 +1,5 @@
-CREATE TABLE subcategory (
+
+CREATE TABLE IF NOT EXISTS subcategory (
     id UUID PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     bg_name VARCHAR(255) NOT NULL,
@@ -14,5 +15,14 @@ CREATE TABLE subcategory (
         ON DELETE SET NULL
 );
 
-CREATE INDEX idx_income_category_id ON subcategory (income_category_id);
-CREATE INDEX idx_expense_category_id ON subcategory (expense_category_id);
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_income_category_id') THEN
+        CREATE INDEX idx_income_category_id ON subcategory (income_category_id);
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_expense_category_id') THEN
+        CREATE INDEX idx_expense_category_id ON subcategory (expense_category_id);
+    END IF;
+END $$;

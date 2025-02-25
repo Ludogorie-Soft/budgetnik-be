@@ -26,7 +26,6 @@ public interface IncomeRepository extends JpaRepository<Income, UUID> {
 
   @Query(
       "SELECT COALESCE(SUM(i.sum), 0) FROM Income i WHERE i.owner.id = :userId "
-          + "AND i.type <> com.ludogorieSoft.budgetnik.model.enums.Type.FIXED "
           + "AND (:category IS NULL OR i.category = :category)")
   BigDecimal calculateTotalSumByUserIdAndCategory(
       @Param("userId") UUID userId, @Param("category") IncomeCategory category);
@@ -56,7 +55,6 @@ public interface IncomeRepository extends JpaRepository<Income, UUID> {
   @Query(
       "SELECT COALESCE(SUM(i.sum), 0) FROM Income i WHERE i.owner = :user "
           + "AND (:category IS NULL OR i.category = :category) "
-          + "AND i.type <> com.ludogorieSoft.budgetnik.model.enums.Type.FIXED "
           + "AND i.creationDate BETWEEN :startDate AND :endDate")
   BigDecimal calculateSumOfIncomesByCategory(
       @Param("user") User user,

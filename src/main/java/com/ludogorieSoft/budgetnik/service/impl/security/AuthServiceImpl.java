@@ -18,7 +18,6 @@ import com.ludogorieSoft.budgetnik.service.AuthService;
 import com.ludogorieSoft.budgetnik.service.JwtService;
 import com.ludogorieSoft.budgetnik.service.TokenService;
 import com.ludogorieSoft.budgetnik.service.UserService;
-import io.jsonwebtoken.JwtException;
 import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.List;
@@ -94,13 +93,7 @@ public class AuthServiceImpl implements AuthService {
 
     User user = accessToken.getUser();
 
-    boolean isTokenValid;
-
-    try {
-      isTokenValid = jwtService.isTokenValid(accessToken.getToken(), user);
-    } catch (InvalidTokenException jwtException) {
-      isTokenValid = false;
-    }
+    boolean isTokenValid = jwtService.isTokenValid(accessToken.getToken(), user);
 
     if (!isTokenValid) {
       throw new InvalidTokenException();
@@ -126,42 +119,6 @@ public class AuthServiceImpl implements AuthService {
         .refreshToken(refreshTokenString)
         .user(userResponse)
         .build();
-  }
-
-  @Override
-  public AuthResponse refreshToken(String refreshToken) {
-    if (refreshToken == null || refreshToken.isEmpty()) {
-      throw new InvalidTokenException();
-    }
-
-    String userEmail;
-
-    try {
-      userEmail = jwtService.extractUsername(refreshToken);
-    } catch (JwtException exception) {
-      throw new InvalidTokenException();
-    }
-
-    if (userEmail == null) {
-      throw new InvalidTokenException();
-    }
-
-    Token token = tokenService.findByToken(refreshToken);
-    if (token != null && token.tokenType != TokenType.REFRESH) {
-      throw new InvalidTokenException();
-    }
-
-    User user = userService.findByEmail(userEmail);
-
-    if (!jwtService.isTokenValid(refreshToken, user)) {
-      throw new InvalidTokenException();
-    }
-
-    String accessToken = jwtService.generateToken(user);
-    tokenService.saveToken(user, accessToken, TokenType.ACCESS);
-
-    logger.info("Token refreshed! User with id " + user.getId());
-    return AuthResponse.builder().token(accessToken).refreshToken(refreshToken).build();
   }
 
   @Override

@@ -64,12 +64,6 @@ public class AuthController {
     return ResponseEntity.ok(authResponse);
   }
 
-  @PostMapping("/refresh-token")
-  public ResponseEntity<AuthResponse> refreshToken(@RequestBody RefreshTokenDto refreshToken) {
-    AuthResponse authenticationResponse = authService.refreshToken(refreshToken.getRefreshToken());
-    return ResponseEntity.ok(authenticationResponse);
-  }
-
   @PostMapping("/forgot-password")
   public ResponseEntity<String> forgotPassword(@RequestParam("email") String email) {
     User user = userService.findByEmail(email);

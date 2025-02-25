@@ -218,35 +218,33 @@ class ExpensesControllerIntegrationTest {
     assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
   }
 
-    @Test
-    void testGetSumOfAllExpensesOfUserByCategory() {
-      // GIVEN
-      ResponseEntity<ExpenseResponseDto> expense1 = createExpenseInDb();
-      ResponseEntity<ExpenseResponseDto> expense2 = createExpenseInDb();
-      assertNotNull(expense1.getBody());
-      assertNotNull(expense2.getBody());
+  @Test
+  void testGetSumOfAllExpensesOfUserByCategory() {
+    // GIVEN
+    ResponseEntity<ExpenseResponseDto> expense1 = createExpenseInDb();
+    ResponseEntity<ExpenseResponseDto> expense2 = createExpenseInDb();
+    assertNotNull(expense1.getBody());
+    assertNotNull(expense2.getBody());
 
-      BigDecimal expectedSum = expense1.getBody().getSum().add(expense2.getBody().getSum());
+    BigDecimal expectedSum = expense1.getBody().getSum().add(expense2.getBody().getSum());
 
-      // WHEN
-      ResponseEntity<BigDecimal> response =
-          testRestTemplate.exchange(
-              EXPENSE_URL
-                  + "/users/category/sum?id="
-                  + expenseRequestDto.getOwnerId()
-                  + "&category="
-                  + expense1.getBody().getExpenseCategory().getName(),
-              HttpMethod.GET,
-              new HttpEntity<>(null, headers),
-              BigDecimal.class);
+    // WHEN
+    ResponseEntity<BigDecimal> response =
+        testRestTemplate.exchange(
+            EXPENSE_URL
+                + "/users/category/sum?id="
+                + expenseRequestDto.getOwnerId()
+                + "&category="
+                + expense1.getBody().getExpenseCategory().getName(),
+            HttpMethod.GET,
+            new HttpEntity<>(null, headers),
+            BigDecimal.class);
 
-      // THEN
-      assertEquals(HttpStatus.OK, response.getStatusCode());
-      assertNotNull(response.getBody());
-      assertEquals(
-          BigDecimal.ZERO,
-          response.getBody());
-    }
+    // THEN
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(response.getBody());
+    assertEquals(expectedSum.setScale(2, RoundingMode.HALF_UP), response.getBody());
+  }
 
   @Test
   void testGetSumOfAllExpensesOfUser() {
@@ -352,12 +350,12 @@ class ExpensesControllerIntegrationTest {
   }
 
   private CategoryResponseDto createCategoryInDb() {
-    ResponseEntity<CategoryResponseDto> response = testRestTemplate
-            .exchange(
-                    CATEGORY_URL,
-                    HttpMethod.POST,
-                    new HttpEntity<>(categoryRequestDto, headers),
-                    CategoryResponseDto.class);
+    ResponseEntity<CategoryResponseDto> response =
+        testRestTemplate.exchange(
+            CATEGORY_URL,
+            HttpMethod.POST,
+            new HttpEntity<>(categoryRequestDto, headers),
+            CategoryResponseDto.class);
     assertEquals(HttpStatus.CREATED, response.getStatusCode());
     assertNotNull(response.getBody());
     return response.getBody();

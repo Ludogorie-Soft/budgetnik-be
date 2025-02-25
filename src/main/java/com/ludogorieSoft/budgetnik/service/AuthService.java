@@ -17,8 +17,6 @@ public interface AuthService {
 
   AuthResponse getUserByJwt(String jwtToken);
 
-  AuthResponse refreshToken(String refreshToken);
-
   ResponseEntity<String> resetPassword(String token);
 
   ResponseEntity<String> confirmRegistration(String token);

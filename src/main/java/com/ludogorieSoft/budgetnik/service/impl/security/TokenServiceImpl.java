@@ -9,6 +9,7 @@ import com.ludogorieSoft.budgetnik.repository.TokenRepository;
 import com.ludogorieSoft.budgetnik.service.JwtService;
 import com.ludogorieSoft.budgetnik.service.TokenService;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
@@ -62,6 +63,7 @@ public class TokenServiceImpl implements TokenService {
             .tokenType(tokenType)
             .expired(false)
             .revoked(false)
+            .deviceId(UUID.randomUUID())
             .build();
 
     tokenRepository.save(token);
