@@ -32,7 +32,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   public static final String JWT_PREFIX = "Bearer ";
   public static final String USER_KEY = "user";
   public static final String AUTH_PATH = "/api/auth";
-  public static final String MY_PROFILE_PATH = "/api/auth/my-profile";
 
   private final JwtService jwtService;
   private final UserService userService;
@@ -67,7 +66,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       return;
     }
 
-    final String jwt = authHeader.substring(7);
+    final String jwt = authHeader.substring(JWT_PREFIX.length());
     final String userEmail = jwtService.extractUsername(jwt);
 
     if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -83,42 +82,34 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       if (jwtService.isTokenValid(jwt, userDetails) && isTokenValid) {
         setAuthentication(userDetails, request);
       } else {
-        Token token =
-            tokenService.findByUser(user).stream()
-                .filter(
-                    x -> (x.getTokenType() == TokenType.ACCESS) && !x.isExpired() && x.isRevoked())
-                .toList()
-                .get(0);
+        Token token = tokenService.getLastToken(user, TokenType.ACCESS);
         token.setExpired(true);
         token.setRevoked(true);
         tokenService.saveToken(token);
 
-        Token refreshToken =
-            tokenService.findByUser(user).stream()
-                .filter(
-                    x -> (x.getTokenType() == TokenType.REFRESH) && !x.isExpired() && x.isRevoked())
-                .toList()
-                .get(0);
+        Token refreshToken = tokenService.getLastToken(user, TokenType.REFRESH);
 
-        if (refreshToken != null && jwtService.isTokenValid(refreshToken.getToken(), userDetails)) {
-          String newAccessToken = jwtService.generateToken(userDetails);
-          String newRefreshToken = jwtService.generateRefreshToken(userDetails);
-
-          tokenService.saveToken(user, newAccessToken, TokenType.ACCESS);
-          tokenService.saveToken(user, newRefreshToken, TokenType.REFRESH);
-
-          response.setHeader(JWT_HEADER, JWT_PREFIX + newAccessToken);
-
-          setAuthentication(userDetails, request);
-        } else {
-          if (refreshToken != null) {
-            refreshToken.setExpired(true);
-            refreshToken.setRevoked(true);
-            tokenService.saveToken(refreshToken);
-          } else {
-            throw new InvalidTokenException();
-          }
+        if (refreshToken == null) {
+          throw new InvalidTokenException();
         }
+
+        if (!jwtService.isTokenValid(refreshToken.getToken(), userDetails)) {
+          throw new InvalidTokenException();
+        }
+
+        refreshToken.setExpired(true);
+        refreshToken.setRevoked(true);
+        tokenService.saveToken(refreshToken);
+
+        String newAccessToken = jwtService.generateToken(userDetails);
+        String newRefreshToken = jwtService.generateRefreshToken(userDetails);
+
+        tokenService.saveToken(user, newAccessToken, TokenType.ACCESS);
+        tokenService.saveToken(user, newRefreshToken, TokenType.REFRESH);
+
+        response.setHeader(JWT_HEADER, JWT_PREFIX + newAccessToken);
+
+        setAuthentication(userDetails, request);
       }
 
       request.setAttribute(USER_KEY, modelMapper.map(userDetails, UserResponse.class));

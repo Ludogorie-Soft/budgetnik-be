@@ -86,6 +86,22 @@ public class TokenServiceImpl implements TokenService {
     tokenRepository.save(token);
   }
 
+  @Override
+  public Token getLastToken(User user, TokenType tokenType) {
+    List<Token> tokens = findByUser(user);
+    return tokens.stream()
+        .filter(x -> x.getTokenType() == TokenType.REFRESH)
+        .findFirst()
+        .orElse(null);
+  }
+
+  @Override
+  public void saveExpiredToken(Token token) {
+    token.setExpired(true);
+    token.setRevoked(true);
+    saveToken(token);
+  }
+
   @Scheduled(cron = "0 0 0 * * ?")
   public void deleteOldExpiredTokens() {
     List<Token> expiredTokens = tokenRepository.findAllByExpiredTrue();

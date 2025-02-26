@@ -15,4 +15,6 @@ public interface TokenService {
 //    void revokeAllUserTokens(User user);
     void logoutToken(String jwt);
     void saveToken(Token token);
+    Token getLastToken(User user, TokenType tokenType);
+    void saveExpiredToken(Token token);
 }
