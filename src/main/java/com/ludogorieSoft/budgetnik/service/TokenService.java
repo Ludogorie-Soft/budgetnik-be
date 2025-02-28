@@ -4,6 +4,8 @@ import com.ludogorieSoft.budgetnik.dto.response.AuthResponse;
 import com.ludogorieSoft.budgetnik.model.Token;
 import com.ludogorieSoft.budgetnik.model.User;
 import com.ludogorieSoft.budgetnik.model.enums.TokenType;
+import org.springframework.security.core.userdetails.UserDetails;
+
 import java.util.List;
 
 public interface TokenService {
@@ -19,7 +21,9 @@ public interface TokenService {
 
   void saveToken(Token token);
 
-  Token getLastToken(User user, TokenType tokenType);
+  Token getLastValidToken(User user, TokenType tokenType);
 
-  void saveExpiredToken(Token token);
+  void setTokenAsExpiredAndRevoked(Token token);
+
+  boolean isTokenValid(String token, UserDetails userDetails);
 }

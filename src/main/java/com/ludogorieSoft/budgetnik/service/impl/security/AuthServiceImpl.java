@@ -38,6 +38,7 @@ public class AuthServiceImpl implements AuthService {
 
   private static final Logger logger = LoggerFactory.getLogger(AuthServiceImpl.class);
 
+  public static final String JWT_PREFIX = "Bearer ";
   private static final String TOKEN_EXPIRED =
       "Изтекла сесия! Моля влезте отново във вашият акаунт!";
 
@@ -84,7 +85,7 @@ public class AuthServiceImpl implements AuthService {
       throw new InvalidTokenException();
     }
 
-    String jwtToken = token.startsWith("Bearer ") ? token.substring("Bearer ".length()) : token;
+    String jwtToken = token.startsWith(JWT_PREFIX) ? token.substring(JWT_PREFIX.length()) : token;
     Token accessToken = tokenService.findByToken(jwtToken);
 
     if (accessToken == null) {
@@ -93,19 +94,27 @@ public class AuthServiceImpl implements AuthService {
 
     User user = accessToken.getUser();
 
-    tokenService.saveExpiredToken(accessToken);
-    String newAccessTokenString = jwtService.generateToken(user);
-    tokenService.saveToken(user, newAccessTokenString, TokenType.ACCESS);
+    boolean isAccessTokenValid = tokenService.isTokenValid(accessToken.getToken(), user);
 
-    Token refreshToken = tokenService.getLastToken(user, TokenType.REFRESH);
+    String newAccessTokenString;
+    if (isAccessTokenValid) {
+      newAccessTokenString = accessToken.getToken();
+    } else {
+      tokenService.setTokenAsExpiredAndRevoked(accessToken);
+      newAccessTokenString = jwtService.generateToken(user);
+      tokenService.saveToken(user, newAccessTokenString, TokenType.ACCESS);
+    }
+
+    Token refreshToken = tokenService.getLastValidToken(user, TokenType.REFRESH);
 
     if (refreshToken == null) {
       throw new InvalidTokenException();
     }
 
-    if (!jwtService.isTokenValid(refreshToken.getToken(), user)) {
-      tokenService.saveExpiredToken(refreshToken);
+    boolean isValid = tokenService.isTokenValid(refreshToken.getToken(), user);
 
+    if (!isValid) {
+      tokenService.setTokenAsExpiredAndRevoked(refreshToken);
       String refreshTokenString = jwtService.generateRefreshToken(user);
       tokenService.saveToken(user, refreshTokenString, TokenType.REFRESH);
     }

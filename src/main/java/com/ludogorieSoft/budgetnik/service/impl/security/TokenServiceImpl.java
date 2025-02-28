@@ -9,11 +9,14 @@ import com.ludogorieSoft.budgetnik.repository.TokenRepository;
 import com.ludogorieSoft.budgetnik.service.JwtService;
 import com.ludogorieSoft.budgetnik.service.TokenService;
 import java.util.List;
+
+import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -73,9 +76,11 @@ public class TokenServiceImpl implements TokenService {
     Token storedToken = tokenRepository.findByToken(jwt).orElse(null);
 
     if (storedToken != null) {
-      storedToken.setExpired(true);
-      storedToken.setRevoked(true);
-      saveToken(storedToken);
+      User user = storedToken.getUser();
+      setTokenAsExpiredAndRevoked(storedToken);
+
+      Token refreshToken = getLastValidToken(user, TokenType.REFRESH);
+      setTokenAsExpiredAndRevoked(refreshToken);
     }
 
     SecurityContextHolder.clearContext();
@@ -87,22 +92,33 @@ public class TokenServiceImpl implements TokenService {
   }
 
   @Override
-  public Token getLastToken(User user, TokenType tokenType) {
+  public Token getLastValidToken(User user, TokenType tokenType) {
     List<Token> tokens = findByUser(user);
     return tokens.stream()
-        .filter(x -> x.getTokenType() == TokenType.REFRESH)
+        .filter(x -> x.getTokenType() == tokenType && !x.isExpired() && !x.isRevoked())
         .findFirst()
         .orElse(null);
   }
 
   @Override
-  public void saveExpiredToken(Token token) {
+  public void setTokenAsExpiredAndRevoked(Token token) {
     token.setExpired(true);
     token.setRevoked(true);
     saveToken(token);
   }
 
-  @Scheduled(cron = "0 0 0 * * ?")
+  @Override
+  public boolean isTokenValid(String token, UserDetails user) {
+    boolean isValid;
+    try {
+      isValid = jwtService.isTokenValid(token, user);
+    } catch (JwtException jwtException) {
+      isValid = false;
+    }
+    return isValid;
+  }
+
+  @Scheduled(cron = "0 0 0,12 * * ?")
   public void deleteOldExpiredTokens() {
     List<Token> expiredTokens = tokenRepository.findAllByExpiredTrue();
     tokenRepository.deleteAll(expiredTokens);

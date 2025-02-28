@@ -3,8 +3,6 @@ package com.ludogorieSoft.budgetnik.config.jwt;
 import com.ludogorieSoft.budgetnik.dto.response.UserResponse;
 import com.ludogorieSoft.budgetnik.exception.InvalidTokenException;
 import com.ludogorieSoft.budgetnik.model.Token;
-import com.ludogorieSoft.budgetnik.model.User;
-import com.ludogorieSoft.budgetnik.model.enums.TokenType;
 import com.ludogorieSoft.budgetnik.repository.TokenRepository;
 import com.ludogorieSoft.budgetnik.service.JwtService;
 import com.ludogorieSoft.budgetnik.service.TokenService;
@@ -47,11 +45,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   @Override
   protected void doFilterInternal(
-      @NonNull HttpServletRequest request,
-      @NonNull HttpServletResponse response,
-      @NonNull FilterChain filterChain)
-      throws ServletException, IOException {
-
+          @NonNull HttpServletRequest request,
+          @NonNull HttpServletResponse response,
+          @NonNull FilterChain filterChain)
+          throws ServletException, IOException {
     if (request.getServletPath().contains(AUTH_PATH)) {
       filterChain.doFilter(request, response);
       return;
@@ -66,62 +63,39 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       return;
     }
 
-    final String jwt = authHeader.substring(JWT_PREFIX.length());
+    final String jwt = authHeader.substring(7);
+
     final String userEmail = jwtService.extractUsername(jwt);
+
+    if (jwt.isEmpty()) {
+      filterChain.doFilter(request, response);
+      return;
+    }
 
     if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
       UserDetails userDetails = userService.findByEmail(userEmail);
-      User user = userService.findByEmail(userEmail);
 
       boolean isTokenValid =
-          tokenRepository
-              .findByToken(jwt)
-              .map(token -> !token.isExpired() && !token.isRevoked())
-              .orElse(false);
+              tokenRepository
+                      .findByToken(jwt)
+                      .map(token -> !token.isExpired() && !token.isRevoked())
+                      .orElse(false);
 
-      if (jwtService.isTokenValid(jwt, userDetails) && isTokenValid) {
-        setAuthentication(userDetails, request);
-      } else {
-        Token token = tokenService.getLastToken(user, TokenType.ACCESS);
-        token.setExpired(true);
-        token.setRevoked(true);
-        tokenService.saveToken(token);
+     boolean isValid = tokenService.isTokenValid(jwt, userDetails);
 
-        Token refreshToken = tokenService.getLastToken(user, TokenType.REFRESH);
+      if (isValid && isTokenValid) {
+        UsernamePasswordAuthenticationToken authToken =
+                new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
 
-        if (refreshToken == null) {
-          throw new InvalidTokenException();
-        }
+        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-        if (!jwtService.isTokenValid(refreshToken.getToken(), userDetails)) {
-          throw new InvalidTokenException();
-        }
-
-        refreshToken.setExpired(true);
-        refreshToken.setRevoked(true);
-        tokenService.saveToken(refreshToken);
-
-        String newAccessToken = jwtService.generateToken(userDetails);
-        String newRefreshToken = jwtService.generateRefreshToken(userDetails);
-
-        tokenService.saveToken(user, newAccessToken, TokenType.ACCESS);
-        tokenService.saveToken(user, newRefreshToken, TokenType.REFRESH);
-
-        response.setHeader(JWT_HEADER, JWT_PREFIX + newAccessToken);
-
-        setAuthentication(userDetails, request);
+        SecurityContextHolder.getContext().setAuthentication(authToken);
       }
 
       request.setAttribute(USER_KEY, modelMapper.map(userDetails, UserResponse.class));
     }
 
     filterChain.doFilter(request, response);
-  }
-
-  private void setAuthentication(UserDetails userDetails, HttpServletRequest request) {
-    UsernamePasswordAuthenticationToken authToken =
-        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-    SecurityContextHolder.getContext().setAuthentication(authToken);
   }
 }
