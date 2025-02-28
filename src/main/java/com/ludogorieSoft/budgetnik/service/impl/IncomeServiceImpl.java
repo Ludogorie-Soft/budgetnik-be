@@ -232,7 +232,7 @@ public class IncomeServiceImpl implements IncomeService {
     if (!incomeRequestDto.getSubcategory().isEmpty()) {
       Subcategory subcategory =
           subcategoryRepository
-              .findByName(incomeRequestDto.getSubcategory())
+              .findByNameAndIncomeCategory(incomeRequestDto.getSubcategory(), income.getCategory())
               .orElseThrow(SubcategoryNotFoundException::new);
       income.setSubcategory(subcategory);
     }

@@ -1,14 +1,11 @@
 package com.ludogorieSoft.budgetnik.service.impl;
 
 import com.ludogorieSoft.budgetnik.dto.request.ExpenseRequestDto;
-import com.ludogorieSoft.budgetnik.dto.request.IncomeRequestDto;
 import com.ludogorieSoft.budgetnik.dto.response.ExpenseResponseDto;
-import com.ludogorieSoft.budgetnik.dto.response.IncomeResponseDto;
 import com.ludogorieSoft.budgetnik.exception.ExpenseNotFoundException;
 import com.ludogorieSoft.budgetnik.exception.SubcategoryNotFoundException;
 import com.ludogorieSoft.budgetnik.model.Expense;
 import com.ludogorieSoft.budgetnik.model.ExpenseCategory;
-import com.ludogorieSoft.budgetnik.model.Income;
 import com.ludogorieSoft.budgetnik.model.Subcategory;
 import com.ludogorieSoft.budgetnik.model.User;
 import com.ludogorieSoft.budgetnik.model.enums.Regularity;
@@ -239,7 +236,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     if (!expenseRequestDto.getSubcategory().isEmpty()) {
       Subcategory subcategory =
           subcategoryRepository
-              .findByName(expenseRequestDto.getSubcategory())
+              .findByNameAndExpenseCategory(expenseRequestDto.getSubcategory(), expense.getCategory())
               .orElseThrow(SubcategoryNotFoundException::new);
       expense.setSubcategory(subcategory);
     }
