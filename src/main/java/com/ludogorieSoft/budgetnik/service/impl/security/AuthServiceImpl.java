@@ -58,7 +58,7 @@ public class AuthServiceImpl implements AuthService {
   }
 
   @Override
-  public AuthResponse login(LoginRequest loginRequest) {
+  public AuthResponse login(LoginRequest loginRequest, String device) {
     User user = userService.findByEmail(loginRequest.getEmail());
 
     List<VerificationToken> verificationTokens =
@@ -76,11 +76,11 @@ public class AuthServiceImpl implements AuthService {
     }
 
     logger.info("User with id " + user.getId() + " logged in!");
-    return tokenService.generateAuthResponse(user);
+    return tokenService.generateAuthResponse(user, device);
   }
 
   @Override
-  public AuthResponse getUserByJwt(String token) {
+  public AuthResponse getUserByJwt(String token, String device) {
     if (token == null || token.isEmpty()) {
       throw new InvalidTokenException();
     }
@@ -102,10 +102,10 @@ public class AuthServiceImpl implements AuthService {
     } else {
       tokenService.setTokenAsExpiredAndRevoked(accessToken);
       newAccessTokenString = jwtService.generateToken(user);
-      tokenService.saveToken(user, newAccessTokenString, TokenType.ACCESS);
+      tokenService.saveToken(user, newAccessTokenString, TokenType.ACCESS, device);
     }
 
-    Token refreshToken = tokenService.getLastValidToken(user, TokenType.REFRESH);
+    Token refreshToken = tokenService.getLastValidToken(user, TokenType.REFRESH, device);
 
     if (refreshToken == null) {
       throw new InvalidTokenException();
@@ -116,7 +116,7 @@ public class AuthServiceImpl implements AuthService {
     if (!isValid) {
       tokenService.setTokenAsExpiredAndRevoked(refreshToken);
       String refreshTokenString = jwtService.generateRefreshToken(user);
-      tokenService.saveToken(user, refreshTokenString, TokenType.REFRESH);
+      tokenService.saveToken(user, refreshTokenString, TokenType.REFRESH, device);
     }
 
     UserResponse userResponse = modelMapper.map(accessToken.getUser(), UserResponse.class);

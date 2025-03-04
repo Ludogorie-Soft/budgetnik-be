@@ -2,6 +2,7 @@ package com.ludogorieSoft.budgetnik.repository;
 
 import com.ludogorieSoft.budgetnik.model.Token;
 import com.ludogorieSoft.budgetnik.model.User;
+import com.ludogorieSoft.budgetnik.model.enums.TokenType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -14,4 +15,5 @@ public interface TokenRepository extends JpaRepository<Token, UUID> {
     List<Token> findAllByUser(User user);
     List<Token> findAllByExpiredTrue();
     Optional<Token> findByToken(String token);
+    List<Token> findByUserAndTokenTypeAndDeviceAndExpiredFalseAndRevokedFalse(User user, TokenType tokenType, String device);
 }

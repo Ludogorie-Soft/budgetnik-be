@@ -9,19 +9,19 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.List;
 
 public interface TokenService {
-  AuthResponse generateAuthResponse(User user);
+  AuthResponse generateAuthResponse(User user, String device);
 
   Token findByToken(String jwt);
 
   List<Token> findByUser(User user);
 
-  void saveToken(User user, String jwtToken, TokenType tokenType);
+  void saveToken(User user, String jwtToken, TokenType tokenType, String device);
 
-  void logoutToken(String jwt);
+  void logoutToken(String jwt, String device);
 
   void saveToken(Token token);
 
-  Token getLastValidToken(User user, TokenType tokenType);
+  Token getLastValidToken(User user, TokenType tokenType, String device);
 
   void setTokenAsExpiredAndRevoked(Token token);
 

@@ -85,12 +85,12 @@ public class JwtServiceImpl implements JwtService {
 
   private boolean isTokenExpired(String token) {
     Date expirationDate = extractExpiration(token);
-    return expirationDate.before(new Date());  // Просто връщаме true, ако е изтекъл
+    return expirationDate.before(new Date());
   }
 
   private Date extractExpiration(String token) {
-    Claims claims = extractAllClaims(token); // Извлича всички претенции на токена
-    return claims.getExpiration(); // Връща датата на изтичане
+    Claims claims = extractAllClaims(token);
+    return claims.getExpiration();
   }
 
   public Claims extractAllClaims(String token) {

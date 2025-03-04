@@ -13,9 +13,9 @@ import java.util.function.Consumer;
 public interface AuthService {
   UserResponse register(RegisterRequest registerRequest);
 
-  AuthResponse login(LoginRequest loginRequest);
+  AuthResponse login(LoginRequest loginRequest, String device);
 
-  AuthResponse getUserByJwt(String jwtToken);
+  AuthResponse getUserByJwt(String jwtToken, String device);
 
   ResponseEntity<String> resetPassword(String token);
 

@@ -8,9 +8,8 @@ import com.ludogorieSoft.budgetnik.model.enums.TokenType;
 import com.ludogorieSoft.budgetnik.repository.TokenRepository;
 import com.ludogorieSoft.budgetnik.service.JwtService;
 import com.ludogorieSoft.budgetnik.service.TokenService;
-import java.util.List;
-
 import io.jsonwebtoken.JwtException;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,11 +34,11 @@ public class TokenServiceImpl implements TokenService {
   private long jwtExpiration;
 
   @Override
-  public AuthResponse generateAuthResponse(User user) {
+  public AuthResponse generateAuthResponse(User user, String device) {
     String jwtToken = jwtService.generateToken(user);
     String refreshToken = jwtService.generateRefreshToken(user);
-    saveToken(user, jwtToken, TokenType.ACCESS);
-    saveToken(user, refreshToken, TokenType.REFRESH);
+    saveToken(user, jwtToken, TokenType.ACCESS, device);
+    saveToken(user, refreshToken, TokenType.REFRESH, device);
     return AuthResponse.builder()
         .token(jwtToken)
         .user(modelMapper.map(user, UserResponse.class))
@@ -57,7 +56,7 @@ public class TokenServiceImpl implements TokenService {
   }
 
   @Override
-  public void saveToken(User user, String jwtToken, TokenType tokenType) {
+  public void saveToken(User user, String jwtToken, TokenType tokenType, String device) {
     Token token =
         Token.builder()
             .user(user)
@@ -65,6 +64,7 @@ public class TokenServiceImpl implements TokenService {
             .tokenType(tokenType)
             .expired(false)
             .revoked(false)
+            .device(user.getEmail() + device)
             .build();
 
     saveToken(token);
@@ -72,14 +72,14 @@ public class TokenServiceImpl implements TokenService {
 
   @Override
   @Transactional
-  public void logoutToken(String jwt) {
+  public void logoutToken(String jwt, String device) {
     Token storedToken = tokenRepository.findByToken(jwt).orElse(null);
 
     if (storedToken != null) {
       User user = storedToken.getUser();
       setTokenAsExpiredAndRevoked(storedToken);
 
-      Token refreshToken = getLastValidToken(user, TokenType.REFRESH);
+      Token refreshToken = getLastValidToken(user, TokenType.REFRESH, device);
       setTokenAsExpiredAndRevoked(refreshToken);
     }
 
@@ -92,10 +92,11 @@ public class TokenServiceImpl implements TokenService {
   }
 
   @Override
-  public Token getLastValidToken(User user, TokenType tokenType) {
-    List<Token> tokens = findByUser(user);
-    return tokens.stream()
-        .filter(x -> x.getTokenType() == tokenType && !x.isExpired() && !x.isRevoked())
+  public Token getLastValidToken(User user, TokenType tokenType, String device) {
+    String deviceId = user.getEmail() + device;
+    return tokenRepository
+        .findByUserAndTokenTypeAndDeviceAndExpiredFalseAndRevokedFalse(user, tokenType, deviceId)
+        .stream()
         .findFirst()
         .orElse(null);
   }

@@ -1,7 +1,6 @@
 package com.ludogorieSoft.budgetnik.controller;
 
 import com.ludogorieSoft.budgetnik.dto.request.LoginRequest;
-import com.ludogorieSoft.budgetnik.dto.request.RefreshTokenDto;
 import com.ludogorieSoft.budgetnik.dto.request.RegisterRequest;
 import com.ludogorieSoft.budgetnik.dto.response.AuthResponse;
 import com.ludogorieSoft.budgetnik.dto.response.UserResponse;
@@ -10,7 +9,6 @@ import com.ludogorieSoft.budgetnik.event.OnPasswordResetRequestEvent;
 import com.ludogorieSoft.budgetnik.model.User;
 import com.ludogorieSoft.budgetnik.service.AuthService;
 import com.ludogorieSoft.budgetnik.service.UserService;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
@@ -53,14 +51,15 @@ public class AuthController {
 
   @PostMapping("/login")
   public ResponseEntity<AuthResponse> authenticate(
-      @RequestBody LoginRequest request, HttpServletResponse servletResponse) {
-    AuthResponse authResponse = authService.login(request);
+      @RequestBody LoginRequest request, @RequestHeader("DeviceId") String deviceId) {
+    AuthResponse authResponse = authService.login(request, deviceId);
     return ResponseEntity.ok(authResponse);
   }
 
   @GetMapping("/my-profile")
-  public ResponseEntity<AuthResponse> getCurrentUser(@RequestHeader("Authorization") String token) {
-    AuthResponse authResponse = authService.getUserByJwt(token);
+  public ResponseEntity<AuthResponse> getCurrentUser(
+      @RequestHeader("Authorization") String token, @RequestHeader("DeviceId") String deviceId) {
+    AuthResponse authResponse = authService.getUserByJwt(token, deviceId);
     return ResponseEntity.ok(authResponse);
   }
 

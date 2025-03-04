@@ -28,6 +28,7 @@ public class LogoutHandler implements org.springframework.security.web.authentic
             Authentication authentication
     ) {
         final String authHeader = request.getHeader(JWT_HEADER);
+        final String deviceHeader = request.getHeader("DeviceId");
         if (authHeader == null || !authHeader.startsWith(JWT_PREFIX)) {
             throw new InvalidTokenException();
         }
@@ -44,6 +45,6 @@ public class LogoutHandler implements org.springframework.security.web.authentic
             }
         }
 
-        tokenService.logoutToken(jwt);
+        tokenService.logoutToken(jwt, deviceHeader);
     }
 }
