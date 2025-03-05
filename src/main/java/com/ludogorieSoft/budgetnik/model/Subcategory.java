@@ -1,5 +1,6 @@
 package com.ludogorieSoft.budgetnik.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -20,6 +21,9 @@ public class Subcategory {
 
     private String name;
     private String bgName;
+
+    @Column(columnDefinition = "jsonb")
+    private String translations;
 
     @ManyToOne
     @JoinColumn(name = "income_category_id")
