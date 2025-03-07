@@ -18,6 +18,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -30,12 +31,13 @@ public class UserServiceImpl implements UserService {
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
   private final VerificationTokenRepository verificationTokenRepository;
+  private final MessageSource messageSource;
 
   @Override
   public User createUser(RegisterRequest registerRequest) {
 
     if (userRepository.existsByEmail(registerRequest.getEmail())) {
-      throw new UserExistsException("Вече съществува потребител с такъв имейл!");
+      throw new UserExistsException(messageSource);
     }
 
     Role role = Role.USER;
@@ -46,7 +48,7 @@ public class UserServiceImpl implements UserService {
     String encodedPassword = passwordEncoder.encode(registerRequest.getPassword());
 
     if (!passwordEncoder.matches(registerRequest.getConfirmPassword(), encodedPassword)) {
-      throw new PasswordException("Паролата не съвпада!");
+      throw new PasswordException(messageSource);
     }
 
     User user =
@@ -67,12 +69,12 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public User findByEmail(String email) {
-    return userRepository.findByEmail(email).orElseThrow(UserNotFoundException::new);
+    return userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(messageSource));
   }
 
   @Override
   public User findById(UUID id) {
-    return userRepository.findById(id).orElseThrow(UserNotFoundException::new);
+    return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(messageSource));
   }
 
   @Override
@@ -92,7 +94,7 @@ public class UserServiceImpl implements UserService {
     User user = findById(id);
 
     if (user.getId().equals(currentUser.getId())) {
-      throw new AccessDeniedException();
+      throw new AccessDeniedException(messageSource);
     }
     logger.info("Deleted user with id " + user.getId());
     userRepository.delete(user);

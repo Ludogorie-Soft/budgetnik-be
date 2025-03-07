@@ -24,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -37,6 +38,7 @@ public class ExpenseServiceImpl implements ExpenseService {
   private final ModelMapper modelMapper;
   private final ExpenseCategoryService expenseCategoryService;
   private final SubcategoryRepository subcategoryRepository;
+  private final MessageSource messageSource;
 
   @Override
   @Transactional
@@ -198,7 +200,7 @@ public class ExpenseServiceImpl implements ExpenseService {
   }
 
   private Expense findById(UUID id) {
-    return expenseRepository.findById(id).orElseThrow(ExpenseNotFoundException::new);
+    return expenseRepository.findById(id).orElseThrow(() -> new ExpenseNotFoundException(messageSource));
   }
 
   private void setExpenseDueDate(ExpenseRequestDto expenseRequestDto, Expense expense) {
@@ -236,8 +238,9 @@ public class ExpenseServiceImpl implements ExpenseService {
     if (!expenseRequestDto.getSubcategory().isEmpty()) {
       Subcategory subcategory =
           subcategoryRepository
-              .findByNameAndExpenseCategory(expenseRequestDto.getSubcategory(), expense.getCategory())
-              .orElseThrow(SubcategoryNotFoundException::new);
+              .findByNameAndExpenseCategory(
+                  expenseRequestDto.getSubcategory(), expense.getCategory())
+              .orElseThrow(() -> new SubcategoryNotFoundException(messageSource));
       expense.setSubcategory(subcategory);
     }
   }

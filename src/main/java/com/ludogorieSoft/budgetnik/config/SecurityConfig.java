@@ -9,6 +9,7 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -34,6 +35,7 @@ public class SecurityConfig {
   private final AuthenticationProvider authenticationProvider;
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
   private final LogoutHandler logoutHandler;
+  private final MessageSource messageSource;
 
   @Value("${spring.cors.allowedOrigins}")
   private String[] allowedOrigins;
@@ -55,7 +57,7 @@ public class SecurityConfig {
         .exceptionHandling(
             httpSecurityExceptionHandlingConfigurer ->
                 httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(
-                    new JwtAuthenticationEntryPoint(objectMapper)))
+                    new JwtAuthenticationEntryPoint(objectMapper, messageSource)))
         .authenticationProvider(authenticationProvider)
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
         .logout(

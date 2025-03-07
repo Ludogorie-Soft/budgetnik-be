@@ -25,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -50,6 +51,7 @@ public class AuthServiceImpl implements AuthService {
   private final VerificationTokenRepository verificationTokenRepository;
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
+  private final MessageSource messageSource;
 
   @Override
   public UserResponse register(RegisterRequest registerRequest) {
@@ -64,7 +66,7 @@ public class AuthServiceImpl implements AuthService {
     List<VerificationToken> verificationTokens =
         verificationTokenRepository.findByUserId(user.getId());
     if (!verificationTokens.isEmpty() && !user.isActivated()) {
-      throw new ActivateUserException();
+      throw new ActivateUserException(messageSource);
     }
 
     try {
@@ -72,7 +74,7 @@ public class AuthServiceImpl implements AuthService {
           new UsernamePasswordAuthenticationToken(
               loginRequest.getEmail(), loginRequest.getPassword()));
     } catch (UserLoginException exception) {
-      throw new UserLoginException("Грешен имейл или парола!");
+      throw new UserLoginException(messageSource);
     }
 
     logger.info("User with id " + user.getId() + " logged in!");
@@ -82,14 +84,14 @@ public class AuthServiceImpl implements AuthService {
   @Override
   public AuthResponse getUserByJwt(String token, String device) {
     if (token == null || token.isEmpty()) {
-      throw new InvalidTokenException();
+      throw new InvalidTokenException(messageSource);
     }
 
     String jwtToken = token.startsWith(JWT_PREFIX) ? token.substring(JWT_PREFIX.length()) : token;
     Token accessToken = tokenService.findByToken(jwtToken);
 
     if (accessToken == null) {
-      throw new InvalidTokenException();
+      throw new InvalidTokenException(messageSource);
     }
 
     User user = accessToken.getUser();
@@ -108,7 +110,7 @@ public class AuthServiceImpl implements AuthService {
     Token refreshToken = tokenService.getLastValidToken(user, TokenType.REFRESH, device);
 
     if (refreshToken == null) {
-      throw new InvalidTokenException();
+      throw new InvalidTokenException(messageSource);
     }
 
     boolean isValid = tokenService.isTokenValid(refreshToken.getToken(), user);
@@ -175,7 +177,7 @@ public class AuthServiceImpl implements AuthService {
     String encodedPassword = passwordEncoder.encode(newPassword);
 
     if (!passwordEncoder.matches(confirmNewPassword, encodedPassword)) {
-      throw new PasswordException("Паролата не съвпада!");
+      throw new PasswordException(messageSource);
     }
 
     user.setActivated(true);

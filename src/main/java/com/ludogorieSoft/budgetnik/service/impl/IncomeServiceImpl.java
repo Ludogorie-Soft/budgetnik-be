@@ -24,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -37,6 +38,7 @@ public class IncomeServiceImpl implements IncomeService {
   private final IncomeRepository incomeRepository;
   private final IncomeCategoryService incomeCategoryService;
   private final SubcategoryRepository subcategoryRepository;
+  private final MessageSource messageSource;
 
   @Override
   @Transactional
@@ -194,7 +196,7 @@ public class IncomeServiceImpl implements IncomeService {
   }
 
   private Income findById(UUID id) {
-    return incomeRepository.findById(id).orElseThrow(IncomeNotFoundException::new);
+    return incomeRepository.findById(id).orElseThrow(() -> new IncomeNotFoundException(messageSource));
   }
 
   private void setIncomeDueDate(IncomeRequestDto incomeRequestDto, Income income) {
@@ -233,7 +235,7 @@ public class IncomeServiceImpl implements IncomeService {
       Subcategory subcategory =
           subcategoryRepository
               .findByNameAndIncomeCategory(incomeRequestDto.getSubcategory(), income.getCategory())
-              .orElseThrow(SubcategoryNotFoundException::new);
+              .orElseThrow(() -> new SubcategoryNotFoundException(messageSource));
       income.setSubcategory(subcategory);
     }
   }
