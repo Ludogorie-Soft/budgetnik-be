@@ -6,6 +6,7 @@ import com.ludogorieSoft.budgetnik.exception.AccessDeniedException;
 import com.ludogorieSoft.budgetnik.exception.PasswordException;
 import com.ludogorieSoft.budgetnik.exception.UserExistsException;
 import com.ludogorieSoft.budgetnik.exception.UserNotFoundException;
+import com.ludogorieSoft.budgetnik.model.ExpoPushToken;
 import com.ludogorieSoft.budgetnik.model.User;
 import com.ludogorieSoft.budgetnik.model.VerificationToken;
 import com.ludogorieSoft.budgetnik.model.enums.Role;
@@ -69,7 +70,9 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public User findByEmail(String email) {
-    return userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(messageSource));
+    return userRepository
+        .findByEmail(email)
+        .orElseThrow(() -> new UserNotFoundException(messageSource));
   }
 
   @Override
@@ -103,9 +106,14 @@ public class UserServiceImpl implements UserService {
   @Override
   public User updateExponentPushToken(UUID id, String token) {
     User user = findById(id);
-    user.setExponentPushToken(token);
-    userRepository.save(user);
-    return user;
+    ExpoPushToken expoPushToken = user.getExponentPushToken();
+    if (expoPushToken == null) {
+      expoPushToken = new ExpoPushToken();
+    }
+    expoPushToken.setToken(token);
+    user.setExponentPushToken(expoPushToken);
+
+    return userRepository.save(user);
   }
 
   private void cleanUserVerificationTokens(User user) {
