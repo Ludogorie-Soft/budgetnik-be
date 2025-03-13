@@ -41,6 +41,8 @@ public class User implements UserDetails {
   @OneToOne(cascade = CascadeType.ALL)
   private Subscription subscription;
 
+  private String exponentPushToken;
+
   @NotNull(message = "The name should not be null!")
   private String name;
 

@@ -6,7 +6,6 @@ import com.ludogorieSoft.budgetnik.config.jwt.JwtAuthenticationFilter;
 import com.ludogorieSoft.budgetnik.model.enums.Role;
 import java.util.Collections;
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -48,6 +47,8 @@ public class SecurityConfig {
                 auth.requestMatchers("/api/auth/**")
                     .permitAll()
                     .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
+                    .permitAll()
+                    .requestMatchers("/api/users/exponent-push-token")
                     .permitAll()
                     .requestMatchers("/api/admin/**")
                     .hasAnyRole(Role.ADMIN.name())

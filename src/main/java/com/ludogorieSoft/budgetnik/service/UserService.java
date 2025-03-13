@@ -13,6 +13,7 @@ public interface UserService {
   User findById(UUID id);
   void createVerificationToken(User user, String token);
   void deleteUserById(UUID id, UserResponse currentUser);
+  User updateExponentPushToken(UUID id, String token);
 
   VerificationToken getVerificationToken(String VerificationToken);
 }

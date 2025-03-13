@@ -100,6 +100,14 @@ public class UserServiceImpl implements UserService {
     userRepository.delete(user);
   }
 
+  @Override
+  public User updateExponentPushToken(UUID id, String token) {
+    User user = findById(id);
+    user.setExponentPushToken(token);
+    userRepository.save(user);
+    return user;
+  }
+
   private void cleanUserVerificationTokens(User user) {
     List<VerificationToken> userTokens = verificationTokenRepository.findByUserId(user.getId());
     userTokens.forEach(verificationTokenRepository::delete);

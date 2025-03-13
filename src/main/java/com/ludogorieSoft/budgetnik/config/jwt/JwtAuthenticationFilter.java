@@ -30,6 +30,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   public static final String JWT_PREFIX = "Bearer ";
   public static final String USER_KEY = "user";
   public static final String AUTH_PATH = "/api/auth";
+  public static final String PUSH_TOKEN_PATH = "/api/users/exponentPushToken";
 
   private final JwtService jwtService;
   private final UserService userService;
@@ -40,7 +41,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
     String path = request.getServletPath();
-    return path.startsWith("/v3/api-docs") || path.startsWith("/swagger-ui");
+    return path.startsWith("/v3/api-docs") || path.startsWith("/swagger-ui") || path.startsWith(PUSH_TOKEN_PATH);
   }
 
   @Override
