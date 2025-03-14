@@ -41,6 +41,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -59,14 +60,17 @@ class AuthServiceImplTest {
   @Mock private VerificationTokenRepository verificationTokenRepository;
   @Mock private UserRepository userRepository;
   @Mock private PasswordEncoder passwordEncoder;
+  @Mock private MessageSource messageSource;
 
   private LoginRequest loginRequest;
   private Token token;
   private User user;
   private UserResponse userResponse;
   private VerificationToken mockVerificationToken;
+  private static final String DEVICE_ID = "DeviceId";
 
-  private static final String TOKEN_EXPIRED = "Изтекла сесия! Моля влезте отново във вашият акаунт!";
+  private static final String TOKEN_EXPIRED =
+      "Изтекла сесия! Моля влезте отново във вашият акаунт!";
 
   @BeforeEach
   void setUp() {
@@ -79,7 +83,8 @@ class AuthServiceImplTest {
             modelMapper,
             verificationTokenRepository,
             userRepository,
-            passwordEncoder);
+            passwordEncoder,
+            messageSource);
 
     user = new User();
     user.setId(UUID.randomUUID());
@@ -202,7 +207,7 @@ class AuthServiceImplTest {
     when(tokenService.findByUser(currentUser)).thenReturn(tokens);
 
     // WHEN
-    AuthResponse response = authenticationService.getUserByJwt(bearerToken);
+    AuthResponse response = authenticationService.getUserByJwt(bearerToken, DEVICE_ID);
 
     // THEN
     assertNotNull(response);
@@ -218,7 +223,8 @@ class AuthServiceImplTest {
   @Test
   void testGetUserByJwt_NullToken() {
     // WHEN & THEN
-    assertThrows(InvalidTokenException.class, () -> authenticationService.getUserByJwt(null));
+    assertThrows(
+        InvalidTokenException.class, () -> authenticationService.getUserByJwt(null, DEVICE_ID));
     verifyNoInteractions(tokenService, jwtService, modelMapper);
   }
 
@@ -228,7 +234,9 @@ class AuthServiceImplTest {
     String emptyToken = "";
 
     // WHEN & THEN
-    assertThrows(InvalidTokenException.class, () -> authenticationService.getUserByJwt(emptyToken));
+    assertThrows(
+        InvalidTokenException.class,
+        () -> authenticationService.getUserByJwt(emptyToken, DEVICE_ID));
     verifyNoInteractions(tokenService, jwtService, modelMapper);
   }
 
@@ -240,7 +248,8 @@ class AuthServiceImplTest {
 
     // WHEN & THEN
     assertThrows(
-            InvalidTokenException.class, () -> authenticationService.getUserByJwt(invalidToken));
+        InvalidTokenException.class,
+        () -> authenticationService.getUserByJwt(invalidToken, DEVICE_ID));
     verify(tokenService, times(1)).findByToken("invalid-jwt-token");
     verifyNoInteractions(jwtService, modelMapper);
   }
@@ -258,7 +267,9 @@ class AuthServiceImplTest {
     when(jwtService.isTokenValid("mock-jwt-token", currentUser)).thenReturn(false);
 
     // WHEN & THEN
-    assertThrows(InvalidTokenException.class, () -> authenticationService.getUserByJwt(validToken));
+    assertThrows(
+        InvalidTokenException.class,
+        () -> authenticationService.getUserByJwt(validToken, DEVICE_ID));
 
     verify(tokenService).findByToken("mock-jwt-token");
     verify(jwtService).isTokenValid("mock-jwt-token", currentUser);
@@ -274,10 +285,13 @@ class AuthServiceImplTest {
     when(tokenService.findByToken("mock-jwt-token")).thenReturn(jwt);
     when(jwt.getToken()).thenReturn("mock-jwt-token");
     when(jwt.getUser()).thenReturn(currentUser);
-    when(jwtService.isTokenValid("mock-jwt-token", currentUser)).thenThrow(new InvalidTokenException());
+    when(jwtService.isTokenValid("mock-jwt-token", currentUser))
+        .thenThrow(new InvalidTokenException(messageSource));
 
     // WHEN & THEN
-    assertThrows(InvalidTokenException.class, () -> authenticationService.getUserByJwt(validToken));
+    assertThrows(
+        InvalidTokenException.class,
+        () -> authenticationService.getUserByJwt(validToken, DEVICE_ID));
 
     verify(tokenService).findByToken("mock-jwt-token");
     verify(jwtService).isTokenValid("mock-jwt-token", currentUser);
@@ -305,10 +319,10 @@ class AuthServiceImplTest {
     when(userService.findByEmail(loginRequest.getEmail())).thenReturn(user);
 
     // WHEN
-    authenticationService.login(loginRequest);
+    authenticationService.login(loginRequest, DEVICE_ID);
 
     // THEN
-    verify(tokenService, times(1)).generateAuthResponse(user);
+    verify(tokenService, times(1)).generateAuthResponse(user, token.getToken());
   }
 
   @Test
@@ -321,7 +335,9 @@ class AuthServiceImplTest {
 
     // WHEN & THEN
     ActivateUserException exception =
-        assertThrows(ActivateUserException.class, () -> authenticationService.login(loginRequest));
+        assertThrows(
+            ActivateUserException.class,
+            () -> authenticationService.login(loginRequest, DEVICE_ID));
 
     assertNotNull(exception);
     verify(authenticationManager, never()).authenticate(any());
@@ -337,11 +353,12 @@ class AuthServiceImplTest {
     when(authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(
                 loginRequest.getEmail(), loginRequest.getPassword())))
-        .thenThrow(new UserLoginException("Грешен имейл или парола!"));
+        .thenThrow(new UserLoginException(messageSource));
 
     // WHEN & THEN
     UserLoginException exception =
-        assertThrows(UserLoginException.class, () -> authenticationService.login(loginRequest));
+        assertThrows(
+            UserLoginException.class, () -> authenticationService.login(loginRequest, DEVICE_ID));
 
     assertEquals("Грешен имейл или парола!", exception.getMessage());
   }

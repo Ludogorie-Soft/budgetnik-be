@@ -18,7 +18,6 @@ import com.ludogorieSoft.budgetnik.service.AuthService;
 import com.ludogorieSoft.budgetnik.service.JwtService;
 import com.ludogorieSoft.budgetnik.service.TokenService;
 import com.ludogorieSoft.budgetnik.service.UserService;
-import io.jsonwebtoken.JwtException;
 import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.List;
@@ -26,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -39,6 +39,7 @@ public class AuthServiceImpl implements AuthService {
 
   private static final Logger logger = LoggerFactory.getLogger(AuthServiceImpl.class);
 
+  public static final String JWT_PREFIX = "Bearer ";
   private static final String TOKEN_EXPIRED =
       "Изтекла сесия! Моля влезте отново във вашият акаунт!";
 
@@ -50,6 +51,7 @@ public class AuthServiceImpl implements AuthService {
   private final VerificationTokenRepository verificationTokenRepository;
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
+  private final MessageSource messageSource;
 
   @Override
   public UserResponse register(RegisterRequest registerRequest) {
@@ -58,13 +60,13 @@ public class AuthServiceImpl implements AuthService {
   }
 
   @Override
-  public AuthResponse login(LoginRequest loginRequest) {
+  public AuthResponse login(LoginRequest loginRequest, String device) {
     User user = userService.findByEmail(loginRequest.getEmail());
 
     List<VerificationToken> verificationTokens =
         verificationTokenRepository.findByUserId(user.getId());
     if (!verificationTokens.isEmpty() && !user.isActivated()) {
-      throw new ActivateUserException();
+      throw new ActivateUserException(messageSource);
     }
 
     try {
@@ -72,96 +74,57 @@ public class AuthServiceImpl implements AuthService {
           new UsernamePasswordAuthenticationToken(
               loginRequest.getEmail(), loginRequest.getPassword()));
     } catch (UserLoginException exception) {
-      throw new UserLoginException("Грешен имейл или парола!");
+      throw new UserLoginException(messageSource);
     }
 
     logger.info("User with id " + user.getId() + " logged in!");
-    return tokenService.generateAuthResponse(user);
+    return tokenService.generateAuthResponse(user, device);
   }
 
   @Override
-  public AuthResponse getUserByJwt(String token) {
-
+  public AuthResponse getUserByJwt(String token, String device) {
     if (token == null || token.isEmpty()) {
-      throw new InvalidTokenException();
+      throw new InvalidTokenException(messageSource);
     }
-    String jwtToken = token.substring(7);
+
+    String jwtToken = token.startsWith(JWT_PREFIX) ? token.substring(JWT_PREFIX.length()) : token;
     Token accessToken = tokenService.findByToken(jwtToken);
 
     if (accessToken == null) {
-      throw new InvalidTokenException();
+      throw new InvalidTokenException(messageSource);
     }
 
     User user = accessToken.getUser();
 
-    boolean isTokenValid;
+    boolean isAccessTokenValid = tokenService.isTokenValid(accessToken.getToken(), user);
 
-    try {
-      isTokenValid = jwtService.isTokenValid(accessToken.getToken(), user);
-    } catch (InvalidTokenException jwtException) {
-      isTokenValid = false;
-    }
-
-    if (!isTokenValid) {
-      throw new InvalidTokenException();
-    }
-
-    List<Token> tokens = tokenService.findByUser(user);
-    Token refreshToken =
-        tokens.stream().filter(x -> x.getTokenType() == TokenType.REFRESH).toList().get(0);
-
-    String refreshTokenString;
-
-    if (!jwtService.isTokenValid(refreshToken.getToken(), user)) {
-      refreshTokenString = jwtService.generateRefreshToken(user);
-      tokenService.saveToken(user, refreshTokenString, TokenType.REFRESH);
+    String newAccessTokenString;
+    if (isAccessTokenValid) {
+      newAccessTokenString = accessToken.getToken();
     } else {
-      refreshTokenString = refreshToken.getToken();
+      tokenService.setTokenAsExpiredAndRevoked(accessToken);
+      newAccessTokenString = jwtService.generateToken(user);
+      tokenService.saveToken(user, newAccessTokenString, TokenType.ACCESS, device);
+    }
+
+    Token refreshToken = tokenService.getLastValidToken(user, TokenType.REFRESH, device);
+
+    if (refreshToken == null) {
+      throw new InvalidTokenException(messageSource);
+    }
+
+    boolean isValid = tokenService.isTokenValid(refreshToken.getToken(), user);
+
+    if (!isValid) {
+      tokenService.setTokenAsExpiredAndRevoked(refreshToken);
+      String refreshTokenString = jwtService.generateRefreshToken(user);
+      tokenService.saveToken(user, refreshTokenString, TokenType.REFRESH, device);
     }
 
     UserResponse userResponse = modelMapper.map(accessToken.getUser(), UserResponse.class);
+
     logger.info("Get user by token with id " + user.getId());
-    return AuthResponse.builder()
-        .token(accessToken.getToken())
-        .refreshToken(refreshTokenString)
-        .user(userResponse)
-        .build();
-  }
-
-  @Override
-  public AuthResponse refreshToken(String refreshToken) {
-    if (refreshToken == null || refreshToken.isEmpty()) {
-      throw new InvalidTokenException();
-    }
-
-    String userEmail;
-
-    try {
-      userEmail = jwtService.extractUsername(refreshToken);
-    } catch (JwtException exception) {
-      throw new InvalidTokenException();
-    }
-
-    if (userEmail == null) {
-      throw new InvalidTokenException();
-    }
-
-    Token token = tokenService.findByToken(refreshToken);
-    if (token != null && token.tokenType != TokenType.REFRESH) {
-      throw new InvalidTokenException();
-    }
-
-    User user = userService.findByEmail(userEmail);
-
-    if (!jwtService.isTokenValid(refreshToken, user)) {
-      throw new InvalidTokenException();
-    }
-
-    String accessToken = jwtService.generateToken(user);
-    tokenService.saveToken(user, accessToken, TokenType.ACCESS);
-
-    logger.info("Token refreshed! User with id " + user.getId());
-    return AuthResponse.builder().token(accessToken).refreshToken(refreshToken).build();
+    return AuthResponse.builder().token(newAccessTokenString).user(userResponse).build();
   }
 
   @Override
@@ -214,7 +177,7 @@ public class AuthServiceImpl implements AuthService {
     String encodedPassword = passwordEncoder.encode(newPassword);
 
     if (!passwordEncoder.matches(confirmNewPassword, encodedPassword)) {
-      throw new PasswordException("Паролата не съвпада!");
+      throw new PasswordException(messageSource);
     }
 
     user.setActivated(true);

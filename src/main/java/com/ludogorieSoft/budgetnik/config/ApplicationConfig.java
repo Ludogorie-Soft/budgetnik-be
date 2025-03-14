@@ -7,6 +7,7 @@ import com.ludogorieSoft.budgetnik.exception.UserNotFoundException;
 import com.ludogorieSoft.budgetnik.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,6 +24,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class ApplicationConfig {
 
   private final UserRepository userRepository;
+  private final MessageSource messageSource;
 
   @Bean
   public ObjectMapper objectMapper() {
@@ -42,7 +44,8 @@ public class ApplicationConfig {
 
   @Bean
   public UserDetailsService userDetailsService() {
-    return username -> userRepository.findByEmail(username).orElseThrow(UserNotFoundException::new);
+    return username ->
+        userRepository.findByEmail(username).orElseThrow(() -> new UserNotFoundException(messageSource));
   }
 
   @Bean

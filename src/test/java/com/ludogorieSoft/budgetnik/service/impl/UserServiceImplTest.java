@@ -18,6 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.MessageSource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Collections;
@@ -39,6 +40,8 @@ class UserServiceImplTest {
   @Mock private PasswordEncoder passwordEncoder;
 
   @Mock private VerificationTokenRepository verificationTokenRepository;
+
+  @Mock private MessageSource messageSource;
 
   @InjectMocks private UserServiceImpl userService;
 
@@ -86,7 +89,7 @@ class UserServiceImplTest {
 
     String encodedPassword = passwordEncoder.encode(request.getPassword());
     when(passwordEncoder.matches(request.getConfirmPassword(), encodedPassword)).thenReturn(true);
-    when(userRepository.save(any(User.class))).thenThrow(new UserExistsException("User already exists!"));
+    when(userRepository.save(any(User.class))).thenThrow(new UserExistsException(messageSource));
 
     assertThrows(UserExistsException.class, () -> userService.createUser(request));
 

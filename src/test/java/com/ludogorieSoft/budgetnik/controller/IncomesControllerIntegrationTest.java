@@ -73,7 +73,7 @@ class IncomesControllerIntegrationTest {
     verificationTokenRepository.deleteAll();
     loginRequest = createLoginDto();
     ResponseEntity<AuthResponse> loginResponse =
-            testRestTemplate.postForEntity(LOGIN_URL, loginRequest, AuthResponse.class);
+        testRestTemplate.postForEntity(LOGIN_URL, loginRequest, AuthResponse.class);
     authResponse = loginResponse.getBody();
     assertNotNull(authResponse);
     headers = new HttpHeaders();
@@ -102,26 +102,26 @@ class IncomesControllerIntegrationTest {
     assertEquals(incomeResponseDto.getSum(), incomeResponseDto.getSum());
   }
 
-      @Test
-      void getIncomeSuccessfully() {
-          // GIVEN
-          ResponseEntity<IncomeResponseDto> incomeResponse = createIncomeInDb();
-          assertNotNull(incomeResponse.getBody());
+  @Test
+  void getIncomeSuccessfully() {
+    // GIVEN
+    ResponseEntity<IncomeResponseDto> incomeResponse = createIncomeInDb();
+    assertNotNull(incomeResponse.getBody());
 
-          // WHEN
-          ResponseEntity<IncomeResponseDto> response =
-                  testRestTemplate.exchange(
-                          INCOMES_URL + "?id=" + incomeResponse.getBody().getId(),
-                          HttpMethod.GET,
-                          new HttpEntity<>(null, headers),
-                          IncomeResponseDto.class);
+    // WHEN
+    ResponseEntity<IncomeResponseDto> response =
+        testRestTemplate.exchange(
+            INCOMES_URL + "?id=" + incomeResponse.getBody().getId(),
+            HttpMethod.GET,
+            new HttpEntity<>(null, headers),
+            IncomeResponseDto.class);
 
-          // THEN
-          assertEquals(HttpStatus.OK, response.getStatusCode());
-          assertNotNull(response.getBody());
-          assertEquals(incomeRequestDto.getCategory(), response.getBody().getIncomeCategory().getName());
-          assertEquals(incomeRequestDto.getType(), response.getBody().getType());
-      }
+    // THEN
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(response.getBody());
+    assertEquals(incomeRequestDto.getCategory(), response.getBody().getIncomeCategory().getName());
+    assertEquals(incomeRequestDto.getType(), response.getBody().getType());
+  }
 
   @Test
   void testGetIncomeShouldThrowWhenIncomeNotFound() {
@@ -245,9 +245,7 @@ class IncomesControllerIntegrationTest {
     // THEN
     assertEquals(HttpStatus.OK, response.getStatusCode());
     assertNotNull(response.getBody());
-    assertEquals(
-        BigDecimal.ZERO,
-        response.getBody());
+    assertEquals(expectedSum.setScale(2, RoundingMode.HALF_UP), response.getBody());
   }
 
   @Test

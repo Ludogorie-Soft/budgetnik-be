@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -31,11 +32,12 @@ public class IncomeCategoryServiceImpl implements IncomeCategoryService {
   private final ModelMapper modelMapper;
   private final IncomeRepository incomeRepository;
   private final SubcategoryRepository subcategoryRepository;
+  private final MessageSource messageSource;
 
   @Override
   public CategoryResponseDto createCategory(CategoryRequestDto categoryRequestDto) {
     if (incomeCategoryRepository.existsByName(categoryRequestDto.getName())) {
-      throw new CategoryExistsException();
+      throw new CategoryExistsException(messageSource);
     }
 
     IncomeCategory incomeCategory = new IncomeCategory();
@@ -49,7 +51,9 @@ public class IncomeCategoryServiceImpl implements IncomeCategoryService {
 
   @Override
   public IncomeCategory getCategory(String name) {
-    return incomeCategoryRepository.findByName(name).orElseThrow(CategoryNotFoundException::new);
+    return incomeCategoryRepository
+        .findByName(name)
+        .orElseThrow(() -> new CategoryNotFoundException(messageSource));
   }
 
   @Override
@@ -75,7 +79,7 @@ public class IncomeCategoryServiceImpl implements IncomeCategoryService {
   @Override
   public void deleteCategory(String name) {
     if (name.equals("other")) {
-      throw new CategoryException();
+      throw new CategoryException(messageSource);
     }
     IncomeCategory incomeCategory = getCategory(name);
     IncomeCategory other = getCategory("other");

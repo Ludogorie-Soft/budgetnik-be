@@ -79,7 +79,7 @@ class IncomeServiceImplTest {
     responseDto.setSum(BigDecimal.ONE);
 
     when(userService.findById(ownerId)).thenReturn(user);
-    when(subcategoryRepository.findByName(any())).thenReturn(Optional.of(subcategory));
+    when(subcategoryRepository.findByNameAndIncomeCategory(any())).thenReturn(Optional.of(subcategory));
     when(incomeRepository.save(any(Income.class)))
         .thenAnswer(
             invocation -> {
@@ -116,7 +116,7 @@ class IncomeServiceImplTest {
     responseDto.setSum(BigDecimal.ONE);
 
     when(userService.findById(ownerId)).thenReturn(user);
-    when(subcategoryRepository.findByName(any())).thenReturn(Optional.of(subcategory));
+    when(subcategoryRepository.findByNameAndIncomeCategory(any())).thenReturn(Optional.of(subcategory));
     when(incomeRepository.save(any(Income.class)))
         .thenAnswer(
             invocation -> {
@@ -341,7 +341,7 @@ class IncomeServiceImplTest {
     responseDto.setId(incomeId);
     responseDto.setSum(requestDto.getSum());
 
-    when(subcategoryRepository.findByName(any())).thenReturn(Optional.of(subcategory));
+    when(subcategoryRepository.findByNameAndIncomeCategory(any())).thenReturn(Optional.of(subcategory));
     when(incomeRepository.findById(incomeId)).thenReturn(Optional.of(income));
     when(incomeRepository.save(any(Income.class))).thenReturn(income);
     when(modelMapper.map(income, IncomeResponseDto.class)).thenReturn(responseDto);
@@ -378,7 +378,7 @@ class IncomeServiceImplTest {
     responseDto.setId(incomeId);
     responseDto.setSum(requestDto.getSum());
 
-    when(subcategoryRepository.findByName(any())).thenReturn(Optional.of(subcategory));
+    when(subcategoryRepository.findByNameAndIncomeCategory(any())).thenReturn(Optional.of(subcategory));
     when(incomeRepository.findById(incomeId)).thenReturn(Optional.of(income));
     when(incomeRepository.save(any(Income.class))).thenReturn(income);
     when(modelMapper.map(income, IncomeResponseDto.class)).thenReturn(responseDto);

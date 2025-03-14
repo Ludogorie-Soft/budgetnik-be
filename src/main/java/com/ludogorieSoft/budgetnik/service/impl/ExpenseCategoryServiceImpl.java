@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -31,11 +32,12 @@ public class ExpenseCategoryServiceImpl implements ExpenseCategoryService {
   private final ModelMapper modelMapper;
   private final ExpenseRepository expenseRepository;
   private final SubcategoryRepository subcategoryRepository;
+  private final MessageSource messageSource;
 
   @Override
   public CategoryResponseDto createCategory(CategoryRequestDto categoryRequestDto) {
     if (expenseCategoryRepository.existsByName(categoryRequestDto.getName())) {
-      throw new CategoryExistsException();
+      throw new CategoryExistsException(messageSource);
     }
     ExpenseCategory expenseCategory = new ExpenseCategory();
     expenseCategory.setName(categoryRequestDto.getName());
@@ -48,7 +50,9 @@ public class ExpenseCategoryServiceImpl implements ExpenseCategoryService {
 
   @Override
   public ExpenseCategory getCategory(String name) {
-    return expenseCategoryRepository.findByName(name).orElseThrow(CategoryNotFoundException::new);
+    return expenseCategoryRepository
+        .findByName(name)
+        .orElseThrow(() -> new CategoryNotFoundException(messageSource));
   }
 
   @Override
@@ -74,7 +78,7 @@ public class ExpenseCategoryServiceImpl implements ExpenseCategoryService {
   @Override
   public void deleteCategory(String name) {
     if (name.equals("other")) {
-      throw new CategoryException();
+      throw new CategoryException(messageSource);
     }
     ExpenseCategory expenseCategory = getCategory(name);
     ExpenseCategory other = getCategory("other");

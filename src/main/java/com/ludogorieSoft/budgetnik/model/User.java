@@ -41,6 +41,9 @@ public class User implements UserDetails {
   @OneToOne(cascade = CascadeType.ALL)
   private Subscription subscription;
 
+  @OneToOne(cascade = CascadeType.ALL)
+  private ExpoPushToken exponentPushToken;
+
   @NotNull(message = "The name should not be null!")
   private String name;
 

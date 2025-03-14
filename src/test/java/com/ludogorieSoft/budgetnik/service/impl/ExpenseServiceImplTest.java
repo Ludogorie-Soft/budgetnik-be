@@ -70,7 +70,7 @@ class ExpenseServiceImplTest {
     responseDto.setSum(BigDecimal.ONE);
 
     when(userService.findById(ownerId)).thenReturn(user);
-    when(subcategoryRepository.findByName(any())).thenReturn(Optional.of(subcategory));
+    when(subcategoryRepository.findByNameAndIncomeCategory(any())).thenReturn(Optional.of(subcategory));
     when(expenseRepository.save(any(Expense.class)))
         .thenAnswer(
             invocation -> {
@@ -107,7 +107,7 @@ class ExpenseServiceImplTest {
     responseDto.setSum(BigDecimal.ONE);
 
     when(userService.findById(ownerId)).thenReturn(user);
-    when(subcategoryRepository.findByName(any())).thenReturn(Optional.of(subcategory));
+    when(subcategoryRepository.findByNameAndIncomeCategory(any())).thenReturn(Optional.of(subcategory));
     when(expenseRepository.save(any(Expense.class)))
         .thenAnswer(
             invocation -> {
@@ -334,7 +334,7 @@ class ExpenseServiceImplTest {
     responseDto.setId(expenseId);
     responseDto.setSum(requestDto.getSum());
 
-    when(subcategoryRepository.findByName(any())).thenReturn(Optional.of(subcategory));
+    when(subcategoryRepository.findByNameAndIncomeCategory(any())).thenReturn(Optional.of(subcategory));
     when(expenseRepository.findById(expenseId)).thenReturn(Optional.of(expense));
     when(expenseRepository.save(any(Expense.class))).thenReturn(expense);
     when(modelMapper.map(expense, ExpenseResponseDto.class)).thenReturn(responseDto);
@@ -371,7 +371,7 @@ class ExpenseServiceImplTest {
     responseDto.setId(expenseId);
     responseDto.setSum(requestDto.getSum());
 
-    when(subcategoryRepository.findByName(any())).thenReturn(Optional.of(subcategory));
+    when(subcategoryRepository.findByNameAndIncomeCategory(any())).thenReturn(Optional.of(subcategory));
     when(expenseRepository.findById(expenseId)).thenReturn(Optional.of(expense));
     when(expenseRepository.save(any(Expense.class))).thenReturn(expense);
     when(modelMapper.map(expense, ExpenseResponseDto.class)).thenReturn(responseDto);

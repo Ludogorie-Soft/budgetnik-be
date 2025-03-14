@@ -5,8 +5,10 @@ import com.ludogorieSoft.budgetnik.config.jwt.JwtAuthenticationEntryPoint;
 import com.ludogorieSoft.budgetnik.config.jwt.JwtAuthenticationFilter;
 import com.ludogorieSoft.budgetnik.model.enums.Role;
 import java.util.Collections;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -32,8 +34,9 @@ public class SecurityConfig {
   private final AuthenticationProvider authenticationProvider;
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
   private final LogoutHandler logoutHandler;
+  private final MessageSource messageSource;
 
-  @Value("${cors.allowedOrigins}")
+  @Value("${spring.cors.allowedOrigins}")
   private String[] allowedOrigins;
 
   @Bean
@@ -45,6 +48,8 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
                     .permitAll()
+                    .requestMatchers("/api/users/exponent-push-token")
+                    .permitAll()
                     .requestMatchers("/api/admin/**")
                     .hasAnyRole(Role.ADMIN.name())
                     .anyRequest()
@@ -53,7 +58,7 @@ public class SecurityConfig {
         .exceptionHandling(
             httpSecurityExceptionHandlingConfigurer ->
                 httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(
-                    new JwtAuthenticationEntryPoint(objectMapper)))
+                    new JwtAuthenticationEntryPoint(objectMapper, messageSource)))
         .authenticationProvider(authenticationProvider)
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
         .logout(
@@ -69,7 +74,7 @@ public class SecurityConfig {
 
   private CorsConfigurationSource configurationSource() {
     CorsConfiguration corsConfiguration = new CorsConfiguration();
-    corsConfiguration.setAllowedOrigins(Collections.singletonList("*"));
+    corsConfiguration.setAllowedOrigins(List.of(allowedOrigins));
     corsConfiguration.setAllowedMethods(Collections.singletonList("*"));
     corsConfiguration.setAllowCredentials(true);
     corsConfiguration.setAllowedHeaders(Collections.singletonList("*"));

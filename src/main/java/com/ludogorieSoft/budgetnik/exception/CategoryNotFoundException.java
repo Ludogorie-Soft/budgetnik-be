@@ -1,9 +1,15 @@
 package com.ludogorieSoft.budgetnik.exception;
 
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 
 public class CategoryNotFoundException extends ApiException {
-  public CategoryNotFoundException() {
-    super("Категорията не е намерена!", HttpStatus.NOT_FOUND);
+  public CategoryNotFoundException(MessageSource messageSource) {
+    super(getLocalizedMessage(messageSource), HttpStatus.NOT_FOUND);
+  }
+
+  private static String getLocalizedMessage(MessageSource messageSource) {
+    return messageSource.getMessage("error.category_not_found", null, LocaleContextHolder.getLocale());
   }
 }

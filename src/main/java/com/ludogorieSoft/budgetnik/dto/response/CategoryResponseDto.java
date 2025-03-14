@@ -9,5 +9,6 @@ public class CategoryResponseDto {
   private UUID id;
   private String name;
   private String bgName;
+  private String translations;
   private List<SubcategoryResponse> subcategories;
 }
