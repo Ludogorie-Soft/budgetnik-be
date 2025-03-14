@@ -18,6 +18,7 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -41,8 +42,8 @@ public class User implements UserDetails {
   @OneToOne(cascade = CascadeType.ALL)
   private Subscription subscription;
 
-  @OneToOne(cascade = CascadeType.ALL)
-  private ExpoPushToken exponentPushToken;
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+  private Set<ExpoPushToken> exponentPushTokens;
 
   @NotNull(message = "The name should not be null!")
   private String name;

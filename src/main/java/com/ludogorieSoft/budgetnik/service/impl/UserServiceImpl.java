@@ -10,6 +10,7 @@ import com.ludogorieSoft.budgetnik.model.ExpoPushToken;
 import com.ludogorieSoft.budgetnik.model.User;
 import com.ludogorieSoft.budgetnik.model.VerificationToken;
 import com.ludogorieSoft.budgetnik.model.enums.Role;
+import com.ludogorieSoft.budgetnik.repository.ExponentPushTokenRepository;
 import com.ludogorieSoft.budgetnik.repository.UserRepository;
 import com.ludogorieSoft.budgetnik.repository.VerificationTokenRepository;
 import com.ludogorieSoft.budgetnik.service.UserService;
@@ -33,6 +34,7 @@ public class UserServiceImpl implements UserService {
   private final PasswordEncoder passwordEncoder;
   private final VerificationTokenRepository verificationTokenRepository;
   private final MessageSource messageSource;
+  private final ExponentPushTokenRepository exponentPushTokenRepository;
 
   @Override
   public User createUser(RegisterRequest registerRequest) {
@@ -104,16 +106,25 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public User updateExponentPushToken(UUID id, String token) {
+  public void updateExponentPushToken(UUID id, String token) {
     User user = findById(id);
-    ExpoPushToken expoPushToken = user.getExponentPushToken();
+    ExpoPushToken expoPushToken = exponentPushTokenRepository.findByToken(token);
+
     if (expoPushToken == null) {
       expoPushToken = new ExpoPushToken();
+      expoPushToken.setUser(user);
+      expoPushToken.setToken(token);
+      exponentPushTokenRepository.save(expoPushToken);
+      logger.info("Expo push token updated!");
     }
-    expoPushToken.setToken(token);
-    user.setExponentPushToken(expoPushToken);
+  }
 
-    return userRepository.save(user);
+  @Override
+  public void deleteExponentPushToken(String token) {
+    ExpoPushToken expoPushToken = exponentPushTokenRepository.findByToken(token);
+    if (expoPushToken != null) {
+      exponentPushTokenRepository.delete(expoPushToken);
+    }
   }
 
   private void cleanUserVerificationTokens(User user) {
