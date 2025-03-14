@@ -26,3 +26,4 @@ BEGIN
         CREATE INDEX idx_expense_category_id ON subcategory (expense_category_id);
     END IF;
 END $$;
+

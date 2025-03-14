@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 
 public class InternalServerErrorException extends ApiException {
 
+
   public InternalServerErrorException(MessageSource messageSource) {
     super(getLocalizedMessage(messageSource), HttpStatus.INTERNAL_SERVER_ERROR);
   }

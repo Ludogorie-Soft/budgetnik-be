@@ -20,6 +20,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
   public ResponseEntity<ExceptionResponse> handleRuntimeExceptions(RuntimeException exception) {
     exception.printStackTrace();
     return handleApiExceptions(new InternalServerErrorException(messageSource));
+
   }
 
   @ExceptionHandler(TransactionException.class)
