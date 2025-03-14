@@ -108,23 +108,20 @@ public class UserServiceImpl implements UserService {
   @Override
   public void updateExponentPushToken(UUID id, String token) {
     User user = findById(id);
-    ExpoPushToken expoPushToken = exponentPushTokenRepository.findByToken(token);
+    ExpoPushToken expoPushToken = exponentPushTokenRepository.findByToken(token).orElse(null);
 
     if (expoPushToken == null) {
       expoPushToken = new ExpoPushToken();
       expoPushToken.setUser(user);
       expoPushToken.setToken(token);
-      exponentPushTokenRepository.save(expoPushToken);
+      exponentPushTokenRepository.saveAndFlush(expoPushToken);
       logger.info("Expo push token updated!");
     }
   }
 
   @Override
   public void deleteExponentPushToken(String token) {
-    ExpoPushToken expoPushToken = exponentPushTokenRepository.findByToken(token);
-    if (expoPushToken != null) {
-      exponentPushTokenRepository.delete(expoPushToken);
-    }
+      exponentPushTokenRepository.findByToken(token).ifPresent(exponentPushTokenRepository::delete);
   }
 
   private void cleanUserVerificationTokens(User user) {
