@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.MessageSource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -63,11 +64,14 @@ class AuthControllerIntegrationTest {
 
   private RegisterRequest registerRequest;
   private LoginRequest loginRequest;
+  private HttpHeaders headers;
 
   @BeforeEach
   void setUp() {
     registerRequest = createRegisterDto();
     loginRequest = createLoginDto();
+    headers = new HttpHeaders();
+    headers.set("DeviceId", "DeviceId");
   }
 
   @AfterEach
@@ -198,9 +202,11 @@ class AuthControllerIntegrationTest {
     createUserInDb(registerRequest);
     loginRequest.setEmail("wrong@email.com");
 
+    HttpEntity<LoginRequest> entity = new HttpEntity<>(loginRequest, headers);
+
     // WHEN
     ResponseEntity<AuthResponse> response =
-        testRestTemplate.postForEntity(LOGIN_URL, loginRequest, AuthResponse.class);
+        testRestTemplate.exchange(LOGIN_URL, HttpMethod.POST, entity, AuthResponse.class);
 
     // THEN
     assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
@@ -293,7 +299,6 @@ class AuthControllerIntegrationTest {
   @Test
   void testGetMyProfileShouldThrowWhenInvalidJwt() {
     // GIVEN
-    HttpHeaders headers = new HttpHeaders();
     headers.set("Authorization", "invalid-token");
 
     // WHEN
@@ -321,7 +326,6 @@ class AuthControllerIntegrationTest {
   @Test
   void testGetMyProfileShouldThrowWhenJwtIsNull() {
     // GIVEN
-    HttpHeaders headers = new HttpHeaders();
     headers.set("Authorization", null);
 
     // WHEN
@@ -348,7 +352,6 @@ class AuthControllerIntegrationTest {
     AuthResponse authResponse = loginResponse.getBody();
     assertNotNull(authResponse);
 
-    HttpHeaders headers = new HttpHeaders();
     headers.set("Authorization", TEST_EXPIRED_JWT);
 
     // WHEN

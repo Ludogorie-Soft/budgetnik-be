@@ -56,14 +56,6 @@ class IncomeServiceImplTest {
     subcategory = createSubcategory();
   }
 
-  private Subcategory createSubcategory() {
-    subcategory = new Subcategory();
-    subcategory.setIncomeCategory(incomeCategory);
-    subcategory.setName("test");
-    subcategory.setBgName("Тест");
-    return subcategory;
-  }
-
   @Test
   void createFixedIncome_Success() {
     // GIVEN
@@ -79,7 +71,7 @@ class IncomeServiceImplTest {
     responseDto.setSum(BigDecimal.ONE);
 
     when(userService.findById(ownerId)).thenReturn(user);
-    when(subcategoryRepository.findByNameAndIncomeCategory(any())).thenReturn(Optional.of(subcategory));
+    when(subcategoryRepository.findByNameAndIncomeCategory(any(), any())).thenReturn(Optional.of(subcategory));
     when(incomeRepository.save(any(Income.class)))
         .thenAnswer(
             invocation -> {
@@ -116,7 +108,7 @@ class IncomeServiceImplTest {
     responseDto.setSum(BigDecimal.ONE);
 
     when(userService.findById(ownerId)).thenReturn(user);
-    when(subcategoryRepository.findByNameAndIncomeCategory(any())).thenReturn(Optional.of(subcategory));
+    when(subcategoryRepository.findByNameAndIncomeCategory(any(), any())).thenReturn(Optional.of(subcategory));
     when(incomeRepository.save(any(Income.class)))
         .thenAnswer(
             invocation -> {
@@ -341,7 +333,7 @@ class IncomeServiceImplTest {
     responseDto.setId(incomeId);
     responseDto.setSum(requestDto.getSum());
 
-    when(subcategoryRepository.findByNameAndIncomeCategory(any())).thenReturn(Optional.of(subcategory));
+    when(subcategoryRepository.findByNameAndIncomeCategory(any(), any())).thenReturn(Optional.of(subcategory));
     when(incomeRepository.findById(incomeId)).thenReturn(Optional.of(income));
     when(incomeRepository.save(any(Income.class))).thenReturn(income);
     when(modelMapper.map(income, IncomeResponseDto.class)).thenReturn(responseDto);
@@ -378,7 +370,7 @@ class IncomeServiceImplTest {
     responseDto.setId(incomeId);
     responseDto.setSum(requestDto.getSum());
 
-    when(subcategoryRepository.findByNameAndIncomeCategory(any())).thenReturn(Optional.of(subcategory));
+    when(subcategoryRepository.findByNameAndIncomeCategory(any(), any())).thenReturn(Optional.of(subcategory));
     when(incomeRepository.findById(incomeId)).thenReturn(Optional.of(income));
     when(incomeRepository.save(any(Income.class))).thenReturn(income);
     when(modelMapper.map(income, IncomeResponseDto.class)).thenReturn(responseDto);
@@ -456,5 +448,13 @@ class IncomeServiceImplTest {
     requestDto.setSum(BigDecimal.ONE);
     requestDto.setSubcategory("Test_Subcategory");
     return requestDto;
+  }
+
+  private Subcategory createSubcategory() {
+    subcategory = new Subcategory();
+    subcategory.setIncomeCategory(incomeCategory);
+    subcategory.setName("Test_Subcategory");
+    subcategory.setBgName("Тест");
+    return subcategory;
   }
 }

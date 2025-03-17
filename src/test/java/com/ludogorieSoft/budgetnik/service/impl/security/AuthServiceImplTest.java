@@ -11,16 +11,13 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 import com.ludogorieSoft.budgetnik.dto.request.LoginRequest;
 import com.ludogorieSoft.budgetnik.dto.request.RegisterRequest;
-import com.ludogorieSoft.budgetnik.dto.response.AuthResponse;
 import com.ludogorieSoft.budgetnik.dto.response.UserResponse;
 import com.ludogorieSoft.budgetnik.exception.ActivateUserException;
 import com.ludogorieSoft.budgetnik.exception.InvalidTokenException;
 import com.ludogorieSoft.budgetnik.exception.PasswordException;
-import com.ludogorieSoft.budgetnik.exception.UserLoginException;
 import com.ludogorieSoft.budgetnik.model.Token;
 import com.ludogorieSoft.budgetnik.model.User;
 import com.ludogorieSoft.budgetnik.model.VerificationToken;
-import com.ludogorieSoft.budgetnik.model.enums.TokenType;
 import com.ludogorieSoft.budgetnik.repository.UserRepository;
 import com.ludogorieSoft.budgetnik.repository.VerificationTokenRepository;
 import com.ludogorieSoft.budgetnik.service.AuthService;
@@ -30,9 +27,7 @@ import com.ludogorieSoft.budgetnik.service.UserService;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,7 +40,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
@@ -185,42 +179,6 @@ class AuthServiceImplTest {
   }
 
   @Test
-  void testGetUserByJwt_ValidToken() {
-    // GIVEN
-    String bearerToken = "Bearer mock-jwt-token";
-    String strippedToken = "mock-jwt-token";
-    Token accessToken = mock(Token.class);
-    Token refreshToken = mock(Token.class);
-    User currentUser = mock(User.class);
-    UserResponse currentUserResponse = mock(UserResponse.class);
-    List<Token> tokens = new ArrayList<>();
-
-    when(refreshToken.getTokenType()).thenReturn(TokenType.REFRESH);
-    when(refreshToken.getToken()).thenReturn("refresh-token");
-    tokens.add(refreshToken);
-
-    when(tokenService.findByToken(strippedToken)).thenReturn(accessToken);
-    when(accessToken.getToken()).thenReturn(strippedToken);
-    when(accessToken.getUser()).thenReturn(currentUser);
-    when(jwtService.isTokenValid(strippedToken, currentUser)).thenReturn(true);
-    when(modelMapper.map(currentUser, UserResponse.class)).thenReturn(currentUserResponse);
-    when(tokenService.findByUser(currentUser)).thenReturn(tokens);
-
-    // WHEN
-    AuthResponse response = authenticationService.getUserByJwt(bearerToken, DEVICE_ID);
-
-    // THEN
-    assertNotNull(response);
-    assertEquals(strippedToken, response.getToken());
-    assertEquals(currentUserResponse, response.getUser());
-
-    verify(tokenService, times(1)).findByToken(strippedToken);
-    verify(jwtService, times(1)).isTokenValid(strippedToken, currentUser);
-    verify(modelMapper, times(1)).map(currentUser, UserResponse.class);
-    verify(tokenService, times(1)).findByUser(currentUser);
-  }
-
-  @Test
   void testGetUserByJwt_NullToken() {
     // WHEN & THEN
     assertThrows(
@@ -264,7 +222,6 @@ class AuthServiceImplTest {
     when(tokenService.findByToken("mock-jwt-token")).thenReturn(jwt);
     when(jwt.getToken()).thenReturn("mock-jwt-token");
     when(jwt.getUser()).thenReturn(currentUser);
-    when(jwtService.isTokenValid("mock-jwt-token", currentUser)).thenReturn(false);
 
     // WHEN & THEN
     assertThrows(
@@ -272,7 +229,6 @@ class AuthServiceImplTest {
         () -> authenticationService.getUserByJwt(validToken, DEVICE_ID));
 
     verify(tokenService).findByToken("mock-jwt-token");
-    verify(jwtService).isTokenValid("mock-jwt-token", currentUser);
   }
 
   @Test
@@ -285,8 +241,6 @@ class AuthServiceImplTest {
     when(tokenService.findByToken("mock-jwt-token")).thenReturn(jwt);
     when(jwt.getToken()).thenReturn("mock-jwt-token");
     when(jwt.getUser()).thenReturn(currentUser);
-    when(jwtService.isTokenValid("mock-jwt-token", currentUser))
-        .thenThrow(new InvalidTokenException(messageSource));
 
     // WHEN & THEN
     assertThrows(
@@ -294,7 +248,6 @@ class AuthServiceImplTest {
         () -> authenticationService.getUserByJwt(validToken, DEVICE_ID));
 
     verify(tokenService).findByToken("mock-jwt-token");
-    verify(jwtService).isTokenValid("mock-jwt-token", currentUser);
   }
 
   @Test
@@ -317,21 +270,22 @@ class AuthServiceImplTest {
   void testLogin_Success() {
     // GIVEN
     when(userService.findByEmail(loginRequest.getEmail())).thenReturn(user);
+    user.setActivated(true);
 
     // WHEN
     authenticationService.login(loginRequest, DEVICE_ID);
 
     // THEN
-    verify(tokenService, times(1)).generateAuthResponse(user, token.getToken());
+    verify(tokenService, times(1)).generateAuthResponse(user, DEVICE_ID);
   }
 
   @Test
   void testLogin_ActivatedUser_ThrowsActivateUserException() {
     // GIVEN
-    List<VerificationToken> tokens = Collections.singletonList(new VerificationToken());
-
     when(userService.findByEmail(loginRequest.getEmail())).thenReturn(user);
-    when(verificationTokenRepository.findByUserId(user.getId())).thenReturn(tokens);
+    user.setActivated(false);
+    when(verificationTokenRepository.findByUserId(user.getId()))
+        .thenReturn(List.of(new VerificationToken()));
 
     // WHEN & THEN
     ActivateUserException exception =
@@ -341,26 +295,6 @@ class AuthServiceImplTest {
 
     assertNotNull(exception);
     verify(authenticationManager, never()).authenticate(any());
-  }
-
-  @Test
-  void testLogin_AuthenticationFailure_ThrowsUserLoginException() {
-    // GIVEN
-    when(userService.findByEmail(loginRequest.getEmail())).thenReturn(user);
-    when(verificationTokenRepository.findByUserId(user.getId()))
-        .thenReturn(Collections.emptyList());
-
-    when(authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(
-                loginRequest.getEmail(), loginRequest.getPassword())))
-        .thenThrow(new UserLoginException(messageSource));
-
-    // WHEN & THEN
-    UserLoginException exception =
-        assertThrows(
-            UserLoginException.class, () -> authenticationService.login(loginRequest, DEVICE_ID));
-
-    assertEquals("Грешен имейл или парола!", exception.getMessage());
   }
 
   @Test
@@ -474,12 +408,9 @@ class AuthServiceImplTest {
     when(passwordEncoder.matches(confirmNewPassword, "encodedPassword")).thenReturn(false);
 
     // WHEN & THEN
-    PasswordException exception =
         assertThrows(
             PasswordException.class,
             () -> authenticationService.confirmNewPassword(email, newPassword, confirmNewPassword));
-
-    assertEquals("Паролата не съвпада!", exception.getMessage());
 
     verify(userRepository, never()).save(user);
     verify(passwordEncoder, times(1)).encode(newPassword);

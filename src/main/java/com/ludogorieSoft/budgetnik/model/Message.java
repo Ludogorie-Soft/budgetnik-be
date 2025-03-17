@@ -13,20 +13,17 @@ import java.util.UUID;
 
 @Entity
 @Data
-public class PromotionMessage {
+public class Message {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
-
     private Date date;
-    private String promoterName;
+    private String title;
     private Date fromDate;
     private Date toDate;
+    private String message;
     private double discount;
     private String link;
 }
