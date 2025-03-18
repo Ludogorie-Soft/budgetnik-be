@@ -11,3 +11,4 @@ import java.util.UUID;
 public interface ExponentPushTokenRepository extends JpaRepository<ExpoPushToken, UUID> {
     Optional<ExpoPushToken> findByToken(String token);
 }
+
