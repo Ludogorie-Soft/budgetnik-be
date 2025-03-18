@@ -374,7 +374,6 @@ class ExpenseServiceImplTest {
     responseDto.setId(expenseId);
     responseDto.setSum(requestDto.getSum());
 
-
     when(subcategoryRepository.findByNameAndExpenseCategory(any(), any())).thenReturn(Optional.of(subcategory));
     when(expenseRepository.findById(expenseId)).thenReturn(Optional.of(expense));
     when(expenseRepository.save(any(Expense.class))).thenReturn(expense);
