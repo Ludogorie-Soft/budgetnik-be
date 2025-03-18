@@ -74,7 +74,7 @@ public class SecurityConfig {
 
   private CorsConfigurationSource configurationSource() {
     CorsConfiguration corsConfiguration = new CorsConfiguration();
-    corsConfiguration.setAllowedOrigins(List.of(allowedOrigins));
+    corsConfiguration.setAllowedOrigins(Collections.singletonList("*"));
     corsConfiguration.setAllowedMethods(Collections.singletonList("*"));
     corsConfiguration.setAllowCredentials(true);
     corsConfiguration.setAllowedHeaders(Collections.singletonList("*"));
