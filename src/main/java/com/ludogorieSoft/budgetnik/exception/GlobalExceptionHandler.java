@@ -1,6 +1,7 @@
 package com.ludogorieSoft.budgetnik.exception;
 
 import com.ludogorieSoft.budgetnik.dto.response.ExceptionResponse;
+import com.ludogorieSoft.budgetnik.service.impl.slack.SlackService;
 import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
@@ -15,6 +16,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
   private final MessageSource messageSource;
+  private final SlackService slackService;
 
   @ExceptionHandler(RuntimeException.class)
   public ResponseEntity<ExceptionResponse> handleRuntimeExceptions(RuntimeException exception) {
@@ -45,5 +47,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     ExceptionResponse apiException = ApiExceptionParser.parseException(exception);
 
     return ResponseEntity.status(apiException.getStatus()).body(apiException);
+  }
+
+  @ExceptionHandler(Exception.class)
+  public void alertSlackChannelWhenUnexpectedErrorOccurs(Exception ex) {
+    slackService.sendMessage("Error ->" + ex.getMessage());
   }
 }

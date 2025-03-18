@@ -18,6 +18,7 @@ import com.ludogorieSoft.budgetnik.service.AuthService;
 import com.ludogorieSoft.budgetnik.service.JwtService;
 import com.ludogorieSoft.budgetnik.service.TokenService;
 import com.ludogorieSoft.budgetnik.service.UserService;
+import io.jsonwebtoken.JwtException;
 import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.List;
@@ -102,9 +103,19 @@ public class AuthServiceImpl implements AuthService {
       throw new InvalidTokenException(messageSource);
     }
 
-    boolean isAccessTokenValid = tokenService.isTokenValid(accessToken.getToken(), user);
+    boolean isRefreshTokenValid;
+    try {
+      isRefreshTokenValid = tokenService.isTokenValid(refreshToken.getToken(), user);
+    } catch (JwtException jwtException) {
+      isRefreshTokenValid = false;
+    }
 
-    boolean isRefreshTokenValid = tokenService.isTokenValid(refreshToken.getToken(), user);
+    boolean isAccessTokenValid;
+    try {
+      isAccessTokenValid = tokenService.isTokenValid(accessToken.getToken(), user);
+    } catch (JwtException jwtException) {
+      isAccessTokenValid = false;
+    }
 
     String newAccessTokenString;
     if (isAccessTokenValid) {

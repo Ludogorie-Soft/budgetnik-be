@@ -25,5 +25,5 @@ public interface TokenService {
 
   void setTokenAsExpiredAndRevoked(Token token);
 
-  boolean isTokenValid(String token, UserDetails userDetails);
+  boolean isTokenValid(String token, UserDetails user);
 }

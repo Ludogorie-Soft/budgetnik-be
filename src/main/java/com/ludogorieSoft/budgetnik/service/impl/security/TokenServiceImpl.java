@@ -8,11 +8,9 @@ import com.ludogorieSoft.budgetnik.model.enums.TokenType;
 import com.ludogorieSoft.budgetnik.repository.TokenRepository;
 import com.ludogorieSoft.budgetnik.service.JwtService;
 import com.ludogorieSoft.budgetnik.service.TokenService;
-import io.jsonwebtoken.JwtException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -26,12 +24,6 @@ public class TokenServiceImpl implements TokenService {
   private final JwtService jwtService;
   private final ModelMapper modelMapper;
   private final TokenRepository tokenRepository;
-
-  @Value("${spring.security.jwt.refresh-token.expiration}")
-  private long refreshExpiration;
-
-  @Value("${spring.security.jwt.expiration}")
-  private long jwtExpiration;
 
   @Override
   public AuthResponse generateAuthResponse(User user, String device) {
@@ -110,13 +102,7 @@ public class TokenServiceImpl implements TokenService {
 
   @Override
   public boolean isTokenValid(String token, UserDetails user) {
-    boolean isValid;
-    try {
-      isValid = jwtService.isTokenValid(token, user);
-    } catch (JwtException jwtException) {
-      isValid = false;
-    }
-    return isValid;
+    return jwtService.isTokenValid(token, user);
   }
 
   @Scheduled(cron = "0 0 0,12 * * ?")
