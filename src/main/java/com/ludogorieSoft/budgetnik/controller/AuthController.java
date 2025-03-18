@@ -9,8 +9,6 @@ import com.ludogorieSoft.budgetnik.event.OnPasswordResetRequestEvent;
 import com.ludogorieSoft.budgetnik.model.User;
 import com.ludogorieSoft.budgetnik.service.AuthService;
 import com.ludogorieSoft.budgetnik.service.UserService;
-import com.ludogorieSoft.budgetnik.service.impl.slack.SlackService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
@@ -53,7 +51,7 @@ public class AuthController {
 
   @PostMapping("/login")
   public ResponseEntity<AuthResponse> authenticate(
-          @RequestBody LoginRequest request, @RequestHeader("DeviceId") String deviceId) {
+      @RequestBody LoginRequest request, @RequestHeader("DeviceId") String deviceId) {
     AuthResponse authResponse = authService.login(request, deviceId);
     return ResponseEntity.ok(authResponse);
   }
