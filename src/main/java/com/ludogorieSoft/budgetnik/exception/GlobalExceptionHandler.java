@@ -25,10 +25,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
   @ExceptionHandler(TransactionException.class)
   public ResponseEntity<ExceptionResponse> handleTransactionExceptions(
-      org.springframework.transaction.TransactionException exception) {
+          org.springframework.transaction.TransactionException exception) {
     if (exception.getRootCause() instanceof ConstraintViolationException) {
       return handleConstraintValidationExceptions(
-          (ConstraintViolationException) exception.getRootCause());
+              (ConstraintViolationException) exception.getRootCause());
     }
 
     return handleRuntimeExceptions(exception);
@@ -36,7 +36,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
   @ExceptionHandler(ConstraintViolationException.class)
   public ResponseEntity<ExceptionResponse> handleConstraintValidationExceptions(
-      ConstraintViolationException exception) {
+          ConstraintViolationException exception) {
     return handleApiExceptions(new ValidationException(exception.getConstraintViolations()));
   }
 

@@ -28,6 +28,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.context.MessageSource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -56,6 +57,7 @@ class ExpensesControllerIntegrationTest {
   @Autowired private VerificationTokenRepository verificationTokenRepository;
   @Autowired private TokenRepository tokenRepository;
   @Autowired private ExpenseCategoryRepository expenseCategoryRepository;
+  @Autowired private MessageSource messageSource;
 
   private HttpHeaders headers;
   private RegisterRequest registerRequest;
@@ -74,11 +76,13 @@ class ExpensesControllerIntegrationTest {
     assertNotNull(registerResponse);
     verificationTokenRepository.deleteAll();
     loginRequest = createLoginDto();
+    headers = new HttpHeaders();
+    headers.set("DeviceId", "DeviceId");
+    HttpEntity<LoginRequest> entity = new HttpEntity<>(loginRequest, headers);
     ResponseEntity<AuthResponse> loginResponse =
-        testRestTemplate.postForEntity(LOGIN_URL, loginRequest, AuthResponse.class);
+        testRestTemplate.exchange(LOGIN_URL, HttpMethod.POST, entity, AuthResponse.class);
     authResponse = loginResponse.getBody();
     assertNotNull(authResponse);
-    headers = new HttpHeaders();
     headers.set("Authorization", "Bearer " + authResponse.getToken());
     categoryRequestDto = createCategoryRequestDto();
     categoryResponseDto = createCategoryInDb();

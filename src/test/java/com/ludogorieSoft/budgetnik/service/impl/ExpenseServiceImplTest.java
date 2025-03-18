@@ -31,6 +31,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.springframework.context.MessageSource;
 
 @ExtendWith(MockitoExtension.class)
 class ExpenseServiceImplTest {
@@ -45,6 +46,8 @@ class ExpenseServiceImplTest {
   @InjectMocks private ExpenseServiceImpl expenseService;
 
   @Mock private SubcategoryRepository subcategoryRepository;
+
+  @Mock private MessageSource messageSource;
 
   private ExpenseCategory expenseCategory;
   private Subcategory subcategory;
@@ -70,7 +73,7 @@ class ExpenseServiceImplTest {
     responseDto.setSum(BigDecimal.ONE);
 
     when(userService.findById(ownerId)).thenReturn(user);
-    when(subcategoryRepository.findByNameAndIncomeCategory(any())).thenReturn(Optional.of(subcategory));
+    when(subcategoryRepository.findByNameAndExpenseCategory(any(), any())).thenReturn(Optional.of(subcategory));
     when(expenseRepository.save(any(Expense.class)))
         .thenAnswer(
             invocation -> {
@@ -107,7 +110,7 @@ class ExpenseServiceImplTest {
     responseDto.setSum(BigDecimal.ONE);
 
     when(userService.findById(ownerId)).thenReturn(user);
-    when(subcategoryRepository.findByNameAndIncomeCategory(any())).thenReturn(Optional.of(subcategory));
+    when(subcategoryRepository.findByNameAndExpenseCategory(any(), any())).thenReturn(Optional.of(subcategory));
     when(expenseRepository.save(any(Expense.class)))
         .thenAnswer(
             invocation -> {
@@ -320,7 +323,7 @@ class ExpenseServiceImplTest {
   }
 
   @Test
-  void testEditFixedIncome_Success() {
+  void testEditFixedExpense_Success() {
     // GIVEN
     UUID ownerId = UUID.randomUUID();
     UUID expenseId = UUID.randomUUID();
@@ -334,7 +337,7 @@ class ExpenseServiceImplTest {
     responseDto.setId(expenseId);
     responseDto.setSum(requestDto.getSum());
 
-    when(subcategoryRepository.findByNameAndIncomeCategory(any())).thenReturn(Optional.of(subcategory));
+    when(subcategoryRepository.findByNameAndExpenseCategory(any(), any())).thenReturn(Optional.of(subcategory));
     when(expenseRepository.findById(expenseId)).thenReturn(Optional.of(expense));
     when(expenseRepository.save(any(Expense.class))).thenReturn(expense);
     when(modelMapper.map(expense, ExpenseResponseDto.class)).thenReturn(responseDto);
@@ -357,7 +360,7 @@ class ExpenseServiceImplTest {
   }
 
   @Test
-  void testEditVariableIncome_Success() {
+  void testEditVariableExpense_Success() {
     // GIVEN
     UUID ownerId = UUID.randomUUID();
     UUID expenseId = UUID.randomUUID();
@@ -371,7 +374,7 @@ class ExpenseServiceImplTest {
     responseDto.setId(expenseId);
     responseDto.setSum(requestDto.getSum());
 
-    when(subcategoryRepository.findByNameAndIncomeCategory(any())).thenReturn(Optional.of(subcategory));
+    when(subcategoryRepository.findByNameAndExpenseCategory(any(), any())).thenReturn(Optional.of(subcategory));
     when(expenseRepository.findById(expenseId)).thenReturn(Optional.of(expense));
     when(expenseRepository.save(any(Expense.class))).thenReturn(expense);
     when(modelMapper.map(expense, ExpenseResponseDto.class)).thenReturn(responseDto);
@@ -432,6 +435,7 @@ class ExpenseServiceImplTest {
     expense.setCategory(expenseCategory);
     expense.setCreationDate(LocalDate.now());
     expense.setSum(BigDecimal.ONE);
+    expense.setSubcategory(subcategory);
     return expense;
   }
 
@@ -451,7 +455,7 @@ class ExpenseServiceImplTest {
   private Subcategory createSubcategory() {
     subcategory = new Subcategory();
     subcategory.setExpenseCategory(expenseCategory);
-    subcategory.setName("test");
+    subcategory.setName("Test_Subcategory");
     subcategory.setBgName("Тест");
     return subcategory;
   }

@@ -3,6 +3,8 @@ package com.ludogorieSoft.budgetnik.service.impl.security;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -15,7 +17,6 @@ import com.ludogorieSoft.budgetnik.model.User;
 import com.ludogorieSoft.budgetnik.model.enums.TokenType;
 import com.ludogorieSoft.budgetnik.repository.TokenRepository;
 import com.ludogorieSoft.budgetnik.service.JwtService;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -36,13 +37,15 @@ class TokenServiceImplTest {
 
   @Mock private ModelMapper modelMapper;
 
+  private static final String DEVICE_ID = "Device_id";
+
   @Test
   void testSaveToken() {
     User mockUser = new User();
     String jwtToken = "mockJwtToken";
     TokenType tokenType = TokenType.ACCESS;
 
-    tokenService.saveToken(mockUser, jwtToken, tokenType);
+    tokenService.saveToken(mockUser, jwtToken, tokenType, DEVICE_ID);
 
     verify(tokenRepository)
         .save(
@@ -77,26 +80,6 @@ class TokenServiceImplTest {
     assertEquals(mockToken2, result.get(1));
   }
 
-//  @Test
-//  void testRevokeToken() {
-//    Token mockToken = new Token();
-//    tokenService.revokeToken(mockToken);
-//    verify(tokenRepository).delete(mockToken);
-//  }
-
-//  @Test
-//  void testRevokeAllUserTokens() {
-//    User user = new User();
-//    Token token1 = new Token();
-//    Token token2 = new Token();
-//
-//    when(tokenRepository.findAllByUser(user)).thenReturn(Arrays.asList(token1, token2));
-//
-//    tokenService.revokeAllUserTokens(user);
-//
-//    verify(tokenRepository, times(1)).deleteAll(anyList());
-//  }
-
   @Test
   void testLogoutToken() {
     String jwtToken = "mockedJwtToken";
@@ -104,9 +87,16 @@ class TokenServiceImplTest {
     Token storedToken = new Token();
     storedToken.setUser(user);
 
-    when(tokenRepository.findByToken(jwtToken)).thenReturn(Optional.of(storedToken));
+    Token refreshToken = new Token();
+    refreshToken.setUser(user);
+    refreshToken.setExpired(false);
+    refreshToken.setRevoked(false);
 
-    tokenService.logoutToken(jwtToken);
+    when(tokenRepository.findByToken(jwtToken)).thenReturn(Optional.of(storedToken));
+    when(tokenRepository.findByUserAndTokenTypeAndDeviceAndExpiredFalseAndRevokedFalse(
+            any(User.class), eq(TokenType.REFRESH), anyString())).thenReturn(List.of(refreshToken));
+
+    tokenService.logoutToken(jwtToken, DEVICE_ID);
 
     verify(tokenRepository, times(1)).findByToken(jwtToken);
   }
@@ -117,7 +107,7 @@ class TokenServiceImplTest {
 
     when(tokenRepository.findByToken(jwtToken)).thenReturn(Optional.empty());
 
-    tokenService.logoutToken(jwtToken);
+    tokenService.logoutToken(jwtToken, DEVICE_ID);
 
     verify(tokenRepository, never()).findAllByUser(any(User.class));
     verify(tokenRepository, never()).deleteAll(anyList());
@@ -137,7 +127,7 @@ class TokenServiceImplTest {
     when(modelMapper.map(user, UserResponse.class)).thenReturn(mockUserResponse);
 
     // WHEN
-    AuthResponse response = tokenService.generateAuthResponse(user);
+    AuthResponse response = tokenService.generateAuthResponse(user, DEVICE_ID);
 
     // THEN
     assertNotNull(response);

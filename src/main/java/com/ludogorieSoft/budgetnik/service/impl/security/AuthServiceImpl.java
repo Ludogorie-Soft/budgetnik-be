@@ -30,6 +30,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -73,7 +74,7 @@ public class AuthServiceImpl implements AuthService {
       authenticationManager.authenticate(
           new UsernamePasswordAuthenticationToken(
               loginRequest.getEmail(), loginRequest.getPassword()));
-    } catch (UserLoginException exception) {
+    } catch (AuthenticationException exception) {
       throw new UserLoginException(messageSource);
     }
 
@@ -95,30 +96,31 @@ public class AuthServiceImpl implements AuthService {
     }
 
     User user = accessToken.getUser();
-
-    boolean isAccessTokenValid = tokenService.isTokenValid(accessToken.getToken(), user);
-
-    String newAccessTokenString;
-    if (isAccessTokenValid) {
-      newAccessTokenString = accessToken.getToken();
-    } else {
-      tokenService.setTokenAsExpiredAndRevoked(accessToken);
-      newAccessTokenString = jwtService.generateToken(user);
-      tokenService.saveToken(user, newAccessTokenString, TokenType.ACCESS, device);
-    }
-
     Token refreshToken = tokenService.getLastValidToken(user, TokenType.REFRESH, device);
 
     if (refreshToken == null) {
       throw new InvalidTokenException(messageSource);
     }
 
-    boolean isValid = tokenService.isTokenValid(refreshToken.getToken(), user);
+    boolean isAccessTokenValid = tokenService.isTokenValid(accessToken.getToken(), user);
 
-    if (!isValid) {
-      tokenService.setTokenAsExpiredAndRevoked(refreshToken);
-      String refreshTokenString = jwtService.generateRefreshToken(user);
-      tokenService.saveToken(user, refreshTokenString, TokenType.REFRESH, device);
+    boolean isRefreshTokenValid = tokenService.isTokenValid(refreshToken.getToken(), user);
+
+    String newAccessTokenString;
+    if (isAccessTokenValid) {
+      newAccessTokenString = accessToken.getToken();
+    } else {
+      if (isRefreshTokenValid) {
+        tokenService.setTokenAsExpiredAndRevoked(accessToken);
+        newAccessTokenString = jwtService.generateToken(user);
+        tokenService.saveToken(user, newAccessTokenString, TokenType.ACCESS, device);
+
+        tokenService.setTokenAsExpiredAndRevoked(refreshToken);
+        String refreshTokenString = jwtService.generateRefreshToken(user);
+        tokenService.saveToken(user, refreshTokenString, TokenType.REFRESH, device);
+      } else {
+        throw new InvalidTokenException(messageSource);
+      }
     }
 
     UserResponse userResponse = modelMapper.map(accessToken.getUser(), UserResponse.class);

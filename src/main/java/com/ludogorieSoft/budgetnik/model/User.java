@@ -1,6 +1,6 @@
 package com.ludogorieSoft.budgetnik.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.ludogorieSoft.budgetnik.model.enums.Role;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -18,12 +18,15 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -33,6 +36,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(exclude = {"incomes", "expenses", "exponentPushTokens", "subscription"})
 public class User implements UserDetails {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
@@ -41,8 +45,8 @@ public class User implements UserDetails {
   @OneToOne(cascade = CascadeType.ALL)
   private Subscription subscription;
 
-  @OneToOne(cascade = CascadeType.ALL)
-  private ExpoPushToken exponentPushToken;
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+  private Set<ExpoPushToken> exponentPushTokens;
 
   @NotNull(message = "The name should not be null!")
   private String name;
@@ -64,12 +68,14 @@ public class User implements UserDetails {
   private boolean activated = false;
 
   @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
-  @JsonIgnore
+  @JsonManagedReference
+  @ToString.Exclude
   private List<Income> incomes;
 
   @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
-  @JsonIgnore
-  private List<Income> expenses;
+  @JsonManagedReference
+  @ToString.Exclude
+  private List<Expense> expenses;
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -94,5 +100,9 @@ public class User implements UserDetails {
   @Override
   public boolean isCredentialsNonExpired() {
     return true;
+  }
+  @Override
+  public String toString() {
+    return "User{id=" + id + ", name=" + name + ", email=" + email + ", role=" + role + "}";
   }
 }
