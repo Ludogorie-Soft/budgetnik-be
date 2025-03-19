@@ -1,5 +1,5 @@
-ALTER TABLE income_category ADD COLUMN translations jsonb;
-ALTER TABLE expense_category ADD COLUMN translations jsonb;
+ALTER TABLE income_category ADD COLUMN IF NOT EXISTS translations jsonb;
+ALTER TABLE expense_category ADD COLUMN IF NOT EXISTS translations jsonb;
 
 UPDATE expense_category
 SET translations = '{
