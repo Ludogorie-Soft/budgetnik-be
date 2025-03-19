@@ -20,7 +20,7 @@ public class NotificationService {
   private static final RestTemplate restTemplate = new RestTemplate();
   private static final int BATCH_SIZE = 100;
 
-  public void multipleNotificationSend(String title, String body) {
+  public void multipleSystemNotificationSend(String title, String body) {
     List<ExpoPushToken> tokens = getAllExpoPushTokens();
 
     for (int i = 0; i < tokens.size(); i += BATCH_SIZE) {

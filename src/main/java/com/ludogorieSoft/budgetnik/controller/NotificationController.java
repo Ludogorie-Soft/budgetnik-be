@@ -19,7 +19,7 @@ public class NotificationController {
   @PostMapping("/send")
   public ResponseEntity<String> sendNotification(
       @RequestBody NotificationRequest notificationRequest) {
-    notificationService.multipleNotificationSend(
+    notificationService.multipleSystemNotificationSend(
         notificationRequest.getTitle(), notificationRequest.getBody());
     return ResponseEntity.ok("Notification sent successfully!");
   }
