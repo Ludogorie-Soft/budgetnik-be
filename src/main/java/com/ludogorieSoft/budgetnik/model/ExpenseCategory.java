@@ -12,10 +12,12 @@ import java.util.List;
 import java.util.UUID;
 
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.Data;
 
 @Data
 @Entity
+@Table(name = "expense_category")
 public class ExpenseCategory {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)

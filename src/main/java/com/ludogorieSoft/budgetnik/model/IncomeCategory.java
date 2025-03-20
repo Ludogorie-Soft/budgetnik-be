@@ -10,10 +10,13 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import java.util.List;
 import java.util.UUID;
+
+import jakarta.persistence.Table;
 import lombok.Data;
 
 @Data
 @Entity
+@Table(name = "income_category")
 public class IncomeCategory {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
