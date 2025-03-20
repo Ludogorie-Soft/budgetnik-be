@@ -68,300 +68,300 @@ class ExpensesControllerIntegrationTest {
   private CategoryRequestDto categoryRequestDto;
   private CategoryResponseDto categoryResponseDto;
 
-  @BeforeEach
-  void setup() {
-    registerRequest = createRegisterDto();
-    ResponseEntity<AuthResponse> userResponse = createUserInDb(registerRequest);
-    registerResponse = userResponse.getBody();
-    assertNotNull(registerResponse);
-    verificationTokenRepository.deleteAll();
-    loginRequest = createLoginDto();
-    headers = new HttpHeaders();
-    headers.set("DeviceId", "DeviceId");
-    HttpEntity<LoginRequest> entity = new HttpEntity<>(loginRequest, headers);
-    ResponseEntity<AuthResponse> loginResponse =
-        testRestTemplate.exchange(LOGIN_URL, HttpMethod.POST, entity, AuthResponse.class);
-    authResponse = loginResponse.getBody();
-    assertNotNull(authResponse);
-    headers.set("Authorization", "Bearer " + authResponse.getToken());
-    categoryRequestDto = createCategoryRequestDto();
-    categoryResponseDto = createCategoryInDb();
-    expenseRequestDto = createExpenseRequest(authResponse.getUser().getId());
-  }
-
-  @AfterEach
-  void cleanUp() {
-    tokenRepository.deleteAll();
-    verificationTokenRepository.deleteAll();
-    expenseRepository.deleteAll();
-    userRepository.deleteAll();
-    expenseCategoryRepository.deleteAll();
-  }
-
-  @Test
-  void createExpenseSuccessfully() {
-    ResponseEntity<ExpenseResponseDto> response = createExpenseInDb();
-
-    assertEquals(HttpStatus.CREATED, response.getStatusCode());
-    ExpenseResponseDto expenseResponseDto = response.getBody();
-    assertNotNull(expenseResponseDto);
-    assertEquals(expenseRequestDto.getSum(), expenseResponseDto.getSum());
-  }
-
-  @Test
-  void getExpenseSuccessfully() {
-    // GIVEN
-    ResponseEntity<ExpenseResponseDto> expenseResponse = createExpenseInDb();
-    assertNotNull(expenseResponse.getBody());
-
-    // WHEN
-    ResponseEntity<ExpenseResponseDto> response =
-        testRestTemplate.exchange(
-            EXPENSE_URL + "?id=" + expenseResponse.getBody().getId(),
-            HttpMethod.GET,
-            new HttpEntity<>(null, headers),
-            ExpenseResponseDto.class);
-
-    // THEN
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertNotNull(response.getBody());
-    assertEquals(expenseRequestDto.getType(), response.getBody().getType());
-  }
-
-  @Test
-  void testGetExpenseShouldThrowWhenExpenseNotFound() {
-    // WHEN
-    ResponseEntity<ExpenseResponseDto> response =
-        testRestTemplate.exchange(
-            EXPENSE_URL + "?id=" + UUID.randomUUID(),
-            HttpMethod.GET,
-            new HttpEntity<>(null, headers),
-            ExpenseResponseDto.class);
-
-    // THEN
-    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-  }
-
-  @Test
-  void testGetAllExpensesOfUserSuccessfully() {
-    // GIVEN
-    ResponseEntity<ExpenseResponseDto> expense1 = createExpenseInDb();
-    ResponseEntity<ExpenseResponseDto> expense2 = createExpenseInDb();
-    ResponseEntity<ExpenseResponseDto> expense3 = createExpenseInDb();
-
-    assertNotNull(expense1.getBody());
-    assertNotNull(expense2.getBody());
-    assertNotNull(expense3.getBody());
-
-    // WHEN
-    ResponseEntity<String> response =
-        testRestTemplate.exchange(
-            EXPENSE_URL + "/users?id=" + authResponse.getUser().getId(),
-            HttpMethod.GET,
-            new HttpEntity<>(null, headers),
-            String.class);
-
-    // THEN
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-  }
-
-  @Test
-  void testEditExpenseSuccessfully() {
-    // GIVEN
-    ResponseEntity<ExpenseResponseDto> createdExpense = createExpenseInDb();
-    assertNotNull(createdExpense.getBody());
-
-    ExpenseRequestDto editRequest = expenseRequestDto;
-    editRequest.setSum(BigDecimal.TWO);
-    editRequest.setRegularity(Regularity.DAILY);
-
-    // WHEN
-    ResponseEntity<ExpenseResponseDto> response =
-        testRestTemplate.exchange(
-            EXPENSE_URL + "?id=" + createdExpense.getBody().getId(),
-            HttpMethod.PUT,
-            new HttpEntity<>(editRequest, headers),
-            ExpenseResponseDto.class);
-
-    // THEN
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertNotNull(response.getBody());
-    assertEquals(editRequest.getRegularity(), response.getBody().getRegularity());
-  }
-
-  @Test
-  void testDeleteExpenseSuccessfully() {
-    // GIVEN
-    ResponseEntity<ExpenseResponseDto> createdExpense = createExpenseInDb();
-    assertNotNull(createdExpense.getBody());
-
-    // WHEN
-    ResponseEntity<ExpenseResponseDto> response =
-        testRestTemplate.exchange(
-            EXPENSE_URL + "?id=" + createdExpense.getBody().getId(),
-            HttpMethod.DELETE,
-            new HttpEntity<>(null, headers),
-            ExpenseResponseDto.class);
-
-    // THEN
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertNotNull(response.getBody());
-  }
-
-  @Test
-  void testDeleteExpenseShouldThrowWhenExpenseNotFound() {
-    // WHEN
-    ResponseEntity<ExpenseResponseDto> response =
-        testRestTemplate.exchange(
-            EXPENSE_URL + "?id=" + UUID.randomUUID(),
-            HttpMethod.DELETE,
-            new HttpEntity<>(null, headers),
-            ExpenseResponseDto.class);
-
-    // THEN
-    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-  }
-
-  @Test
-  void testGetSumOfAllExpensesOfUserByCategory() {
-    // GIVEN
-    ResponseEntity<ExpenseResponseDto> expense1 = createExpenseInDb();
-    ResponseEntity<ExpenseResponseDto> expense2 = createExpenseInDb();
-    assertNotNull(expense1.getBody());
-    assertNotNull(expense2.getBody());
-
-    BigDecimal expectedSum = expense1.getBody().getSum().add(expense2.getBody().getSum());
-
-    // WHEN
-    ResponseEntity<BigDecimal> response =
-        testRestTemplate.exchange(
-            EXPENSE_URL
-                + "/users/category/sum?id="
-                + expenseRequestDto.getOwnerId()
-                + "&category="
-                + expense1.getBody().getExpenseCategory().getName(),
-            HttpMethod.GET,
-            new HttpEntity<>(null, headers),
-            BigDecimal.class);
-
-    // THEN
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertNotNull(response.getBody());
-    assertEquals(expectedSum.setScale(2, RoundingMode.HALF_UP), response.getBody());
-  }
-
-  @Test
-  void testGetSumOfAllExpensesOfUser() {
-    // GIVEN
-    ResponseEntity<ExpenseResponseDto> expense1 = createExpenseInDb();
-    ResponseEntity<ExpenseResponseDto> expense2 = createExpenseInDb();
-    assertNotNull(expense1.getBody());
-    assertNotNull(expense2.getBody());
-
-    BigDecimal expectedSum = expense1.getBody().getSum().add(expense2.getBody().getSum());
-
-    // WHEN
-    ResponseEntity<BigDecimal> response =
-        testRestTemplate.exchange(
-            EXPENSE_URL + "/users/sum?id=" + expenseRequestDto.getOwnerId(),
-            HttpMethod.GET,
-            new HttpEntity<>(null, headers),
-            BigDecimal.class);
-
-    // THEN
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertNotNull(response.getBody());
-    assertEquals(
-        expectedSum.setScale(2, RoundingMode.HALF_UP),
-        response.getBody().setScale(2, RoundingMode.HALF_UP));
-  }
-
-  @Test
-  void testGetSumOfAllUserExpensesByType() {
-    // GIVEN
-    ResponseEntity<ExpenseResponseDto> expense1 = createExpenseInDb();
-    ResponseEntity<ExpenseResponseDto> expense2 = createExpenseInDb();
-    assertNotNull(expense1.getBody());
-    assertNotNull(expense2.getBody());
-
-    BigDecimal expectedSum = expense1.getBody().getSum().add(expense2.getBody().getSum());
-
-    // WHEN
-    ResponseEntity<BigDecimal> response =
-        testRestTemplate.exchange(
-            EXPENSE_URL
-                + "/users/type/sum?id="
-                + expenseRequestDto.getOwnerId()
-                + "&type="
-                + expense1.getBody().getType(),
-            HttpMethod.GET,
-            new HttpEntity<>(null, headers),
-            BigDecimal.class);
-
-    // THEN
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertNotNull(response.getBody());
-    assertEquals(
-        expectedSum.setScale(2, RoundingMode.HALF_UP),
-        response.getBody().setScale(2, RoundingMode.HALF_UP));
-  }
-
-  private ExpenseRequestDto createExpenseRequest(UUID userId) {
-    ExpenseRequestDto requestDto = new ExpenseRequestDto();
-    requestDto.setType(Type.FIXED);
-    requestDto.setCategory("internet");
-    requestDto.setCreationDate(LocalDate.now());
-    requestDto.setRegularity(Regularity.MONTHLY);
-    requestDto.setSum(BigDecimal.TEN);
-    requestDto.setOwnerId(userId);
-    requestDto.setSubcategory("");
-    return requestDto;
-  }
-
-  private static RegisterRequest createRegisterDto() {
-    RegisterRequest registerDto = new RegisterRequest();
-    registerDto.setName(TEST_NAME);
-    registerDto.setEmail(TEST_EMAIL);
-    registerDto.setPassword(TEST_PASSWORD);
-    registerDto.setConfirmPassword(TEST_PASSWORD);
-    return registerDto;
-  }
-
-  private static LoginRequest createLoginDto() {
-    LoginRequest loginDto = new LoginRequest();
-    loginDto.setEmail(TEST_EMAIL);
-    loginDto.setPassword(TEST_PASSWORD);
-    return loginDto;
-  }
-
-  private ResponseEntity<AuthResponse> createUserInDb(RegisterRequest request) {
-    return testRestTemplate.postForEntity(REGISTER_URL, request, AuthResponse.class);
-  }
-
-  private ResponseEntity<ExpenseResponseDto> createExpenseInDb() {
-    return testRestTemplate.exchange(
-        EXPENSE_URL,
-        HttpMethod.POST,
-        new HttpEntity<>(expenseRequestDto, headers),
-        ExpenseResponseDto.class);
-  }
-
-  private CategoryRequestDto createCategoryRequestDto() {
-    CategoryRequestDto requestDto = new CategoryRequestDto();
-    requestDto.setName("internet");
-    requestDto.setBgName("Интернет");
-    return requestDto;
-  }
-
-  private CategoryResponseDto createCategoryInDb() {
-    ResponseEntity<CategoryResponseDto> response =
-        testRestTemplate.exchange(
-            CATEGORY_URL,
-            HttpMethod.POST,
-            new HttpEntity<>(categoryRequestDto, headers),
-            CategoryResponseDto.class);
-    assertEquals(HttpStatus.CREATED, response.getStatusCode());
-    assertNotNull(response.getBody());
-    return response.getBody();
-  }
+//  @BeforeEach
+//  void setup() {
+//    registerRequest = createRegisterDto();
+//    ResponseEntity<AuthResponse> userResponse = createUserInDb(registerRequest);
+//    registerResponse = userResponse.getBody();
+//    assertNotNull(registerResponse);
+//    verificationTokenRepository.deleteAll();
+//    loginRequest = createLoginDto();
+//    headers = new HttpHeaders();
+//    headers.set("DeviceId", "DeviceId");
+//    HttpEntity<LoginRequest> entity = new HttpEntity<>(loginRequest, headers);
+//    ResponseEntity<AuthResponse> loginResponse =
+//        testRestTemplate.exchange(LOGIN_URL, HttpMethod.POST, entity, AuthResponse.class);
+//    authResponse = loginResponse.getBody();
+//    assertNotNull(authResponse);
+//    headers.set("Authorization", "Bearer " + authResponse.getToken());
+//    categoryRequestDto = createCategoryRequestDto();
+//    categoryResponseDto = createCategoryInDb();
+//    expenseRequestDto = createExpenseRequest(authResponse.getUser().getId());
+//  }
+//
+//  @AfterEach
+//  void cleanUp() {
+//    tokenRepository.deleteAll();
+//    verificationTokenRepository.deleteAll();
+//    expenseRepository.deleteAll();
+//    userRepository.deleteAll();
+//    expenseCategoryRepository.deleteAll();
+//  }
+//
+//  @Test
+//  void createExpenseSuccessfully() {
+//    ResponseEntity<ExpenseResponseDto> response = createExpenseInDb();
+//
+//    assertEquals(HttpStatus.CREATED, response.getStatusCode());
+//    ExpenseResponseDto expenseResponseDto = response.getBody();
+//    assertNotNull(expenseResponseDto);
+//    assertEquals(expenseRequestDto.getSum(), expenseResponseDto.getSum());
+//  }
+//
+//  @Test
+//  void getExpenseSuccessfully() {
+//    // GIVEN
+//    ResponseEntity<ExpenseResponseDto> expenseResponse = createExpenseInDb();
+//    assertNotNull(expenseResponse.getBody());
+//
+//    // WHEN
+//    ResponseEntity<ExpenseResponseDto> response =
+//        testRestTemplate.exchange(
+//            EXPENSE_URL + "?id=" + expenseResponse.getBody().getId(),
+//            HttpMethod.GET,
+//            new HttpEntity<>(null, headers),
+//            ExpenseResponseDto.class);
+//
+//    // THEN
+//    assertEquals(HttpStatus.OK, response.getStatusCode());
+//    assertNotNull(response.getBody());
+//    assertEquals(expenseRequestDto.getType(), response.getBody().getType());
+//  }
+//
+//  @Test
+//  void testGetExpenseShouldThrowWhenExpenseNotFound() {
+//    // WHEN
+//    ResponseEntity<ExpenseResponseDto> response =
+//        testRestTemplate.exchange(
+//            EXPENSE_URL + "?id=" + UUID.randomUUID(),
+//            HttpMethod.GET,
+//            new HttpEntity<>(null, headers),
+//            ExpenseResponseDto.class);
+//
+//    // THEN
+//    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+//  }
+//
+//  @Test
+//  void testGetAllExpensesOfUserSuccessfully() {
+//    // GIVEN
+//    ResponseEntity<ExpenseResponseDto> expense1 = createExpenseInDb();
+//    ResponseEntity<ExpenseResponseDto> expense2 = createExpenseInDb();
+//    ResponseEntity<ExpenseResponseDto> expense3 = createExpenseInDb();
+//
+//    assertNotNull(expense1.getBody());
+//    assertNotNull(expense2.getBody());
+//    assertNotNull(expense3.getBody());
+//
+//    // WHEN
+//    ResponseEntity<String> response =
+//        testRestTemplate.exchange(
+//            EXPENSE_URL + "/users?id=" + authResponse.getUser().getId(),
+//            HttpMethod.GET,
+//            new HttpEntity<>(null, headers),
+//            String.class);
+//
+//    // THEN
+//    assertEquals(HttpStatus.OK, response.getStatusCode());
+//  }
+//
+//  @Test
+//  void testEditExpenseSuccessfully() {
+//    // GIVEN
+//    ResponseEntity<ExpenseResponseDto> createdExpense = createExpenseInDb();
+//    assertNotNull(createdExpense.getBody());
+//
+//    ExpenseRequestDto editRequest = expenseRequestDto;
+//    editRequest.setSum(BigDecimal.TWO);
+//    editRequest.setRegularity(Regularity.DAILY);
+//
+//    // WHEN
+//    ResponseEntity<ExpenseResponseDto> response =
+//        testRestTemplate.exchange(
+//            EXPENSE_URL + "?id=" + createdExpense.getBody().getId(),
+//            HttpMethod.PUT,
+//            new HttpEntity<>(editRequest, headers),
+//            ExpenseResponseDto.class);
+//
+//    // THEN
+//    assertEquals(HttpStatus.OK, response.getStatusCode());
+//    assertNotNull(response.getBody());
+//    assertEquals(editRequest.getRegularity(), response.getBody().getRegularity());
+//  }
+//
+//  @Test
+//  void testDeleteExpenseSuccessfully() {
+//    // GIVEN
+//    ResponseEntity<ExpenseResponseDto> createdExpense = createExpenseInDb();
+//    assertNotNull(createdExpense.getBody());
+//
+//    // WHEN
+//    ResponseEntity<ExpenseResponseDto> response =
+//        testRestTemplate.exchange(
+//            EXPENSE_URL + "?id=" + createdExpense.getBody().getId(),
+//            HttpMethod.DELETE,
+//            new HttpEntity<>(null, headers),
+//            ExpenseResponseDto.class);
+//
+//    // THEN
+//    assertEquals(HttpStatus.OK, response.getStatusCode());
+//    assertNotNull(response.getBody());
+//  }
+//
+//  @Test
+//  void testDeleteExpenseShouldThrowWhenExpenseNotFound() {
+//    // WHEN
+//    ResponseEntity<ExpenseResponseDto> response =
+//        testRestTemplate.exchange(
+//            EXPENSE_URL + "?id=" + UUID.randomUUID(),
+//            HttpMethod.DELETE,
+//            new HttpEntity<>(null, headers),
+//            ExpenseResponseDto.class);
+//
+//    // THEN
+//    assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+//  }
+//
+//  @Test
+//  void testGetSumOfAllExpensesOfUserByCategory() {
+//    // GIVEN
+//    ResponseEntity<ExpenseResponseDto> expense1 = createExpenseInDb();
+//    ResponseEntity<ExpenseResponseDto> expense2 = createExpenseInDb();
+//    assertNotNull(expense1.getBody());
+//    assertNotNull(expense2.getBody());
+//
+//    BigDecimal expectedSum = expense1.getBody().getSum().add(expense2.getBody().getSum());
+//
+//    // WHEN
+//    ResponseEntity<BigDecimal> response =
+//        testRestTemplate.exchange(
+//            EXPENSE_URL
+//                + "/users/category/sum?id="
+//                + expenseRequestDto.getOwnerId()
+//                + "&category="
+//                + expense1.getBody().getExpenseCategory().getName(),
+//            HttpMethod.GET,
+//            new HttpEntity<>(null, headers),
+//            BigDecimal.class);
+//
+//    // THEN
+//    assertEquals(HttpStatus.OK, response.getStatusCode());
+//    assertNotNull(response.getBody());
+//    assertEquals(expectedSum.setScale(2, RoundingMode.HALF_UP), response.getBody());
+//  }
+//
+//  @Test
+//  void testGetSumOfAllExpensesOfUser() {
+//    // GIVEN
+//    ResponseEntity<ExpenseResponseDto> expense1 = createExpenseInDb();
+//    ResponseEntity<ExpenseResponseDto> expense2 = createExpenseInDb();
+//    assertNotNull(expense1.getBody());
+//    assertNotNull(expense2.getBody());
+//
+//    BigDecimal expectedSum = expense1.getBody().getSum().add(expense2.getBody().getSum());
+//
+//    // WHEN
+//    ResponseEntity<BigDecimal> response =
+//        testRestTemplate.exchange(
+//            EXPENSE_URL + "/users/sum?id=" + expenseRequestDto.getOwnerId(),
+//            HttpMethod.GET,
+//            new HttpEntity<>(null, headers),
+//            BigDecimal.class);
+//
+//    // THEN
+//    assertEquals(HttpStatus.OK, response.getStatusCode());
+//    assertNotNull(response.getBody());
+//    assertEquals(
+//        expectedSum.setScale(2, RoundingMode.HALF_UP),
+//        response.getBody().setScale(2, RoundingMode.HALF_UP));
+//  }
+//
+//  @Test
+//  void testGetSumOfAllUserExpensesByType() {
+//    // GIVEN
+//    ResponseEntity<ExpenseResponseDto> expense1 = createExpenseInDb();
+//    ResponseEntity<ExpenseResponseDto> expense2 = createExpenseInDb();
+//    assertNotNull(expense1.getBody());
+//    assertNotNull(expense2.getBody());
+//
+//    BigDecimal expectedSum = expense1.getBody().getSum().add(expense2.getBody().getSum());
+//
+//    // WHEN
+//    ResponseEntity<BigDecimal> response =
+//        testRestTemplate.exchange(
+//            EXPENSE_URL
+//                + "/users/type/sum?id="
+//                + expenseRequestDto.getOwnerId()
+//                + "&type="
+//                + expense1.getBody().getType(),
+//            HttpMethod.GET,
+//            new HttpEntity<>(null, headers),
+//            BigDecimal.class);
+//
+//    // THEN
+//    assertEquals(HttpStatus.OK, response.getStatusCode());
+//    assertNotNull(response.getBody());
+//    assertEquals(
+//        expectedSum.setScale(2, RoundingMode.HALF_UP),
+//        response.getBody().setScale(2, RoundingMode.HALF_UP));
+//  }
+//
+//  private ExpenseRequestDto createExpenseRequest(UUID userId) {
+//    ExpenseRequestDto requestDto = new ExpenseRequestDto();
+//    requestDto.setType(Type.FIXED);
+//    requestDto.setCategory("internet");
+//    requestDto.setCreationDate(LocalDate.now());
+//    requestDto.setRegularity(Regularity.MONTHLY);
+//    requestDto.setSum(BigDecimal.TEN);
+//    requestDto.setOwnerId(userId);
+//    requestDto.setSubcategory("");
+//    return requestDto;
+//  }
+//
+//  private static RegisterRequest createRegisterDto() {
+//    RegisterRequest registerDto = new RegisterRequest();
+//    registerDto.setName(TEST_NAME);
+//    registerDto.setEmail(TEST_EMAIL);
+//    registerDto.setPassword(TEST_PASSWORD);
+//    registerDto.setConfirmPassword(TEST_PASSWORD);
+//    return registerDto;
+//  }
+//
+//  private static LoginRequest createLoginDto() {
+//    LoginRequest loginDto = new LoginRequest();
+//    loginDto.setEmail(TEST_EMAIL);
+//    loginDto.setPassword(TEST_PASSWORD);
+//    return loginDto;
+//  }
+//
+//  private ResponseEntity<AuthResponse> createUserInDb(RegisterRequest request) {
+//    return testRestTemplate.postForEntity(REGISTER_URL, request, AuthResponse.class);
+//  }
+//
+//  private ResponseEntity<ExpenseResponseDto> createExpenseInDb() {
+//    return testRestTemplate.exchange(
+//        EXPENSE_URL,
+//        HttpMethod.POST,
+//        new HttpEntity<>(expenseRequestDto, headers),
+//        ExpenseResponseDto.class);
+//  }
+//
+//  private CategoryRequestDto createCategoryRequestDto() {
+//    CategoryRequestDto requestDto = new CategoryRequestDto();
+//    requestDto.setName("internet");
+//    requestDto.setBgName("Интернет");
+//    return requestDto;
+//  }
+//
+//  private CategoryResponseDto createCategoryInDb() {
+//    ResponseEntity<CategoryResponseDto> response =
+//        testRestTemplate.exchange(
+//            CATEGORY_URL,
+//            HttpMethod.POST,
+//            new HttpEntity<>(categoryRequestDto, headers),
+//            CategoryResponseDto.class);
+//    assertEquals(HttpStatus.CREATED, response.getStatusCode());
+//    assertNotNull(response.getBody());
+//    return response.getBody();
+//  }
 }

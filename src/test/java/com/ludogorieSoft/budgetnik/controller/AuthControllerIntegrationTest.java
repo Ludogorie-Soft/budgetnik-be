@@ -106,9 +106,11 @@ class AuthControllerIntegrationTest {
     assertNotNull(savedUser);
     assertTrue(savedUser.isActivated());
 
+    HttpEntity<LoginRequest> entity = new HttpEntity<>(loginRequest, headers);
+
     // WHEN
     ResponseEntity<AuthResponse> loginResponse =
-        testRestTemplate.postForEntity(LOGIN_URL, loginRequest, AuthResponse.class);
+        testRestTemplate.exchange(LOGIN_URL, HttpMethod.POST, entity, AuthResponse.class);
 
     // THEN
     assertEquals(HttpStatus.OK, loginResponse.getStatusCode());
@@ -144,14 +146,15 @@ class AuthControllerIntegrationTest {
     assertNotNull(savedUser);
     assertTrue(savedUser.isActivated());
 
+    HttpEntity<LoginRequest> entity = new HttpEntity<>(loginRequest, headers);
+
     ResponseEntity<AuthResponse> loginResponse =
-        testRestTemplate.postForEntity(LOGIN_URL, loginRequest, AuthResponse.class);
+            testRestTemplate.exchange(LOGIN_URL, HttpMethod.POST, entity, AuthResponse.class);
 
     AuthResponse authResponse = loginResponse.getBody();
     assertEquals(HttpStatus.OK, loginResponse.getStatusCode());
     assertNotNull(authResponse);
 
-    HttpHeaders headers = new HttpHeaders();
     headers.set("Authorization", "Bearer " + authResponse.getToken());
 
     // WHEN

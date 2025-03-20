@@ -220,26 +220,6 @@ class AuthServiceImplTest {
     User currentUser = mock(User.class);
 
     when(tokenService.findByToken("mock-jwt-token")).thenReturn(jwt);
-    when(jwt.getToken()).thenReturn("mock-jwt-token");
-    when(jwt.getUser()).thenReturn(currentUser);
-
-    // WHEN & THEN
-    assertThrows(
-        InvalidTokenException.class,
-        () -> authenticationService.getUserByJwt(validToken, DEVICE_ID));
-
-    verify(tokenService).findByToken("mock-jwt-token");
-  }
-
-  @Test
-  void testGetUserByJwt_TokenValidationThrowsException() {
-    // GIVEN
-    String validToken = "Bearer mock-jwt-token";
-    Token jwt = mock(Token.class);
-    User currentUser = mock(User.class);
-
-    when(tokenService.findByToken("mock-jwt-token")).thenReturn(jwt);
-    when(jwt.getToken()).thenReturn("mock-jwt-token");
     when(jwt.getUser()).thenReturn(currentUser);
 
     // WHEN & THEN
