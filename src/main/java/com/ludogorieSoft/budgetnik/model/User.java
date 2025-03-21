@@ -36,7 +36,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(exclude = {"incomes", "expenses", "exponentPushTokens", "subscription"})
+@EqualsAndHashCode(exclude = {"incomes", "expenses", "subscription"})
 public class User implements UserDetails {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
@@ -45,8 +45,8 @@ public class User implements UserDetails {
   @OneToOne(cascade = CascadeType.ALL)
   private Subscription subscription;
 
-  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-  private Set<ExpoPushToken> exponentPushTokens;
+//  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+//  private Set<ExpoPushToken> exponentPushTokens;
 
   @NotNull(message = "The name should not be null!")
   private String name;

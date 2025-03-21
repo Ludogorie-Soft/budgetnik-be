@@ -1,5 +1,6 @@
 package com.ludogorieSoft.budgetnik.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ludogorieSoft.budgetnik.model.enums.Regularity;
 import com.ludogorieSoft.budgetnik.model.enums.Type;
@@ -53,7 +54,7 @@ public class Expense {
   @JoinColumn(name = "related_expense_id")
   private Expense relatedExpense;
 
-  @OneToMany()
+  @OneToMany(mappedBy = "relatedExpense")
   private List<Expense> relatedExpenses;
 
   @ManyToOne
@@ -66,6 +67,6 @@ public class Expense {
 
   @ManyToOne
   @JoinColumn(name = "owner_id")
-  @JsonIgnore
+  @JsonBackReference
   private User owner;
 }
