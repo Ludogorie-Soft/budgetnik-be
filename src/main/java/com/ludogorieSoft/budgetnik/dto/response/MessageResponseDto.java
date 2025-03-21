@@ -13,7 +13,7 @@ public class MessageResponseDto {
     private String title;
     private LocalDate fromDate;
     private LocalDate toDate;
-    private String message;
+    private String body;
     private double discount;
     private String link;
 }
