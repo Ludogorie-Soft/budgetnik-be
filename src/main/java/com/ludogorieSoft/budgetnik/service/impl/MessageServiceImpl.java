@@ -32,7 +32,10 @@ public class MessageServiceImpl implements MessageService {
   public MessageResponseDto createPromoMessage(MessageRequestDto requestDto) {
     Message message = modelMapper.map(requestDto, Message.class);
     message.setDate(LocalDate.now());
-    promoMessageRepository.save(message);
+    Message savedMessage = promoMessageRepository.save(message);
+
+    notificationService.multiplePromoNotificationSend(savedMessage);
+
     return modelMapper.map(message, MessageResponseDto.class);
   }
 

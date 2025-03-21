@@ -1,10 +1,13 @@
 package com.ludogorieSoft.budgetnik.service.impl;
 
+import com.ludogorieSoft.budgetnik.event.OnSendMessageEvent;
 import com.ludogorieSoft.budgetnik.model.ExpoPushToken;
+import com.ludogorieSoft.budgetnik.model.Message;
 import com.ludogorieSoft.budgetnik.repository.ExponentPushTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -16,9 +19,19 @@ import java.util.List;
 public class NotificationService {
 
   private final ExponentPushTokenRepository exponentPushTokenRepository;
+  private final ApplicationEventPublisher applicationEventPublisher;
   private static final String EXPO_PUSH_API_URL = "https://exp.host/--/api/v2/push/send";
   private static final RestTemplate restTemplate = new RestTemplate();
   private static final int BATCH_SIZE = 100;
+
+  public void multiplePromoNotificationSend(Message message) {
+    List<ExpoPushToken> tokens = getAllExpoPushTokens();
+
+    for (int i = 0; i < tokens.size(); i += BATCH_SIZE) {
+      List<ExpoPushToken> batch = tokens.subList(i, Math.min(i + BATCH_SIZE, tokens.size()));
+      sendPushPromoNotifications(batch, message);
+    }
+  }
 
   public void multipleSystemNotificationSend(String title, String body) {
     List<ExpoPushToken> tokens = getAllExpoPushTokens();
@@ -38,6 +51,32 @@ public class NotificationService {
         message.put("to", token.getToken());
         message.put("title", title);
         message.put("body", body);
+        messages.put(message);
+      });
+
+      HttpHeaders headers = new HttpHeaders();
+      headers.setContentType(MediaType.APPLICATION_JSON);
+
+      HttpEntity<String> entity = new HttpEntity<>(messages.toString(), headers);
+
+      restTemplate.exchange(EXPO_PUSH_API_URL, HttpMethod.POST, entity, String.class);
+
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void sendPushPromoNotifications(List<ExpoPushToken> tokens, Message promo) {
+
+    try {
+      JSONArray messages = new JSONArray();
+
+      tokens.forEach(token -> {
+        applicationEventPublisher.publishEvent(new OnSendMessageEvent(token.getUser().getEmail(), promo.getId()));
+        JSONObject message = new JSONObject();
+        message.put("to", token.getToken());
+        message.put("title", promo.getTitle());
+        message.put("body", promo.getBody());
         messages.put(message);
       });
 
