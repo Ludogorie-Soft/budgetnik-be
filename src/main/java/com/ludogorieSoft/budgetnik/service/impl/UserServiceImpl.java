@@ -108,15 +108,18 @@ public class UserServiceImpl implements UserService {
   @Override
   public void updateExponentPushToken(UUID id, String token) {
     User user = findById(id);
-    ExpoPushToken expoPushToken = exponentPushTokenRepository.findByToken(token).orElse(null);
+    ExpoPushToken expoPushToken = exponentPushTokenRepository.findByTokenAndUser(token, user);
 
     if (expoPushToken == null) {
       expoPushToken = new ExpoPushToken();
       expoPushToken.setUser(user);
       expoPushToken.setToken(token);
-      exponentPushTokenRepository.saveAndFlush(expoPushToken);
-      logger.info("Expo push token updated!");
+    } else {
+      expoPushToken.setToken(token);
     }
+
+    exponentPushTokenRepository.saveAndFlush(expoPushToken);
+    logger.info("Expo push token updated!");
   }
 
   @Override
