@@ -1,4 +1,4 @@
-ALTER TABLE subcategory ADD COLUMN translations jsonb;
+ALTER TABLE subcategory ADD COLUMN IF NOT EXISTS translations jsonb;
 
 UPDATE subcategory
 SET translations = '{
