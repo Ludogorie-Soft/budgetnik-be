@@ -17,6 +17,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.MessageSource;
@@ -33,6 +35,7 @@ public class MessageServiceImpl implements MessageService {
   private final MessageSource messageSource;
   private final NotificationService notificationService;
   private final UserService userService;
+  private final EntityManager entityManager;
 
   @Override
   public MessageResponseDto createPromoMessage(MessageRequestDto requestDto) {
@@ -129,24 +132,35 @@ public class MessageServiceImpl implements MessageService {
   @Override
   public UUID removePromoMessageFromUser(UUID userId, UUID messageId) {
     User user = userService.findById(userId);
-    user.setPromoMessages(
-        new ArrayList<>(
-            user.getPromoMessages().stream()
-                .filter(msg -> !msg.getId().equals(messageId))
-                .toList()));
-    userRepository.save(user);
+    Message message = promoMessageRepository.findById(messageId).orElse(null);
+
+    if (message != null) {
+      user.getPromoMessages().remove(message);
+    } else {
+      user.setPromoMessages(new ArrayList<>(user.getPromoMessages().stream()
+              .filter(msg -> !msg.getId().equals(messageId))
+              .toList()));
+    }
+
+    userRepository.saveAndFlush(user);
     return messageId;
   }
 
   @Override
   public UUID removeSystemMessageFromUser(UUID userId, UUID messageId) {
     User user = userService.findById(userId);
-    user.setSystemMessages(
-        new ArrayList<>(
-            user.getSystemMessages().stream()
-                .filter(msg -> !msg.getId().equals(messageId))
-                .toList()));
-    userRepository.save(user);
+    SystemMessage message = systemMessageRepository.findById(messageId).orElse(null);
+
+    if (message != null) {
+      user.getSystemMessages().remove(message);
+    } else {
+      user.setSystemMessages(new ArrayList<>(user.getSystemMessages().stream()
+              .filter(msg -> !msg.getId().equals(messageId))
+              .toList()));
+    }
+
+    userRepository.saveAndFlush(user);
+    entityManager.clear();
     return messageId;
   }
 }

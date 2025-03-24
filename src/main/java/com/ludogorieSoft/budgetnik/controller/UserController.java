@@ -45,7 +45,7 @@ public class UserController {
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
-  @PutMapping("/messages")
+  @DeleteMapping("/messages")
   public ResponseEntity<UUID> removePromoMessageFromUser(
       @RequestParam("userId") UUID userId, @RequestParam("messageId") UUID messageId) {
     UUID response = messageService.removePromoMessageFromUser(userId, messageId);
@@ -59,10 +59,11 @@ public class UserController {
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
-  @PutMapping("/messages/system")
+  @DeleteMapping("/messages/system")
   public ResponseEntity<UUID> removeSystemMessageFromUser(
       @RequestParam("userId") UUID userId, @RequestParam("messageId") UUID messageId) {
     UUID response = messageService.removeSystemMessageFromUser(userId, messageId);
+    System.out.println("deleted");
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 }
