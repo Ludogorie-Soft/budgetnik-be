@@ -22,4 +22,7 @@ public interface MessageService {
     SystemMessageResponseDto getSystemMessage(UUID id);
     List<SystemMessageResponseDto> getAllSystemMessages();
     SystemMessageResponseDto deleteSystemMessage(UUID id);
+
+    List<MessageResponseDto> getAllUserPromoMessages(UUID userId);
+    List<SystemMessageResponseDto> getAllUserSystemMessages(UUID userId);
 }

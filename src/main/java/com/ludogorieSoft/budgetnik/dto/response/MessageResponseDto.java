@@ -16,4 +16,5 @@ public class MessageResponseDto {
     private String body;
     private double discount;
     private String link;
+    private String promoCode;
 }

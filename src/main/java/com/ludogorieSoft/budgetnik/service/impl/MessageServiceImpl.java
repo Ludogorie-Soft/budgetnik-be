@@ -7,9 +7,11 @@ import com.ludogorieSoft.budgetnik.dto.response.SystemMessageResponseDto;
 import com.ludogorieSoft.budgetnik.exception.MessageNotFoundException;
 import com.ludogorieSoft.budgetnik.model.Message;
 import com.ludogorieSoft.budgetnik.model.SystemMessage;
+import com.ludogorieSoft.budgetnik.model.User;
 import com.ludogorieSoft.budgetnik.repository.PromoMessageRepository;
 import com.ludogorieSoft.budgetnik.repository.SystemMessageRepository;
 import com.ludogorieSoft.budgetnik.service.MessageService;
+import com.ludogorieSoft.budgetnik.service.UserService;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -27,6 +29,7 @@ public class MessageServiceImpl implements MessageService {
   private final ModelMapper modelMapper;
   private final MessageSource messageSource;
   private final NotificationService notificationService;
+  private final UserService userService;
 
   @Override
   public MessageResponseDto createPromoMessage(MessageRequestDto requestDto) {
@@ -70,9 +73,9 @@ public class MessageServiceImpl implements MessageService {
   public SystemMessageResponseDto createSystemMessage(SystemMessageRequestDto requestDto) {
     SystemMessage systemMessage = modelMapper.map(requestDto, SystemMessage.class);
     systemMessage.setDate(LocalDate.now());
-    systemMessageRepository.save(systemMessage);
+    SystemMessage savedMessage = systemMessageRepository.save(systemMessage);
 
-    notificationService.multipleSystemNotificationSend(requestDto.getTitle(), requestDto.getBody());
+    notificationService.multipleSystemNotificationSend(savedMessage);
 
     return modelMapper.map(systemMessage, SystemMessageResponseDto.class);
   }
@@ -102,5 +105,21 @@ public class MessageServiceImpl implements MessageService {
     SystemMessage systemMessage = findSystemMessageById(id);
     systemMessageRepository.delete(systemMessage);
     return modelMapper.map(systemMessage, SystemMessageResponseDto.class);
+  }
+
+  @Override
+  public List<MessageResponseDto> getAllUserPromoMessages(UUID userId) {
+    User user = userService.findById(userId);
+    return user.getPromoMessages().stream()
+        .map(m -> modelMapper.map(m, MessageResponseDto.class))
+        .toList();
+  }
+
+  @Override
+  public List<SystemMessageResponseDto> getAllUserSystemMessages(UUID userId) {
+    User user = userService.findById(userId);
+    return user.getSystemMessages().stream()
+        .map(m -> modelMapper.map(m, SystemMessageResponseDto.class))
+        .toList();
   }
 }

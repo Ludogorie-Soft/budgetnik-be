@@ -24,4 +24,5 @@ public class Message {
     private String body;
     private double discount;
     private String link;
+    private String promoCode;
 }

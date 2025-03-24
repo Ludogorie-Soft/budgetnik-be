@@ -19,57 +19,57 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/admin/messages")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class MessageController {
 
   private final MessageService messageService;
 
-  @PostMapping
+  @PostMapping("/admin/messages")
   public ResponseEntity<MessageResponseDto> createMessage(
       @RequestBody MessageRequestDto requestDto) {
     MessageResponseDto response = messageService.createPromoMessage(requestDto);
     return new ResponseEntity<>(response, HttpStatus.CREATED);
   }
 
-  @GetMapping
+  @GetMapping("/admin/messages")
   public ResponseEntity<List<MessageResponseDto>> getAllMessages() {
     List<MessageResponseDto> response = messageService.getAllPromoMessages();
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
-  @GetMapping("/message")
+  @GetMapping("/messages/message")
   public ResponseEntity<MessageResponseDto> getMessage(@RequestParam("id") UUID id) {
     MessageResponseDto response = messageService.getPromoMessage(id);
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
-  @DeleteMapping
+  @DeleteMapping("/admin/messages")
   public ResponseEntity<MessageResponseDto> deleteMessage(@RequestParam("id") UUID id) {
     MessageResponseDto response = messageService.deletePromoMessage(id);
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
-  @PostMapping("/system")
+  @PostMapping("/admin/messages/system")
   public ResponseEntity<SystemMessageResponseDto> createSystemMessage(
       @RequestBody SystemMessageRequestDto requestDto) {
     SystemMessageResponseDto responseDto = messageService.createSystemMessage(requestDto);
     return new ResponseEntity<>(responseDto, HttpStatus.CREATED);
   }
 
-  @GetMapping("/system")
+  @GetMapping("/admin/messages/system")
   public ResponseEntity<List<SystemMessageResponseDto>> getAllSystemMessages() {
     List<SystemMessageResponseDto> response = messageService.getAllSystemMessages();
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
-  @GetMapping("/message/system")
+  @GetMapping("/messages/message/system")
   public ResponseEntity<SystemMessageResponseDto> getSystemMessage(@RequestParam("id") UUID id) {
     SystemMessageResponseDto response = messageService.getSystemMessage(id);
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
-  @DeleteMapping("/system")
+  @DeleteMapping("/admin/messages/system")
   public ResponseEntity<SystemMessageResponseDto> deleteSystemMessage(@RequestParam("id") UUID id) {
     SystemMessageResponseDto response = messageService.deleteSystemMessage(id);
     return new ResponseEntity<>(response, HttpStatus.OK);

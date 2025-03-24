@@ -12,5 +12,6 @@ public class MessageRequestDto {
   private LocalDate toDate;
   private String body;
   private double discount;
+  private String promoCode;
   private String link;
 }

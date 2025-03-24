@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.ludogorieSoft.budgetnik.model.enums.Role;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -76,6 +77,12 @@ public class User implements UserDetails {
   @JsonManagedReference
   @ToString.Exclude
   private List<Expense> expenses;
+
+  @ElementCollection
+  List<Message> promoMessages;
+
+  @ElementCollection
+  List<SystemMessage> systemMessages;
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
