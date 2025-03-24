@@ -45,10 +45,24 @@ public class UserController {
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
+  @PutMapping("/messages")
+  public ResponseEntity<UUID> removePromoMessageFromUser(
+      @RequestParam("userId") UUID userId, @RequestParam("messageId") UUID messageId) {
+    UUID response = messageService.removePromoMessageFromUser(userId, messageId);
+    return new ResponseEntity<>(response, HttpStatus.OK);
+  }
+
   @GetMapping("/messages/system")
   public ResponseEntity<List<SystemMessageResponseDto>> getAllUserSystemMessages(
       @RequestParam("id") UUID id) {
     List<SystemMessageResponseDto> response = messageService.getAllUserSystemMessages(id);
+    return new ResponseEntity<>(response, HttpStatus.OK);
+  }
+
+  @PutMapping("/messages/system")
+  public ResponseEntity<UUID> removeSystemMessageFromUser(
+      @RequestParam("userId") UUID userId, @RequestParam("messageId") UUID messageId) {
+    UUID response = messageService.removeSystemMessageFromUser(userId, messageId);
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 }

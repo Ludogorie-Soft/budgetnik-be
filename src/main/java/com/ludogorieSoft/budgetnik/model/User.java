@@ -11,6 +11,9 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
@@ -78,11 +81,21 @@ public class User implements UserDetails {
   @ToString.Exclude
   private List<Expense> expenses;
 
-  @ElementCollection
+  @ManyToMany
+  @JoinTable(
+          name = "user_promo_messages",
+          joinColumns = @JoinColumn(name = "user_id"),
+          inverseJoinColumns = @JoinColumn(name = "message_id")
+  )
   List<Message> promoMessages;
 
-  @ElementCollection
-  List<SystemMessage> systemMessages;
+  @ManyToMany
+  @JoinTable(
+          name = "user_system_messages",
+          joinColumns = @JoinColumn(name = "user_id"),
+          inverseJoinColumns = @JoinColumn(name = "message_id")
+  )
+  private List<SystemMessage> systemMessages;
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {

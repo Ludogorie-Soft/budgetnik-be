@@ -10,9 +10,11 @@ import com.ludogorieSoft.budgetnik.model.SystemMessage;
 import com.ludogorieSoft.budgetnik.model.User;
 import com.ludogorieSoft.budgetnik.repository.PromoMessageRepository;
 import com.ludogorieSoft.budgetnik.repository.SystemMessageRepository;
+import com.ludogorieSoft.budgetnik.repository.UserRepository;
 import com.ludogorieSoft.budgetnik.service.MessageService;
 import com.ludogorieSoft.budgetnik.service.UserService;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,7 @@ public class MessageServiceImpl implements MessageService {
 
   private final PromoMessageRepository promoMessageRepository;
   private final SystemMessageRepository systemMessageRepository;
+  private final UserRepository userRepository;
   private final ModelMapper modelMapper;
   private final MessageSource messageSource;
   private final NotificationService notificationService;
@@ -121,5 +124,29 @@ public class MessageServiceImpl implements MessageService {
     return user.getSystemMessages().stream()
         .map(m -> modelMapper.map(m, SystemMessageResponseDto.class))
         .toList();
+  }
+
+  @Override
+  public UUID removePromoMessageFromUser(UUID userId, UUID messageId) {
+    User user = userService.findById(userId);
+    user.setPromoMessages(
+        new ArrayList<>(
+            user.getPromoMessages().stream()
+                .filter(msg -> !msg.getId().equals(messageId))
+                .toList()));
+    userRepository.save(user);
+    return messageId;
+  }
+
+  @Override
+  public UUID removeSystemMessageFromUser(UUID userId, UUID messageId) {
+    User user = userService.findById(userId);
+    user.setSystemMessages(
+        new ArrayList<>(
+            user.getSystemMessages().stream()
+                .filter(msg -> !msg.getId().equals(messageId))
+                .toList()));
+    userRepository.save(user);
+    return messageId;
   }
 }

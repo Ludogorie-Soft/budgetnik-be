@@ -25,4 +25,7 @@ public interface MessageService {
 
     List<MessageResponseDto> getAllUserPromoMessages(UUID userId);
     List<SystemMessageResponseDto> getAllUserSystemMessages(UUID userId);
+
+    UUID removePromoMessageFromUser(UUID userId, UUID messageId);
+    UUID removeSystemMessageFromUser(UUID userId, UUID messageId);
 }
