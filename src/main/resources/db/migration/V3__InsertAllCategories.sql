@@ -2,7 +2,7 @@
 INSERT INTO public.expense_category
 (id, "name", bg_name)
 VALUES('7ac171ce-96a8-41b9-b208-db45915e53f6'::uuid, 'home', 'Жилище')
-ON CONFLICT (id) DO NOTHING;;
+ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.expense_category
 (id, "name", bg_name)
