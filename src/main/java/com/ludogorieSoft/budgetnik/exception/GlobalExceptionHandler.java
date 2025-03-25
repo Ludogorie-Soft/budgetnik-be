@@ -32,26 +32,24 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
       return handleConstraintValidationExceptions(
           (ConstraintViolationException) exception.getRootCause());
     }
-    slackService.sendMessage("Error ->" + exception.getMessage());
     return handleRuntimeExceptions(exception);
   }
 
   @ExceptionHandler(ConstraintViolationException.class)
   public ResponseEntity<ExceptionResponse> handleConstraintValidationExceptions(
       ConstraintViolationException exception) {
-    slackService.sendMessage("Error ->" + exception.getMessage());
     return handleApiExceptions(new ValidationException(exception.getConstraintViolations()));
   }
 
   @ExceptionHandler(ApiException.class)
   public ResponseEntity<ExceptionResponse> handleApiExceptions(ApiException exception) {
     ExceptionResponse apiException = ApiExceptionParser.parseException(exception);
-
+    slackService.sendMessage("Error ->" + exception.getMessage());
     return ResponseEntity.status(apiException.getStatus()).body(apiException);
   }
 
-  @ExceptionHandler(Exception.class)
+  @ExceptionHandler({Exception.class})
   public void alertSlackChannelWhenUnexpectedErrorOccurs(Exception ex) {
-    slackService.sendMessage("Error ->" + ex.getMessage());
+    slackService.sendMessage("Error -> " + ex.getMessage());
   }
 }
