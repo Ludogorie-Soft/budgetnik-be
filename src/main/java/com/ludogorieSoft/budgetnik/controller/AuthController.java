@@ -9,6 +9,7 @@ import com.ludogorieSoft.budgetnik.event.OnPasswordResetRequestEvent;
 import com.ludogorieSoft.budgetnik.model.User;
 import com.ludogorieSoft.budgetnik.service.AuthService;
 import com.ludogorieSoft.budgetnik.service.UserService;
+import com.ludogorieSoft.budgetnik.service.impl.SlackService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
