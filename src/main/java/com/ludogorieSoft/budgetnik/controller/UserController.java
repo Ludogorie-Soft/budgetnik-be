@@ -1,6 +1,7 @@
 package com.ludogorieSoft.budgetnik.controller;
 
 import com.ludogorieSoft.budgetnik.dto.request.PushTokenRequest;
+import com.ludogorieSoft.budgetnik.dto.request.RemoveMessageRequestDto;
 import com.ludogorieSoft.budgetnik.dto.response.MessageResponseDto;
 import com.ludogorieSoft.budgetnik.dto.response.SystemMessageResponseDto;
 import com.ludogorieSoft.budgetnik.service.MessageService;
@@ -45,10 +46,10 @@ public class UserController {
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
-  @DeleteMapping("/messages")
-  public ResponseEntity<UUID> removePromoMessageFromUser(
-      @RequestParam("userId") UUID userId, @RequestParam("messageId") UUID messageId) {
-    UUID response = messageService.removePromoMessageFromUser(userId, messageId);
+  @DeleteMapping("/messages/remove")
+  public ResponseEntity<List<UUID>> removePromoMessageFromUser(
+      @RequestParam("userId") UUID userId, @RequestBody RemoveMessageRequestDto requestDto) {
+    List<UUID> response = messageService.removePromoMessageFromUser(userId, requestDto.getMessageIds());
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
@@ -59,11 +60,10 @@ public class UserController {
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
-  @DeleteMapping("/messages/system")
-  public ResponseEntity<UUID> removeSystemMessageFromUser(
-      @RequestParam("userId") UUID userId, @RequestParam("messageId") UUID messageId) {
-    UUID response = messageService.removeSystemMessageFromUser(userId, messageId);
-    System.out.println("deleted");
+  @DeleteMapping("/messages/system/remove")
+  public ResponseEntity<List<UUID>> removeSystemMessageFromUser(
+          @RequestParam("userId") UUID userId, @RequestBody RemoveMessageRequestDto requestDto) {
+    List<UUID> response = messageService.removeSystemMessageFromUser(userId, requestDto.getMessageIds());
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 }

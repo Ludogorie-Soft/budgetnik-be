@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.ludogorieSoft.budgetnik.model.enums.Role;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -85,7 +84,7 @@ public class User implements UserDetails {
   @JoinTable(
           name = "user_promo_messages",
           joinColumns = @JoinColumn(name = "user_id"),
-          inverseJoinColumns = @JoinColumn(name = "message_id")
+          inverseJoinColumns = @JoinColumn(name = "promo_message_id")
   )
   List<Message> promoMessages;
 
@@ -93,7 +92,7 @@ public class User implements UserDetails {
   @JoinTable(
           name = "user_system_messages",
           joinColumns = @JoinColumn(name = "user_id"),
-          inverseJoinColumns = @JoinColumn(name = "message_id")
+          inverseJoinColumns = @JoinColumn(name = "system_message_id")
   )
   private List<SystemMessage> systemMessages;
 

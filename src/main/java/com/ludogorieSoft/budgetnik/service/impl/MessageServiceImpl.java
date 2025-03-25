@@ -13,12 +13,10 @@ import com.ludogorieSoft.budgetnik.repository.SystemMessageRepository;
 import com.ludogorieSoft.budgetnik.repository.UserRepository;
 import com.ludogorieSoft.budgetnik.service.MessageService;
 import com.ludogorieSoft.budgetnik.service.UserService;
+import jakarta.transaction.Transactional;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
-import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.MessageSource;
@@ -35,7 +33,6 @@ public class MessageServiceImpl implements MessageService {
   private final MessageSource messageSource;
   private final NotificationService notificationService;
   private final UserService userService;
-  private final EntityManager entityManager;
 
   @Override
   public MessageResponseDto createPromoMessage(MessageRequestDto requestDto) {
@@ -71,7 +68,8 @@ public class MessageServiceImpl implements MessageService {
   @Override
   public MessageResponseDto deletePromoMessage(UUID id) {
     Message message = findPromoMessageById(id);
-    promoMessageRepository.delete(message);
+    userRepository.removePromoMessageFromAllUsers(id);
+    promoMessageRepository.deleteById(id);
     return modelMapper.map(message, MessageResponseDto.class);
   }
 
@@ -107,60 +105,51 @@ public class MessageServiceImpl implements MessageService {
   }
 
   @Override
+  @Transactional
   public SystemMessageResponseDto deleteSystemMessage(UUID id) {
     SystemMessage systemMessage = findSystemMessageById(id);
-    systemMessageRepository.delete(systemMessage);
+    userRepository.removeMessageFromAllUsers(id);
+    systemMessageRepository.deleteById(id);
     return modelMapper.map(systemMessage, SystemMessageResponseDto.class);
   }
 
   @Override
   public List<MessageResponseDto> getAllUserPromoMessages(UUID userId) {
     User user = userService.findById(userId);
-    return user.getPromoMessages().stream()
-        .map(m -> modelMapper.map(m, MessageResponseDto.class))
-        .toList();
+
+    List<Message> promoMessages =
+        promoMessageRepository.findByIdIn(
+            user.getPromoMessages().stream().map(Message::getId).toList());
+
+    return promoMessages.stream().map(m -> modelMapper.map(m, MessageResponseDto.class)).toList();
   }
 
   @Override
   public List<SystemMessageResponseDto> getAllUserSystemMessages(UUID userId) {
     User user = userService.findById(userId);
-    return user.getSystemMessages().stream()
+
+    List<SystemMessage> systemMessages =
+        systemMessageRepository.findByIdIn(
+            user.getSystemMessages().stream().map(SystemMessage::getId).toList());
+
+    return systemMessages.stream()
         .map(m -> modelMapper.map(m, SystemMessageResponseDto.class))
         .toList();
   }
 
   @Override
-  public UUID removePromoMessageFromUser(UUID userId, UUID messageId) {
+  public List<UUID> removePromoMessageFromUser(UUID userId, List<UUID> messageIds) {
     User user = userService.findById(userId);
-    Message message = promoMessageRepository.findById(messageId).orElse(null);
-
-    if (message != null) {
-      user.getPromoMessages().remove(message);
-    } else {
-      user.setPromoMessages(new ArrayList<>(user.getPromoMessages().stream()
-              .filter(msg -> !msg.getId().equals(messageId))
-              .toList()));
-    }
-
-    userRepository.saveAndFlush(user);
-    return messageId;
+    user.getPromoMessages().removeIf(msg -> messageIds.contains(msg.getId()));
+    userRepository.save(user);
+    return messageIds;
   }
 
   @Override
-  public UUID removeSystemMessageFromUser(UUID userId, UUID messageId) {
+  public List<UUID> removeSystemMessageFromUser(UUID userId, List<UUID> messageIds) {
     User user = userService.findById(userId);
-    SystemMessage message = systemMessageRepository.findById(messageId).orElse(null);
-
-    if (message != null) {
-      user.getSystemMessages().remove(message);
-    } else {
-      user.setSystemMessages(new ArrayList<>(user.getSystemMessages().stream()
-              .filter(msg -> !msg.getId().equals(messageId))
-              .toList()));
-    }
-
-    userRepository.saveAndFlush(user);
-    entityManager.clear();
-    return messageId;
+    user.getSystemMessages().removeIf(msg -> messageIds.contains(msg.getId()));
+    userRepository.save(user);
+    return messageIds;
   }
 }

@@ -6,7 +6,6 @@ import com.ludogorieSoft.budgetnik.dto.response.MessageResponseDto;
 import com.ludogorieSoft.budgetnik.dto.response.SystemMessageResponseDto;
 import com.ludogorieSoft.budgetnik.model.Message;
 import com.ludogorieSoft.budgetnik.model.SystemMessage;
-
 import java.util.List;
 import java.util.UUID;
 
@@ -26,6 +25,6 @@ public interface MessageService {
     List<MessageResponseDto> getAllUserPromoMessages(UUID userId);
     List<SystemMessageResponseDto> getAllUserSystemMessages(UUID userId);
 
-    UUID removePromoMessageFromUser(UUID userId, UUID messageId);
-    UUID removeSystemMessageFromUser(UUID userId, UUID messageId);
+    List<UUID> removePromoMessageFromUser(UUID userId, List<UUID> messageIds);
+    List<UUID> removeSystemMessageFromUser(UUID userId, List<UUID> messageIds);
 }
