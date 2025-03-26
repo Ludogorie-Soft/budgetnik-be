@@ -18,9 +18,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -35,6 +39,7 @@ public class UserServiceImpl implements UserService {
   private final VerificationTokenRepository verificationTokenRepository;
   private final MessageSource messageSource;
   private final ExponentPushTokenRepository exponentPushTokenRepository;
+  private final ModelMapper modelMapper;
 
   @Override
   public User createUser(RegisterRequest registerRequest) {
@@ -83,6 +88,16 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
+  public List<UserResponse> getAllUsersPaginated(int page, int size) {
+    Pageable pageable = PageRequest.of(page, size);
+    Page<User> userPage = userRepository.findAll(pageable);
+    return userPage.getContent()
+            .stream()
+            .map(user -> modelMapper.map(user, UserResponse.class))
+            .toList();
+  }
+
+  @Override
   public VerificationToken getVerificationToken(String verificationToken) {
     return verificationTokenRepository.findByToken(verificationToken);
   }
@@ -124,7 +139,7 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public void deleteExponentPushToken(String token) {
-      exponentPushTokenRepository.findByToken(token).ifPresent(exponentPushTokenRepository::delete);
+    exponentPushTokenRepository.findByToken(token).ifPresent(exponentPushTokenRepository::delete);
   }
 
   private void cleanUserVerificationTokens(User user) {

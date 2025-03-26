@@ -4,11 +4,13 @@ import com.ludogorieSoft.budgetnik.dto.request.PushTokenRequest;
 import com.ludogorieSoft.budgetnik.dto.request.RemoveMessageRequestDto;
 import com.ludogorieSoft.budgetnik.dto.response.MessageResponseDto;
 import com.ludogorieSoft.budgetnik.dto.response.SystemMessageResponseDto;
+import com.ludogorieSoft.budgetnik.dto.response.UserResponse;
 import com.ludogorieSoft.budgetnik.service.MessageService;
 import com.ludogorieSoft.budgetnik.service.UserService;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -21,49 +23,58 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/users")
+@RequestMapping("/api")
 public class UserController {
 
   private final UserService userService;
   private final MessageService messageService;
 
-  @PutMapping("/exponent-push-token")
+  @GetMapping("/admin/users/all")
+  public ResponseEntity<List<UserResponse>> getAllUsersPageable(
+      @RequestParam("page") int page, @RequestParam("size") int size) {
+    List<UserResponse> response = userService.getAllUsersPaginated(page, size);
+    return new ResponseEntity<>(response, HttpStatus.OK);
+  }
+
+  @PutMapping("/users/exponent-push-token")
   public ResponseEntity<String> updatePushToken(
       @RequestParam("id") UUID id, @RequestBody PushTokenRequest pushTokenRequest) {
     userService.updateExponentPushToken(id, pushTokenRequest.getToken());
     return ResponseEntity.ok().body("Token updated successfully!");
   }
 
-  @DeleteMapping("/exponent-push-token")
+  @DeleteMapping("/users/exponent-push-token")
   public ResponseEntity<String> deletePushToken(@RequestBody PushTokenRequest pushTokenRequest) {
     userService.deleteExponentPushToken(pushTokenRequest.getToken());
     return ResponseEntity.ok().body("Push token deleted!");
   }
 
-  @GetMapping("/messages")
+  @GetMapping("/users/messages")
   public ResponseEntity<List<MessageResponseDto>> getAllUserMessages(@RequestParam("id") UUID id) {
     List<MessageResponseDto> response = messageService.getAllUserPromoMessages(id);
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
-  @DeleteMapping("/messages/remove")
+  @DeleteMapping("/users/messages/remove")
   public ResponseEntity<List<UUID>> removePromoMessageFromUser(
       @RequestParam("userId") UUID userId, @RequestBody RemoveMessageRequestDto requestDto) {
-    List<UUID> response = messageService.removePromoMessageFromUser(userId, requestDto.getMessageIds());
+    List<UUID> response =
+        messageService.removePromoMessageFromUser(userId, requestDto.getMessageIds());
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
-  @GetMapping("/messages/system")
+  @GetMapping("/users/messages/system")
   public ResponseEntity<List<SystemMessageResponseDto>> getAllUserSystemMessages(
       @RequestParam("id") UUID id) {
     List<SystemMessageResponseDto> response = messageService.getAllUserSystemMessages(id);
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
-  @DeleteMapping("/messages/system/remove")
+  @DeleteMapping("/users/messages/system/remove")
   public ResponseEntity<List<UUID>> removeSystemMessageFromUser(
-          @RequestParam("userId") UUID userId, @RequestBody RemoveMessageRequestDto requestDto) {
-    List<UUID> response = messageService.removeSystemMessageFromUser(userId, requestDto.getMessageIds());
+      @RequestParam("userId") UUID userId, @RequestBody RemoveMessageRequestDto requestDto) {
+    List<UUID> response =
+        messageService.removeSystemMessageFromUser(userId, requestDto.getMessageIds());
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 }
