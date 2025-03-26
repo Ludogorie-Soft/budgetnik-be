@@ -121,18 +121,16 @@ public class AuthServiceImpl implements AuthService {
     String newAccessTokenString;
     if (isAccessTokenValid) {
       newAccessTokenString = accessToken.getToken();
-    } else {
-      if (isRefreshTokenValid) {
-        tokenService.setTokenAsExpiredAndRevoked(accessToken);
-        newAccessTokenString = jwtService.generateToken(user);
-        tokenService.saveToken(user, newAccessTokenString, TokenType.ACCESS, device);
+    } else if (isRefreshTokenValid) {
+      tokenService.setTokenAsExpiredAndRevoked(accessToken);
+      newAccessTokenString = jwtService.generateToken(user);
+      tokenService.saveToken(user, newAccessTokenString, TokenType.ACCESS, device);
 
-        tokenService.setTokenAsExpiredAndRevoked(refreshToken);
-        String refreshTokenString = jwtService.generateRefreshToken(user);
-        tokenService.saveToken(user, refreshTokenString, TokenType.REFRESH, device);
-      } else {
-        throw new InvalidTokenException(messageSource);
-      }
+      tokenService.setTokenAsExpiredAndRevoked(refreshToken);
+      String refreshTokenString = jwtService.generateRefreshToken(user);
+      tokenService.saveToken(user, refreshTokenString, TokenType.REFRESH, device);
+    } else {
+      throw new InvalidTokenException(messageSource);
     }
 
     UserResponse userResponse = modelMapper.map(accessToken.getUser(), UserResponse.class);
