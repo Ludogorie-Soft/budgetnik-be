@@ -66,6 +66,7 @@ public class MessageServiceImpl implements MessageService {
   }
 
   @Override
+  @Transactional
   public MessageResponseDto deletePromoMessage(UUID id) {
     Message message = findPromoMessageById(id);
     userRepository.removePromoMessageFromAllUsers(id);

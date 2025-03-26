@@ -79,6 +79,7 @@ public class AuthServiceImpl implements AuthService {
       throw new UserLoginException(messageSource);
     }
 
+    setLastLogin(user);
     logger.info("User with id " + user.getId() + " logged in!");
     return tokenService.generateAuthResponse(user, device);
   }
@@ -136,6 +137,7 @@ public class AuthServiceImpl implements AuthService {
 
     UserResponse userResponse = modelMapper.map(accessToken.getUser(), UserResponse.class);
 
+    setLastLogin(user);
     logger.info("Get user by token with id " + user.getId());
     return AuthResponse.builder().token(newAccessTokenString).user(userResponse).build();
   }
@@ -203,5 +205,10 @@ public class AuthServiceImpl implements AuthService {
   private void revokeVerificationTokens(User user) {
     List<VerificationToken> userTokens = verificationTokenRepository.findByUserId(user.getId());
     userTokens.forEach(verificationTokenRepository::delete);
+  }
+
+  private void setLastLogin(User user) {
+    user.setLastLogin(LocalDateTime.now());
+    userRepository.save(user);
   }
 }

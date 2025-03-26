@@ -1,13 +1,16 @@
 package com.ludogorieSoft.budgetnik.service.impl;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
 
 @Service
 @RequiredArgsConstructor
@@ -20,18 +23,22 @@ public class SlackService {
 
     public void sendMessage(String message) {
         try {
-            // Подготвяне на съобщението за Slack
-            String payload = "{\"text\": \"" + message + "\"}";
+            String payload = "{\"text\": \"" + getLocalDateNow() + "---" + message + "\"}";
 
-            // Настройка на HTTP заглавия
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
-            // Изпращане на HTTP заявка
             HttpEntity<String> entity = new HttpEntity<>(payload, headers);
             restTemplate.postForObject(slackWebhookUrl, entity, String.class);
         } catch (HttpClientErrorException e) {
             e.printStackTrace();
         }
+    }
+
+    @NotNull
+    private static String getLocalDateNow() {
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        return now.format(formatter);
     }
 }

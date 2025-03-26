@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import java.time.LocalDateTime;
+
 @ControllerAdvice
 @RequiredArgsConstructor
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
@@ -21,7 +23,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
   @ExceptionHandler(RuntimeException.class)
   public ResponseEntity<ExceptionResponse> handleRuntimeExceptions(RuntimeException exception) {
     exception.printStackTrace();
-    slackService.sendMessage("Error ->" + exception.getMessage());
+    slackService.sendMessage("Error: " + exception.getMessage());
     return handleApiExceptions(new InternalServerErrorException(messageSource));
   }
 
@@ -44,12 +46,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
   @ExceptionHandler(ApiException.class)
   public ResponseEntity<ExceptionResponse> handleApiExceptions(ApiException exception) {
     ExceptionResponse apiException = ApiExceptionParser.parseException(exception);
-    slackService.sendMessage("Error ->" + exception.getMessage());
+    slackService.sendMessage("Error: " + exception.getMessage());
     return ResponseEntity.status(apiException.getStatus()).body(apiException);
   }
 
   @ExceptionHandler({Exception.class})
   public void alertSlackChannelWhenUnexpectedErrorOccurs(Exception ex) {
-    slackService.sendMessage("Error -> " + ex.getMessage());
+    slackService.sendMessage("Error: " + ex.getMessage());
   }
 }

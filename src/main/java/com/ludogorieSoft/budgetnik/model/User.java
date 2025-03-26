@@ -96,6 +96,8 @@ public class User implements UserDetails {
   )
   private List<SystemMessage> systemMessages;
 
+  private LocalDateTime lastLogin;
+
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
     return role.getAuthorities();

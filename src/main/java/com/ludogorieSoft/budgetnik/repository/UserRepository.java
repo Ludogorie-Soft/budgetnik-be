@@ -16,7 +16,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     boolean existsByEmail(String email);
 
     @Modifying
-    @Query(value = "DELETE FROM user_system_messages WHERE message_id = :messageId", nativeQuery = true)
+    @Query(value = "DELETE FROM user_system_messages WHERE system_message_id = :messageId", nativeQuery = true)
     void removeMessageFromAllUsers(@Param("messageId") UUID messageId);
 
     @Modifying
