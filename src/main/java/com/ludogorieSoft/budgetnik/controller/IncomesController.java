@@ -60,7 +60,7 @@ public class IncomesController {
   }
 
   @GetMapping("/users/sum")
-  public ResponseEntity<BigDecimal> getTheSumOfAllIncomesOfUser(@RequestParam("id") UUID id) {
+  public ResponseEntity<BigDecimal> getTheSumOfAllIncomesOfUserByCategory(@RequestParam("id") UUID id) {
     BigDecimal sum = incomeService.calculateSumOfAllIncomesOfUser(id);
     return new ResponseEntity<>(sum, HttpStatus.OK);
   }
@@ -73,7 +73,7 @@ public class IncomesController {
   }
 
   @GetMapping("/users/category/sum")
-  public ResponseEntity<BigDecimal> getTheSumOfAllIncomesOfUser(
+  public ResponseEntity<BigDecimal> getTheSumOfAllIncomesOfUserByCategory(
       @RequestParam("id") UUID id, @RequestParam("category") String category) {
     BigDecimal sum = incomeService.calculateSumOfAllIncomesOfUserByCategory(id, category);
     return new ResponseEntity<>(sum, HttpStatus.OK);
