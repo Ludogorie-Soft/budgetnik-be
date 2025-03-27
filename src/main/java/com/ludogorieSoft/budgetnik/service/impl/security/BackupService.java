@@ -32,11 +32,11 @@ public class BackupService {
     private String dbUser;
 
     private static final String BUCKET_NAME = "budgetnikat-database-backups";
-    private static final String FILE_PATH = "backup.dump";
+    private static final String FILE_PATH = "backup1.dump";
 
     private static final Logger logger = LoggerFactory.getLogger(BackupService.class);
 
-    @Scheduled(cron = "0 0 0 * * ?")
+    @Scheduled(cron = "0 0 0,12 * * ?")
     public void backupDatabase() {
         try {
             //      deleteOldBackups();
