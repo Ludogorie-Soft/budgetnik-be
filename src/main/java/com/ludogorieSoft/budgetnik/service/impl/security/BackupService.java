@@ -10,6 +10,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import com.ludogorieSoft.budgetnik.service.impl.IncomeServiceImpl;
+import com.ludogorieSoft.budgetnik.service.impl.SlackService;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,6 +22,7 @@ import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @Service
+@RequiredArgsConstructor
 public class BackupService {
 
     @Value("${spring.backup.database.container}")
@@ -36,7 +39,9 @@ public class BackupService {
 
     private static final Logger logger = LoggerFactory.getLogger(BackupService.class);
 
-    @Scheduled(cron = "0 0 0,12 * * ?")
+    private final SlackService slackService;
+
+    @Scheduled(cron = "0 0 0 * * ?")
     public void backupDatabase() {
         try {
             //      deleteOldBackups();
@@ -60,14 +65,17 @@ public class BackupService {
 
             int exitCode = process.waitFor();
             if (exitCode == 0) {
+                slackService.sendMessage("Backup created successfully!");
                 logger.info("Backup created successfully!");
 //                        uploadToS3(backupFile);
             } else {
+                slackService.sendMessage("Backup fail!");
                 logger.error("Backup fail! Error: " + exitCode);
             }
 
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
+            slackService.sendMessage("Error " + e.getMessage());
             logger.error("Error: " + e.getMessage());
         }
     }
