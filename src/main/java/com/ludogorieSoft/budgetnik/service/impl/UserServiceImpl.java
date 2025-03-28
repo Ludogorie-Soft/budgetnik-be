@@ -87,14 +87,12 @@ public class UserServiceImpl implements UserService {
     return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(messageSource));
   }
 
-  @Override
-  public List<UserResponse> getAllUsersPaginated(int page, int size) {
+  public Page<UserResponse> getAllUsersPaginated(int page, int size) {
     Pageable pageable = PageRequest.of(page, size);
+
     Page<User> userPage = userRepository.findAll(pageable);
-    return userPage.getContent()
-            .stream()
-            .map(user -> modelMapper.map(user, UserResponse.class))
-            .toList();
+
+      return userPage.map(user -> modelMapper.map(user, UserResponse.class));
   }
 
   @Override

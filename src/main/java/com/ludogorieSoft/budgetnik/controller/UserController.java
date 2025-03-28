@@ -30,9 +30,9 @@ public class UserController {
   private final MessageService messageService;
 
   @GetMapping("/admin/users/all")
-  public ResponseEntity<List<UserResponse>> getAllUsersPageable(
+  public ResponseEntity<Page<UserResponse>> getAllUsersPageable(
       @RequestParam("page") int page, @RequestParam("size") int size) {
-    List<UserResponse> response = userService.getAllUsersPaginated(page, size);
+    Page<UserResponse> response = userService.getAllUsersPaginated(page, size);
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
