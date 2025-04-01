@@ -4,6 +4,7 @@ import com.ludogorieSoft.budgetnik.dto.request.ExpenseRequestDto;
 import com.ludogorieSoft.budgetnik.dto.response.ExpenseResponseDto;
 import com.ludogorieSoft.budgetnik.model.enums.Type;
 import com.ludogorieSoft.budgetnik.service.ExpenseService;
+import jakarta.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -29,7 +30,7 @@ public class ExpensesController {
 
   @PostMapping
   public ResponseEntity<ExpenseResponseDto> createExpense(
-      @RequestBody ExpenseRequestDto expenseRequestDto) {
+     @Valid @RequestBody ExpenseRequestDto expenseRequestDto) {
     ExpenseResponseDto response = expenseService.createExpense(expenseRequestDto);
     return new ResponseEntity<>(response, HttpStatus.CREATED);
   }

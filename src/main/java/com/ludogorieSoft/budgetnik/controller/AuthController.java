@@ -9,7 +9,7 @@ import com.ludogorieSoft.budgetnik.event.OnPasswordResetRequestEvent;
 import com.ludogorieSoft.budgetnik.model.User;
 import com.ludogorieSoft.budgetnik.service.AuthService;
 import com.ludogorieSoft.budgetnik.service.UserService;
-import com.ludogorieSoft.budgetnik.service.impl.SlackService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +32,7 @@ public class AuthController {
   private final ApplicationEventPublisher applicationEventPublisher;
 
   @PostMapping("/register")
-  public ResponseEntity<UserResponse> register(@RequestBody RegisterRequest request) {
+  public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterRequest request) {
     UserResponse userResponse = authService.register(request);
     sendVerificationEmail(request.getEmail());
     return ResponseEntity.ok(userResponse);
@@ -52,7 +52,7 @@ public class AuthController {
 
   @PostMapping("/login")
   public ResponseEntity<AuthResponse> authenticate(
-      @RequestBody LoginRequest request, @RequestHeader("DeviceId") String deviceId) {
+     @Valid @RequestBody LoginRequest request, @RequestHeader("DeviceId") String deviceId) {
     AuthResponse authResponse = authService.login(request, deviceId);
     return ResponseEntity.ok(authResponse);
   }

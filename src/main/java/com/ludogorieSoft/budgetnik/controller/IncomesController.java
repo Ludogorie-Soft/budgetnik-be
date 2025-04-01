@@ -4,6 +4,7 @@ import com.ludogorieSoft.budgetnik.dto.request.IncomeRequestDto;
 import com.ludogorieSoft.budgetnik.dto.response.IncomeResponseDto;
 import com.ludogorieSoft.budgetnik.model.enums.Type;
 import com.ludogorieSoft.budgetnik.service.IncomeService;
+import jakarta.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -29,7 +30,7 @@ public class IncomesController {
 
   @PostMapping
   public ResponseEntity<IncomeResponseDto> createIncome(
-      @RequestBody IncomeRequestDto incomeRequestDto) {
+     @Valid @RequestBody IncomeRequestDto incomeRequestDto) {
     IncomeResponseDto response = incomeService.createIncome(incomeRequestDto);
     return new ResponseEntity<>(response, HttpStatus.CREATED);
   }

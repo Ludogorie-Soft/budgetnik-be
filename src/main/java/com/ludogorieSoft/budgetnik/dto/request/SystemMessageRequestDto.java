@@ -1,9 +1,16 @@
 package com.ludogorieSoft.budgetnik.dto.request;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
 public class SystemMessageRequestDto {
-    private String title;
-    private String body;
+  @NotBlank(message = "{error.title.notblank}")
+  @Size(min = 5, max = 100, message = "{error.title.size}")
+  private String title;
+
+  @NotBlank(message = "{error.body.notblank}")
+  @Size(min = 10, message = "{error.body.size}")
+  private String body;
 }

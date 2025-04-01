@@ -5,6 +5,7 @@ import com.ludogorieSoft.budgetnik.dto.request.SystemMessageRequestDto;
 import com.ludogorieSoft.budgetnik.dto.response.MessageResponseDto;
 import com.ludogorieSoft.budgetnik.dto.response.SystemMessageResponseDto;
 import com.ludogorieSoft.budgetnik.service.MessageService;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +28,7 @@ public class MessageController {
 
   @PostMapping("/admin/messages")
   public ResponseEntity<MessageResponseDto> createMessage(
-      @RequestBody MessageRequestDto requestDto) {
+     @Valid @RequestBody MessageRequestDto requestDto) {
     MessageResponseDto response = messageService.createPromoMessage(requestDto);
     return new ResponseEntity<>(response, HttpStatus.CREATED);
   }
@@ -52,7 +53,7 @@ public class MessageController {
 
   @PostMapping("/admin/messages/system")
   public ResponseEntity<SystemMessageResponseDto> createSystemMessage(
-      @RequestBody SystemMessageRequestDto requestDto) {
+     @Valid @RequestBody SystemMessageRequestDto requestDto) {
     SystemMessageResponseDto responseDto = messageService.createSystemMessage(requestDto);
     return new ResponseEntity<>(responseDto, HttpStatus.CREATED);
   }
