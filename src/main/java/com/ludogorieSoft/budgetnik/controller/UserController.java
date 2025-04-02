@@ -39,7 +39,7 @@ public class UserController {
   @PutMapping("/users/exponent-push-token")
   public ResponseEntity<String> updatePushToken(
       @RequestParam("id") UUID id, @RequestBody PushTokenRequest pushTokenRequest) {
-    userService.updateExponentPushToken(id, pushTokenRequest.getToken());
+    userService.saveExponentPushToken(id, pushTokenRequest.getToken());
     return ResponseEntity.ok().body("Token updated successfully!");
   }
 

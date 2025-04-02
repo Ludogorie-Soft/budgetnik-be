@@ -92,7 +92,7 @@ public class UserServiceImpl implements UserService {
 
     Page<User> userPage = userRepository.findAll(pageable);
 
-      return userPage.map(user -> modelMapper.map(user, UserResponse.class));
+    return userPage.map(user -> modelMapper.map(user, UserResponse.class));
   }
 
   @Override
@@ -119,20 +119,19 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public void updateExponentPushToken(UUID id, String token) {
+  public void saveExponentPushToken(UUID id, String token) {
     User user = findById(id);
-    ExpoPushToken expoPushToken = exponentPushTokenRepository.findByTokenAndUser(token, user);
+    ExpoPushToken expoPushToken =
+        exponentPushTokenRepository.findByTokenAndUser(token, user).orElse(null);
 
-    if (expoPushToken == null) {
+    if (expoPushToken == null || !expoPushToken.getUser().getId().equals(user.getId())) {
+      deleteExponentPushToken(token);
       expoPushToken = new ExpoPushToken();
       expoPushToken.setUser(user);
       expoPushToken.setToken(token);
-    } else {
-      expoPushToken.setToken(token);
+      exponentPushTokenRepository.saveAndFlush(expoPushToken);
+      logger.info("Expo push token updated!");
     }
-
-    exponentPushTokenRepository.saveAndFlush(expoPushToken);
-    logger.info("Expo push token updated!");
   }
 
   @Override

@@ -6,7 +6,6 @@ import com.ludogorieSoft.budgetnik.model.User;
 import com.ludogorieSoft.budgetnik.model.VerificationToken;
 import org.springframework.data.domain.Page;
 
-import java.util.List;
 import java.util.UUID;
 
 public interface UserService {
@@ -16,7 +15,7 @@ public interface UserService {
   Page<UserResponse> getAllUsersPaginated(int page, int size);
   void createVerificationToken(User user, String token);
   void deleteUserById(UUID id, UserResponse currentUser);
-  void updateExponentPushToken(UUID id, String token);
+  void saveExponentPushToken(UUID id, String token);
   void deleteExponentPushToken(String token);
 
   VerificationToken getVerificationToken(String VerificationToken);
