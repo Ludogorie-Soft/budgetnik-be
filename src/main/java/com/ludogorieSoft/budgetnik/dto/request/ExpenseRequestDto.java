@@ -20,7 +20,6 @@ public class ExpenseRequestDto {
   private Regularity regularity;
 
   @NotNull(message = "{error.creationDate.notnull}")
-  @PastOrPresent(message = "{error.creationDate.pastOrPresent}")
   private LocalDate creationDate;
 
   @NotBlank(message = "{error.category.notblank}")

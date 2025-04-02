@@ -7,10 +7,10 @@ import lombok.Data;
 @Data
 public class SystemMessageRequestDto {
   @NotBlank(message = "{error.title.notblank}")
-  @Size(min = 5, max = 100, message = "{error.title.size}")
+  @Size(min = 1, message = "{error.title.size}")
   private String title;
 
   @NotBlank(message = "{error.body.notblank}")
-  @Size(min = 10, message = "{error.body.size}")
+  @Size(min = 1, message = "{error.body.size}")
   private String body;
 }
