@@ -31,23 +31,23 @@ public class ConfirmRegistrationListener implements ApplicationListener<OnConfir
     userService.createVerificationToken(user, token);
 
     String recipientAddress = user.getEmail();
-    String subject = "Budgetnikat - Потвърждение на регистрация";
+    String subject = "BUDGETникът - Потвърждение на регистрация";
 
     String message =
         "Уважаеми, "
             + user.getName()
             + "\n\n"
-            + "Благодарим Ви за регистрацията в Budgetnikat!\n\n"
+            + "Благодарим Ви за регистрацията в BUDGETникът!\n\n"
             + "За да завършите вашата регистрация, моля въведете шест цифрения код в приложението:\n"
             + token
             + "\n\n\n"
             + "Моля не отговаряйте на този имейл.\n\n"
             + "Поздрави,\n"
-            + "Екипът на Budgetnikat!";
+            + "Екипът на BUDGETникът!";
 
     SimpleMailMessage email = new SimpleMailMessage();
-    email.setFrom("no-reply");
-    email.setReplyTo("no-reply");
+    email.setFrom("BUDGETникът");
+    email.setReplyTo("BUDGETникът");
     email.setTo(recipientAddress);
     email.setSubject(subject);
     email.setText(message);

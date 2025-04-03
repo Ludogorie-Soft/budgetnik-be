@@ -33,7 +33,7 @@ public class SendMessageListener implements ApplicationListener<OnSendMessageEve
     Message promoMessage = messageService.findPromoMessageById(event.getMessageId());
 
     String recipientAddress = user.getEmail();
-    String subject = "Как да спестиш с Budgetникът";
+    String subject = "Как да спестиш с BUDGETникът";
 
     String message =
         "Здравей, "
@@ -55,11 +55,11 @@ public class SendMessageListener implements ApplicationListener<OnSendMessageEve
             + "\n\n\n"
             + "Моля не отговаряйте на този имейл.\n\n"
             + "Поздрави,\n"
-            + "Екипът на Budgetникът!";
+            + "Екипът на BUDGETникът!";
 
     SimpleMailMessage email = new SimpleMailMessage();
-    email.setFrom("no-reply");
-    email.setReplyTo("no-reply");
+    email.setFrom("BUDGETникът");
+    email.setReplyTo("BUDGETникът");
     email.setTo(recipientAddress);
     email.setSubject(subject);
     email.setText(message);

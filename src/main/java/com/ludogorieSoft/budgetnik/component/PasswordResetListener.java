@@ -30,23 +30,23 @@ public class PasswordResetListener implements ApplicationListener<OnPasswordRese
     userService.createVerificationToken(user, token);
 
     String recipientAddress = user.getEmail();
-    String subject = "Budgetnikat - Промяна на парола";
+    String subject = "BUDGETникът - Промяна на парола";
 
     String message =
         "Уважаеми, "
             + user.getName()
             + "\n\n"
-            + "Вие сте направили заявка за промяна на паролата в Budgetnikat.\n\n"
+            + "Вие сте направили заявка за промяна на паролата в BUDGETникът.\n\n"
             + "За да промените своята парола, моля въведете шест цифрения код в приложението и следвайте инструкциите:\n"
             + token
             + "\n\n\n"
             + "Моля не отговаряйте на този имейл.\n\n"
             + "Поздрави,\n"
-            + "Екипът на Budgetnikat!";
+            + "Екипът на BUDGETникът!";
 
     SimpleMailMessage email = new SimpleMailMessage();
-    email.setFrom("no-reply");
-    email.setReplyTo("no-reply");
+    email.setFrom("BUDGETникът");
+    email.setReplyTo("BUDGETникът");
     email.setTo(recipientAddress);
     email.setSubject(subject);
     email.setText(message);
