@@ -18,9 +18,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByEmail(String email);
     boolean existsByEmail(String email);
 
-//    @Query("SELECT u FROM User u WHERE lower(u.name) LIKE lower(concat('%', :searchTerm, '%')) OR lower(u.email) LIKE lower(concat('%', :searchTerm, '%'))")
-//    Page<User> findByNameOrEmailContainingIgnoreCase(@Param("searchTerm") String searchTerm, Pageable pageable);
-
     Page<User> findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(String name, String email, Pageable pageable);
 
 

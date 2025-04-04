@@ -1,5 +1,7 @@
 package com.ludogorieSoft.budgetnik.service.impl;
 
+import com.ludogorieSoft.budgetnik.dto.response.ExpenseResponse;
+import com.ludogorieSoft.budgetnik.dto.response.IncomeResponse;
 import com.ludogorieSoft.budgetnik.dto.response.TransactionCountResponseDto;
 import com.ludogorieSoft.budgetnik.dto.response.UserResponse;
 import com.ludogorieSoft.budgetnik.model.User;
@@ -83,6 +85,20 @@ public class AdminServiceImpl implements AdminService {
         .monthly(getExpensesCount(timeMonthAgo))
         .annual(getExpensesCount(timeYearAgo))
         .build();
+  }
+
+  @Override
+  public List<IncomeResponse> getAllIncomes() {
+    return incomeRepository.findAll().stream()
+        .map(i -> modelMapper.map(i, IncomeResponse.class))
+        .toList();
+  }
+
+  @Override
+  public List<ExpenseResponse> getAllExpenses() {
+    return expenseRepository.findAll().stream()
+        .map(e -> modelMapper.map(e, ExpenseResponse.class))
+        .toList();
   }
 
   private long getIncomesCount(LocalDate periodStart) {

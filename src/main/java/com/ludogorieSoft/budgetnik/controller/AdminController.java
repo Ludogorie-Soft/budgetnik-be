@@ -1,5 +1,7 @@
 package com.ludogorieSoft.budgetnik.controller;
 
+import com.ludogorieSoft.budgetnik.dto.response.ExpenseResponse;
+import com.ludogorieSoft.budgetnik.dto.response.IncomeResponse;
 import com.ludogorieSoft.budgetnik.dto.response.TransactionCountResponseDto;
 import com.ludogorieSoft.budgetnik.dto.response.UserResponse;
 import com.ludogorieSoft.budgetnik.service.AdminService;
@@ -66,6 +68,18 @@ public class AdminController {
   @GetMapping("/expenses-count")
   public ResponseEntity<TransactionCountResponseDto> getCountOfEnteredExpenses() {
     TransactionCountResponseDto response = adminService.getCountOfEnteredExpenses();
+    return new ResponseEntity<>(response, HttpStatus.OK);
+  }
+
+  @GetMapping("/incomes/all")
+  public ResponseEntity<List<IncomeResponse>> getAllIncomes() {
+    List<IncomeResponse> response = adminService.getAllIncomes();
+    return new ResponseEntity<>(response, HttpStatus.OK);
+  }
+
+  @GetMapping("/expenses/all")
+  public ResponseEntity<List<ExpenseResponse>> getAllExpenses() {
+    List<ExpenseResponse> response = adminService.getAllExpenses();
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 }

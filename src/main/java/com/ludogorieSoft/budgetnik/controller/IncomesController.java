@@ -133,4 +133,6 @@ public class IncomesController {
     List<IncomeResponseDto> response = incomeService.findRelatedIncomes(incomeId, userId);
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
+
+
 }

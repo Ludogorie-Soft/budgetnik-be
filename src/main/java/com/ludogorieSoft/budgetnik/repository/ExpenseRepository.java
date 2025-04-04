@@ -70,6 +70,6 @@ public interface ExpenseRepository extends JpaRepository<Expense, UUID> {
 
   List<Expense> findByCategory(ExpenseCategory category);
 
-  @Query("SELECT COUNT(i) FROM Income i WHERE i.creationDate >= :time")
+  @Query("SELECT COUNT(e) FROM Expense e WHERE e.creationDate >= :time")
   long countByDateAfter(@Param("time") LocalDate time);
 }
