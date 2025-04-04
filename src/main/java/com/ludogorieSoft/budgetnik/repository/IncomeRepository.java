@@ -6,6 +6,7 @@ import com.ludogorieSoft.budgetnik.model.User;
 import com.ludogorieSoft.budgetnik.model.enums.Type;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -68,4 +69,7 @@ public interface IncomeRepository extends JpaRepository<Income, UUID> {
   List<Income> findByRelatedIncomeIdAndOwnerId(UUID relatedIncomeId, UUID ownerId);
 
   List<Income> findByCategory(IncomeCategory category);
+
+  @Query("SELECT COUNT(i) FROM Income i WHERE i.creationDate >= :time")
+  long countByDateAfter(@Param("time") LocalDate time);
 }
