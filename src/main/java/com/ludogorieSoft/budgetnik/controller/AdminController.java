@@ -4,6 +4,8 @@ import com.ludogorieSoft.budgetnik.dto.response.TransactionCountResponseDto;
 import com.ludogorieSoft.budgetnik.dto.response.UserResponse;
 import com.ludogorieSoft.budgetnik.service.AdminService;
 import java.util.List;
+
+import com.ludogorieSoft.budgetnik.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -19,6 +21,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminController {
 
   private final AdminService adminService;
+  private final UserService userService;
+
+  @GetMapping("/users/all")
+  public ResponseEntity<Page<UserResponse>> getAllUsersPageable(
+          @RequestParam("page") int page, @RequestParam("size") int size) {
+    Page<UserResponse> response = userService.getAllUsersPaginated(page, size);
+    return new ResponseEntity<>(response, HttpStatus.OK);
+  }
 
   @GetMapping("/users/count")
   public ResponseEntity<Long> getCountOfUsers() {
