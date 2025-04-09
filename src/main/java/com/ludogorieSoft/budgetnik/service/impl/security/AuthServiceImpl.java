@@ -3,11 +3,14 @@ package com.ludogorieSoft.budgetnik.service.impl.security;
 import com.ludogorieSoft.budgetnik.dto.request.LoginRequest;
 import com.ludogorieSoft.budgetnik.dto.request.RegisterRequest;
 import com.ludogorieSoft.budgetnik.dto.response.AuthResponse;
+import com.ludogorieSoft.budgetnik.dto.response.SubscriptionResponse;
 import com.ludogorieSoft.budgetnik.dto.response.UserResponse;
 import com.ludogorieSoft.budgetnik.exception.ActivateUserException;
 import com.ludogorieSoft.budgetnik.exception.InvalidTokenException;
 import com.ludogorieSoft.budgetnik.exception.PasswordException;
+import com.ludogorieSoft.budgetnik.exception.SubscriptionNotFoundException;
 import com.ludogorieSoft.budgetnik.exception.UserLoginException;
+import com.ludogorieSoft.budgetnik.model.Subscription;
 import com.ludogorieSoft.budgetnik.model.Token;
 import com.ludogorieSoft.budgetnik.model.User;
 import com.ludogorieSoft.budgetnik.model.VerificationToken;
@@ -23,6 +26,7 @@ import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.Nullable;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,6 +83,7 @@ public class AuthServiceImpl implements AuthService {
       throw new UserLoginException(messageSource);
     }
 
+    checkSubscription(user);
     setLastLogin(user);
     logger.info("User with id " + user.getId() + " logged in!");
     return tokenService.generateAuthResponse(user, device);
@@ -135,9 +140,11 @@ public class AuthServiceImpl implements AuthService {
 
     UserResponse userResponse = modelMapper.map(accessToken.getUser(), UserResponse.class);
 
+    checkSubscription(user);
+    SubscriptionResponse subscriptionResponse = getSubscription(user);
     setLastLogin(user);
     logger.info("Get user by token with id " + user.getId());
-    return AuthResponse.builder().token(newAccessTokenString).user(userResponse).build();
+    return AuthResponse.builder().token(newAccessTokenString).user(userResponse).subscription(subscriptionResponse).build();
   }
 
   @Override
@@ -208,5 +215,25 @@ public class AuthServiceImpl implements AuthService {
   private void setLastLogin(User user) {
     user.setLastLogin(LocalDateTime.now());
     userRepository.save(user);
+  }
+
+  private void checkSubscription(User user) {
+    Subscription subscription = user.getSubscription();
+    LocalDateTime now = LocalDateTime.now();
+    if (subscription != null && subscription.getEndDate().isBefore(now)) {
+      userService.deleteUserSubscription(user);
+    }
+  }
+
+  @Nullable
+  private SubscriptionResponse getSubscription(User user) {
+    Subscription subscription = user.getSubscription();
+    SubscriptionResponse subscriptionResponse;
+    if (subscription != null) {
+      subscriptionResponse = modelMapper.map(subscription, SubscriptionResponse.class);
+    } else {
+      subscriptionResponse = null;
+    }
+    return subscriptionResponse;
   }
 }

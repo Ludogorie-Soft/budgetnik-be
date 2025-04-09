@@ -39,7 +39,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(exclude = {"incomes", "expenses", "subscription"})
+@EqualsAndHashCode(exclude = {"incomes", "expenses"})
 public class User implements UserDetails {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
@@ -61,6 +61,7 @@ public class User implements UserDetails {
 
   private String password;
   private LocalDateTime createdAt;
+  private String customerId;
 
   @NotNull
   @Enumerated(EnumType.STRING)
@@ -82,18 +83,16 @@ public class User implements UserDetails {
 
   @ManyToMany
   @JoinTable(
-          name = "user_promo_messages",
-          joinColumns = @JoinColumn(name = "user_id"),
-          inverseJoinColumns = @JoinColumn(name = "promo_message_id")
-  )
+      name = "user_promo_messages",
+      joinColumns = @JoinColumn(name = "user_id"),
+      inverseJoinColumns = @JoinColumn(name = "promo_message_id"))
   List<Message> promoMessages;
 
   @ManyToMany
   @JoinTable(
-          name = "user_system_messages",
-          joinColumns = @JoinColumn(name = "user_id"),
-          inverseJoinColumns = @JoinColumn(name = "system_message_id")
-  )
+      name = "user_system_messages",
+      joinColumns = @JoinColumn(name = "user_id"),
+      inverseJoinColumns = @JoinColumn(name = "system_message_id"))
   private List<SystemMessage> systemMessages;
 
   private LocalDateTime lastLogin;
@@ -122,6 +121,7 @@ public class User implements UserDetails {
   public boolean isCredentialsNonExpired() {
     return true;
   }
+
   @Override
   public String toString() {
     return "User{id=" + id + ", name=" + name + ", email=" + email + ", role=" + role + "}";

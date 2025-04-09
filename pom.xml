@@ -150,10 +150,11 @@
             <version>1.38.1</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/com.stripe/stripe-java -->
         <dependency>
             <groupId>com.stripe</groupId>
             <artifactId>stripe-java</artifactId>
-            <version>29.0.0</version>
+            <version>28.3.1</version>
         </dependency>
 
     </dependencies>

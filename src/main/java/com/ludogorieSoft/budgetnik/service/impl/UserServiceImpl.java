@@ -7,13 +7,18 @@ import com.ludogorieSoft.budgetnik.exception.PasswordException;
 import com.ludogorieSoft.budgetnik.exception.UserExistsException;
 import com.ludogorieSoft.budgetnik.exception.UserNotFoundException;
 import com.ludogorieSoft.budgetnik.model.ExpoPushToken;
+import com.ludogorieSoft.budgetnik.model.Subscription;
+import com.ludogorieSoft.budgetnik.model.Token;
 import com.ludogorieSoft.budgetnik.model.User;
 import com.ludogorieSoft.budgetnik.model.VerificationToken;
 import com.ludogorieSoft.budgetnik.model.enums.Role;
 import com.ludogorieSoft.budgetnik.repository.ExponentPushTokenRepository;
+import com.ludogorieSoft.budgetnik.repository.SubscriptionRepository;
+import com.ludogorieSoft.budgetnik.repository.TokenRepository;
 import com.ludogorieSoft.budgetnik.repository.UserRepository;
 import com.ludogorieSoft.budgetnik.repository.VerificationTokenRepository;
 import com.ludogorieSoft.budgetnik.service.UserService;
+import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -25,6 +30,9 @@ import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -40,6 +48,8 @@ public class UserServiceImpl implements UserService {
   private final MessageSource messageSource;
   private final ExponentPushTokenRepository exponentPushTokenRepository;
   private final ModelMapper modelMapper;
+  private final SubscriptionRepository subscriptionRepository;
+  private final TokenRepository tokenRepository;
 
   @Override
   public User createUser(RegisterRequest registerRequest) {
@@ -101,6 +111,17 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
+  @Transactional
+  public void deleteUserSubscription(User user) {
+    Subscription subscription = user.getSubscription();
+    if (subscription != null) {
+      user.setSubscription(null);
+      userRepository.save(user);
+      subscriptionRepository.delete(subscription);
+    }
+  }
+
+  @Override
   public void createVerificationToken(User user, String token) {
     cleanUserVerificationTokens(user);
     VerificationToken verificationToken = new VerificationToken(token, user);
@@ -121,17 +142,16 @@ public class UserServiceImpl implements UserService {
   @Override
   public void saveExponentPushToken(UUID id, String token) {
     User user = findById(id);
-    ExpoPushToken expoPushToken =
-        exponentPushTokenRepository.findByTokenAndUser(token, user).orElse(null);
 
-    if (expoPushToken == null || !expoPushToken.getUser().getId().equals(user.getId())) {
-      deleteExponentPushToken(token);
-      expoPushToken = new ExpoPushToken();
-      expoPushToken.setUser(user);
-      expoPushToken.setToken(token);
-      exponentPushTokenRepository.saveAndFlush(expoPushToken);
-      logger.info("Expo push token updated!");
-    }
+    exponentPushTokenRepository
+        .findByUser(user)
+        .ifPresent(expoPushToken -> deleteExponentPushToken(token));
+
+    ExpoPushToken expoPushToken = new ExpoPushToken();
+    expoPushToken.setUser(user);
+    expoPushToken.setToken(token);
+    exponentPushTokenRepository.saveAndFlush(expoPushToken);
+    logger.info("Expo push token updated!");
   }
 
   @Override
@@ -139,8 +159,37 @@ public class UserServiceImpl implements UserService {
     exponentPushTokenRepository.findByToken(token).ifPresent(exponentPushTokenRepository::delete);
   }
 
+  public void saveUser(User user) {
+    userRepository.save(user);
+  }
+
+  @Override
+  public User findByCustomerId(String customerId) {
+    User user = userRepository.findByCustomerId(customerId);
+    if (user == null) {
+      throw new UserNotFoundException(messageSource);
+    }
+    return user;
+  }
+
   private void cleanUserVerificationTokens(User user) {
     List<VerificationToken> userTokens = verificationTokenRepository.findByUserId(user.getId());
     userTokens.forEach(verificationTokenRepository::delete);
+  }
+
+  public User getCurrentUser() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+    if (authentication != null && authentication.isAuthenticated()) {
+      Object principal = authentication.getPrincipal();
+
+      if (principal instanceof User) {
+        return (User) principal;
+      } else if (principal instanceof UserDetails) {
+        UserDetails userDetails = (UserDetails) principal;
+        return userRepository.findByEmail(userDetails.getUsername()).orElse(null);
+      }
+    }
+    return null;
   }
 }

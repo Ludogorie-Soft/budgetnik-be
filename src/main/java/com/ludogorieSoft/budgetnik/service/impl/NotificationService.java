@@ -46,7 +46,7 @@ public class NotificationService {
     }
   }
 
-  private void sendPushSystemNotifications(List<ExpoPushToken> tokens, SystemMessage systemMessage) {
+  public void sendPushSystemNotifications(List<ExpoPushToken> tokens, SystemMessage systemMessage) {
     try {
       JSONArray messages = new JSONArray();
 

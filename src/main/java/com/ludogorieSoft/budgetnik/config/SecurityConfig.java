@@ -31,7 +31,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
   private final ObjectMapper objectMapper;
-  private final AuthenticationProvider authenticationProvider;
+//  private final AuthenticationProvider authenticationProvider;
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
   private final LogoutHandler logoutHandler;
   private final MessageSource messageSource;
@@ -46,6 +46,8 @@ public class SecurityConfig {
             auth ->
                 auth.requestMatchers("/api/auth/**")
                     .permitAll()
+                    .requestMatchers("/api/payment/webhook")
+                    .permitAll()
                     .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
                     .permitAll()
                     .requestMatchers("/api/users/exponent-push-token")
@@ -59,7 +61,7 @@ public class SecurityConfig {
             httpSecurityExceptionHandlingConfigurer ->
                 httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(
                     new JwtAuthenticationEntryPoint(objectMapper, messageSource)))
-        .authenticationProvider(authenticationProvider)
+//        .authenticationProvider(authenticationProvider)
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
         .logout(
             httpSecurityLogoutConfigurer -> {
@@ -78,7 +80,6 @@ public class SecurityConfig {
     corsConfiguration.setAllowedMethods(Collections.singletonList("*"));
     corsConfiguration.setAllowCredentials(true);
     corsConfiguration.setAllowedHeaders(Collections.singletonList("*"));
-    corsConfiguration.addAllowedHeader("*");
     corsConfiguration.setMaxAge(3600L);
 
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

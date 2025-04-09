@@ -35,4 +35,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Query("SELECT u FROM User u ORDER BY u.lastLogin DESC")
     List<User> findTopTenByOrderByLastLoginDesc(Pageable pageable);
 
+    User findByCustomerId(String customerId);
+
 }
