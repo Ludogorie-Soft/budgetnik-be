@@ -1,10 +1,12 @@
 package com.ludogorieSoft.budgetnik.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ludogorieSoft.budgetnik.dto.request.PaymentRequest;
 import com.ludogorieSoft.budgetnik.dto.response.PaymentResponse;
 import com.ludogorieSoft.budgetnik.dto.response.SubscriptionResponse;
+import com.ludogorieSoft.budgetnik.event.OnPaymentEvent;
 import com.ludogorieSoft.budgetnik.model.ExpoPushToken;
 import com.ludogorieSoft.budgetnik.model.SystemMessage;
 import com.ludogorieSoft.budgetnik.model.User;
@@ -31,6 +33,7 @@ import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -52,6 +55,7 @@ public class PaymentController {
   private final ExponentPushTokenRepository exponentPushTokenRepository;
   private final SystemMessageRepository systemMessageRepository;
   private final SubscriptionService subscriptionService;
+  private final ApplicationEventPublisher applicationEventPublisher;
 
   @Value("${stripe.secret.key}")
   private String stripeSecretKey;
@@ -67,7 +71,8 @@ public class PaymentController {
 
   @PostMapping("/webhook")
   public ResponseEntity<String> handleStripeEvent(
-      @RequestBody String payload, @RequestHeader("Stripe-Signature") String sigHeader) {
+      @RequestBody String payload, @RequestHeader("Stripe-Signature") String sigHeader)
+      throws JsonProcessingException {
 
     Event event;
 
@@ -78,79 +83,69 @@ public class PaymentController {
     }
 
     if ("payment_intent.succeeded".equals(event.getType())) {
-      try {
-        JsonNode rootNode = new ObjectMapper().readTree(payload);
-        JsonNode paymentIntentNode = rootNode.path("data").path("object");
+      JsonNode rootNode = new ObjectMapper().readTree(payload);
+      JsonNode paymentIntentNode = rootNode.path("data").path("object");
 
-        PaymentIntent paymentIntent =
-            ApiResource.GSON.fromJson(paymentIntentNode.toString(), PaymentIntent.class);
-        if (paymentIntent == null) {
-          return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid PaymentIntent data");
-        }
-
-        String customerId = paymentIntent.getCustomer();
-
-        if (customerId == null || customerId.isEmpty()) {
-          return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-              .body("PaymentIntent has no customer");
-        }
-
-        User user = userService.findByCustomerId(customerId);
-        String email = user.getEmail();
-
-        if (email == null || email.isEmpty()) {
-          return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-              .body("No email in the PaymentIntent");
-        }
-
-        sendNotification(user);
-        paymentService.createSubscription(paymentIntent, email);
-      } catch (Exception e) {
-        slackService.sendMessage("❌ Failed to parse PaymentIntent");
-        e.printStackTrace();
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body("❌ Failed to parse PaymentIntent");
+      PaymentIntent paymentIntent =
+          ApiResource.GSON.fromJson(paymentIntentNode.toString(), PaymentIntent.class);
+      if (paymentIntent == null) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid PaymentIntent data");
       }
+
+      String customerId = paymentIntent.getCustomer();
+
+      if (customerId == null || customerId.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("PaymentIntent has no customer");
+      }
+
+      User user = userService.findByCustomerId(customerId);
+      String email = user.getEmail();
+
+      if (email == null || email.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No email in the PaymentIntent");
+      }
+
+      sendNotification(user);
+      sendEmail(email);
+      paymentService.createSubscription(paymentIntent, email);
+
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body("❌ Failed to parse PaymentIntent");
+
     } else if ("payment_intent.payment_failed".equals(event.getType())) {
-      try {
-        JsonNode rootNode = new ObjectMapper().readTree(payload);
-        JsonNode paymentIntentNode = rootNode.path("data").path("object");
 
-        PaymentIntent paymentIntent =
-            ApiResource.GSON.fromJson(paymentIntentNode.toString(), PaymentIntent.class);
-        if (paymentIntent == null) {
-          return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid PaymentIntent data");
-        }
+      JsonNode rootNode = new ObjectMapper().readTree(payload);
+      JsonNode paymentIntentNode = rootNode.path("data").path("object");
 
-        String customerId = paymentIntent.getCustomer();
-
-        if (customerId == null || customerId.isEmpty()) {
-          return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-              .body("PaymentIntent has no customer");
-        }
-
-        User user = userService.findByCustomerId(customerId);
-        String email = user.getEmail();
-
-        if (email == null || email.isEmpty()) {
-          return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-              .body("No email in the PaymentIntent");
-        }
-
-        String failureMessage =
-            paymentIntent.getLastPaymentError() != null
-                ? paymentIntent.getLastPaymentError().getMessage()
-                : "Unknown error";
-
-        slackService.sendMessage(
-            "❌ Payment failed for user with id: " + user.getId() + " — Reason: " + failureMessage);
-
-      } catch (Exception e) {
-        slackService.sendMessage("❌ Failed to process failed payment event");
-        e.printStackTrace();
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body("❌ Failed to handle payment failure");
+      PaymentIntent paymentIntent =
+          ApiResource.GSON.fromJson(paymentIntentNode.toString(), PaymentIntent.class);
+      if (paymentIntent == null) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid PaymentIntent data");
       }
+
+      String customerId = paymentIntent.getCustomer();
+
+      if (customerId == null || customerId.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("PaymentIntent has no customer");
+      }
+
+      User user = userService.findByCustomerId(customerId);
+      String email = user.getEmail();
+
+      if (email == null || email.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No email in the PaymentIntent");
+      }
+
+      String failureMessage =
+          paymentIntent.getLastPaymentError() != null
+              ? paymentIntent.getLastPaymentError().getMessage()
+              : "Unknown error";
+
+      slackService.sendMessage(
+          "Payment failed for user with id: " + user.getId() + " — Reason: " + failureMessage);
+
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body("❌ Failed to handle payment failure");
     }
 
     return ResponseEntity.ok("Webhook processed successfully");
@@ -206,14 +201,18 @@ public class PaymentController {
   }
 
   private void sendNotification(User user) {
-    ExpoPushToken expoPushToken = exponentPushTokenRepository.findByUser(user).orElse(null);
-    if (expoPushToken != null) {
+    List<ExpoPushToken> expoPushTokens = exponentPushTokenRepository.findByUser(user);
+    if (!expoPushTokens.isEmpty()) {
       SystemMessage systemMessage = new SystemMessage();
       systemMessage.setDate(LocalDate.now());
       systemMessage.setBody("Успешно направихте абонамент за BUDGETникът.");
       systemMessage.setTitle("BUDGETникът");
       systemMessageRepository.save(systemMessage);
-      notificationService.sendPushSystemNotifications(List.of(expoPushToken), systemMessage);
+      notificationService.sendPushSystemNotifications(expoPushTokens, systemMessage);
     }
+  }
+
+  private void sendEmail(String email) {
+    applicationEventPublisher.publishEvent(new OnPaymentEvent(email));
   }
 }

@@ -5,6 +5,7 @@ import com.ludogorieSoft.budgetnik.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -12,6 +13,6 @@ import java.util.UUID;
 public interface ExponentPushTokenRepository extends JpaRepository<ExpoPushToken, UUID> {
     Optional<ExpoPushToken> findByToken(String token);
     Optional<ExpoPushToken> findByTokenAndUser(String token, User user);
-    Optional<ExpoPushToken> findByUser(User user);
+    List<ExpoPushToken> findByUser(User user);
 }
 

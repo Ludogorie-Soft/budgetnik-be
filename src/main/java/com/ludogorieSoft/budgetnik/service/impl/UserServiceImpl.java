@@ -8,7 +8,6 @@ import com.ludogorieSoft.budgetnik.exception.UserExistsException;
 import com.ludogorieSoft.budgetnik.exception.UserNotFoundException;
 import com.ludogorieSoft.budgetnik.model.ExpoPushToken;
 import com.ludogorieSoft.budgetnik.model.Subscription;
-import com.ludogorieSoft.budgetnik.model.Token;
 import com.ludogorieSoft.budgetnik.model.User;
 import com.ludogorieSoft.budgetnik.model.VerificationToken;
 import com.ludogorieSoft.budgetnik.model.enums.Role;
@@ -144,8 +143,8 @@ public class UserServiceImpl implements UserService {
     User user = findById(id);
 
     exponentPushTokenRepository
-        .findByUser(user)
-        .ifPresent(expoPushToken -> deleteExponentPushToken(token));
+        .findByTokenAndUser(token, user)
+        .ifPresent(exponentPushTokenRepository::delete);
 
     ExpoPushToken expoPushToken = new ExpoPushToken();
     expoPushToken.setUser(user);
@@ -159,6 +158,7 @@ public class UserServiceImpl implements UserService {
     exponentPushTokenRepository.findByToken(token).ifPresent(exponentPushTokenRepository::delete);
   }
 
+  @Override
   public void saveUser(User user) {
     userRepository.save(user);
   }

@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -31,7 +30,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
   private final ObjectMapper objectMapper;
-//  private final AuthenticationProvider authenticationProvider;
+  //  private final AuthenticationProvider authenticationProvider;
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
   private final LogoutHandler logoutHandler;
   private final MessageSource messageSource;
@@ -44,7 +43,9 @@ public class SecurityConfig {
     http.csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(
             auth ->
-                auth.requestMatchers("/api/auth/**")
+                auth.requestMatchers("/api/contact-us/**")
+                    .permitAll()
+                    .requestMatchers("/api/auth/**")
                     .permitAll()
                     .requestMatchers("/api/payment/webhook")
                     .permitAll()
@@ -61,7 +62,7 @@ public class SecurityConfig {
             httpSecurityExceptionHandlingConfigurer ->
                 httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(
                     new JwtAuthenticationEntryPoint(objectMapper, messageSource)))
-//        .authenticationProvider(authenticationProvider)
+        //        .authenticationProvider(authenticationProvider)
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
         .logout(
             httpSecurityLogoutConfigurer -> {
