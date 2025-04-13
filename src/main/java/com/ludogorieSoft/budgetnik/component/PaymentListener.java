@@ -6,6 +6,7 @@ import com.ludogorieSoft.budgetnik.service.UserService;
 import com.stripe.model.PaymentIntent;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -17,6 +18,9 @@ public class PaymentListener implements ApplicationListener<OnPaymentEvent> {
 
   private final JavaMailSender mailSender;
   private final UserService userService;
+
+  @Value("${spring.mail.username}")
+  private String gmail;
 
   @Override
   public void onApplicationEvent(OnPaymentEvent event) {
@@ -39,8 +43,8 @@ public class PaymentListener implements ApplicationListener<OnPaymentEvent> {
             + "Екипът на BUDGETникът!";
 
     SimpleMailMessage email = new SimpleMailMessage();
-    email.setFrom("BUDGETникът");
-    email.setReplyTo("BUDGETникът");
+    email.setFrom(gmail);
+    email.setReplyTo(gmail);
     email.setTo(recipientAddress);
     email.setSubject(subject);
     email.setText(message);

@@ -17,6 +17,9 @@ public class SupportListener implements ApplicationListener<OnSupportEvent> {
   private final SupportService supportService;
   private final JavaMailSender mailSender;
 
+  @Value("${spring.mail.username}")
+  private String gmail;
+
   @Value("${support.email}")
   private String supportEmail;
 
@@ -37,8 +40,8 @@ public class SupportListener implements ApplicationListener<OnSupportEvent> {
             + contactForm.getMessage();
 
     SimpleMailMessage email = new SimpleMailMessage();
-    email.setFrom("BUDGETникът");
-    email.setReplyTo("BUDGETникът");
+    email.setFrom(gmail);
+    email.setReplyTo(gmail);
     email.setTo(recipientAddress);
     email.setSubject(subject);
     email.setText(message);

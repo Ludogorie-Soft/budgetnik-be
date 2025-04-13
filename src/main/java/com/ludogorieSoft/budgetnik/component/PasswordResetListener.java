@@ -5,6 +5,7 @@ import com.ludogorieSoft.budgetnik.model.User;
 import com.ludogorieSoft.budgetnik.service.UserService;
 import java.util.Random;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -16,6 +17,9 @@ public class PasswordResetListener implements ApplicationListener<OnPasswordRese
 
   private final JavaMailSender mailSender;
   private final UserService userService;
+
+  @Value("${spring.mail.username}")
+  private String gmail;
 
   @Override
   public void onApplicationEvent(OnPasswordResetRequestEvent event) {
@@ -45,8 +49,8 @@ public class PasswordResetListener implements ApplicationListener<OnPasswordRese
             + "Екипът на BUDGETникът!";
 
     SimpleMailMessage email = new SimpleMailMessage();
-    email.setFrom("BUDGETникът");
-    email.setReplyTo("BUDGETникът");
+    email.setFrom(gmail);
+    email.setReplyTo(gmail);
     email.setTo(recipientAddress);
     email.setSubject(subject);
     email.setText(message);

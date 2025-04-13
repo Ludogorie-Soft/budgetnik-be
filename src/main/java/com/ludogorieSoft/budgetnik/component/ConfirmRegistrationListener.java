@@ -6,6 +6,7 @@ import com.ludogorieSoft.budgetnik.service.UserService;
 import jakarta.validation.constraints.NotNull;
 import java.util.Random;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -17,6 +18,9 @@ public class ConfirmRegistrationListener implements ApplicationListener<OnConfir
 
   private final UserService userService;
   private final JavaMailSender mailSender;
+
+  @Value("${spring.mail.username}")
+  private String gmail;
 
   @Override
   public void onApplicationEvent(@NotNull OnConfirmRegistrationEvent event) {
@@ -46,8 +50,8 @@ public class ConfirmRegistrationListener implements ApplicationListener<OnConfir
             + "Екипът на BUDGETникът!";
 
     SimpleMailMessage email = new SimpleMailMessage();
-    email.setFrom("BUDGETникът");
-    email.setReplyTo("BUDGETникът");
+    email.setFrom(gmail);
+    email.setReplyTo(gmail);
     email.setTo(recipientAddress);
     email.setSubject(subject);
     email.setText(message);
