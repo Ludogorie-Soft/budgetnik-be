@@ -4,6 +4,7 @@ import com.ludogorieSoft.budgetnik.dto.request.PushTokenRequest;
 import com.ludogorieSoft.budgetnik.dto.request.RemoveMessageRequestDto;
 import com.ludogorieSoft.budgetnik.dto.response.MessageResponseDto;
 import com.ludogorieSoft.budgetnik.dto.response.SystemMessageResponseDto;
+import com.ludogorieSoft.budgetnik.dto.response.UserResponse;
 import com.ludogorieSoft.budgetnik.service.MessageService;
 import com.ludogorieSoft.budgetnik.service.UserService;
 import java.util.List;
@@ -66,6 +67,13 @@ public class UserController {
       @RequestParam("userId") UUID userId, @RequestBody RemoveMessageRequestDto requestDto) {
     List<UUID> response =
         messageService.removeSystemMessageFromUser(userId, requestDto.getMessageIds());
+    return new ResponseEntity<>(response, HttpStatus.OK);
+  }
+
+  @PutMapping("/rate")
+  public ResponseEntity<UserResponse> rateTheApp(
+      @RequestParam("id") UUID id, @RequestParam("rating") String rate) {
+    UserResponse response = userService.rateTheApp(id, rate);
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 }

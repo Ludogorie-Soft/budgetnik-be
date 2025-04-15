@@ -1,10 +1,9 @@
 package com.ludogorieSoft.budgetnik.dto.response;
 
 import com.ludogorieSoft.budgetnik.model.enums.Role;
-import lombok.Data;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
+import lombok.Data;
 
 @Data
 public class UserResponse {
@@ -14,4 +13,5 @@ public class UserResponse {
     private Role role;
     private LocalDateTime createdAt;
     private LocalDateTime lastLogin;
+    private String appRating;
 }

@@ -96,6 +96,7 @@ public class User implements UserDetails {
   private List<SystemMessage> systemMessages;
 
   private LocalDateTime lastLogin;
+  private String appRating;
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {

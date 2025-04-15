@@ -121,6 +121,14 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
+  public UserResponse rateTheApp(UUID userId, String rate) {
+    User user = findById(userId);
+    user.setAppRating(rate);
+    User current = userRepository.save(user);
+    return modelMapper.map(current, UserResponse.class);
+  }
+
+  @Override
   public void createVerificationToken(User user, String token) {
     cleanUserVerificationTokens(user);
     VerificationToken verificationToken = new VerificationToken(token, user);

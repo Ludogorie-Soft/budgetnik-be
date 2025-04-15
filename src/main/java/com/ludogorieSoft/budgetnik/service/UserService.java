@@ -33,4 +33,6 @@ public interface UserService {
   VerificationToken getVerificationToken(String VerificationToken);
 
   void deleteUserSubscription(User user);
+
+  UserResponse rateTheApp(UUID userId, String rate);
 }
