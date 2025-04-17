@@ -5,11 +5,13 @@ import com.ludogorieSoft.budgetnik.dto.response.IncomeResponse;
 import com.ludogorieSoft.budgetnik.dto.response.TransactionCountResponseDto;
 import com.ludogorieSoft.budgetnik.dto.response.UserResponse;
 import com.ludogorieSoft.budgetnik.service.AdminService;
-import java.util.List;
-
 import com.ludogorieSoft.budgetnik.service.UserService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,8 +29,9 @@ public class AdminController {
 
   @GetMapping("/users/all")
   public ResponseEntity<Page<UserResponse>> getAllUsersPageable(
-          @RequestParam("page") int page, @RequestParam("size") int size) {
-    Page<UserResponse> response = userService.getAllUsersPaginated(page, size);
+      @PageableDefault(page = 0, size = 20, sort = "name", direction = Sort.Direction.ASC)
+          Pageable pageable) {
+    Page<UserResponse> response = userService.getAllUsersPaginated(pageable);
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 

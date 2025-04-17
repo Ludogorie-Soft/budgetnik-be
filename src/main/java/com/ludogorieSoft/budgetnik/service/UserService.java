@@ -6,6 +6,7 @@ import com.ludogorieSoft.budgetnik.model.User;
 import com.ludogorieSoft.budgetnik.model.VerificationToken;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface UserService {
   User createUser(RegisterRequest registerRequest);
@@ -14,7 +15,7 @@ public interface UserService {
 
   User findById(UUID id);
 
-  Page<UserResponse> getAllUsersPaginated(int page, int size);
+  Page<UserResponse> getAllUsersPaginated(Pageable pageable);
 
   void createVerificationToken(User user, String token);
 

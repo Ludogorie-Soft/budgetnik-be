@@ -27,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -96,11 +95,8 @@ public class UserServiceImpl implements UserService {
     return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(messageSource));
   }
 
-  public Page<UserResponse> getAllUsersPaginated(int page, int size) {
-    Pageable pageable = PageRequest.of(page, size);
-
+  public Page<UserResponse> getAllUsersPaginated(Pageable pageable) {
     Page<User> userPage = userRepository.findAll(pageable);
-
     return userPage.map(user -> modelMapper.map(user, UserResponse.class));
   }
 
