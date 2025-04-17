@@ -65,11 +65,11 @@ class UserServiceImplTest {
     String userEmail = "user@example.com";
     User user = new User();
 
-    when(userRepository.findByEmail(userEmail)).thenReturn(Optional.of(user));
+    when(userRepository.findByEmailIgnoreCase(userEmail)).thenReturn(Optional.of(user));
 
     User foundUser = userService.findByEmail(userEmail);
 
-    verify(userRepository, times(1)).findByEmail(userEmail);
+    verify(userRepository, times(1)).findByEmailIgnoreCase(userEmail);
     Assertions.assertEquals(user, foundUser);
   }
 
@@ -77,11 +77,11 @@ class UserServiceImplTest {
   void testFindByEmail_UserNotFound() {
     String userEmail = "nonexistent@example.com";
 
-    when(userRepository.findByEmail(userEmail)).thenReturn(Optional.empty());
+    when(userRepository.findByEmailIgnoreCase(userEmail)).thenReturn(Optional.empty());
 
     assertThrows(UserNotFoundException.class, () -> userService.findByEmail(userEmail));
 
-    verify(userRepository, times(1)).findByEmail(userEmail);
+    verify(userRepository, times(1)).findByEmailIgnoreCase(userEmail);
   }
 
   @Test
@@ -161,7 +161,7 @@ class UserServiceImplTest {
   @Test
   void testCreateUser_UserExistsException() {
     RegisterRequest request = new RegisterRequest();
-    when(userRepository.existsByEmail(any())).thenReturn(true);
+    when(userRepository.existsByEmailIgnoreCase(any())).thenReturn(true);
     assertThrows(UserExistsException.class, () -> userService.createUser(request));
   }
 }

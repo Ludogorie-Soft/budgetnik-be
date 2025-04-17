@@ -26,7 +26,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.MessageSource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -85,7 +84,7 @@ class AuthControllerIntegrationTest {
   void testLoginSuccessfully() {
     createUserInDb(registerRequest);
 
-    User user = userRepository.findByEmail(registerRequest.getEmail()).get();
+    User user = userRepository.findByEmailIgnoreCase(registerRequest.getEmail()).get();
     assertFalse(user.isActivated());
 
     verificationTokenRepository.deleteAll();
@@ -102,7 +101,7 @@ class AuthControllerIntegrationTest {
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
 
-    User savedUser = userRepository.findByEmail(registerRequest.getEmail()).get();
+    User savedUser = userRepository.findByEmailIgnoreCase(registerRequest.getEmail()).get();
     assertNotNull(savedUser);
     assertTrue(savedUser.isActivated());
 
@@ -125,7 +124,7 @@ class AuthControllerIntegrationTest {
   void testGetMyProfileSuccessfully() {
     createUserInDb(registerRequest);
 
-    User user = userRepository.findByEmail(registerRequest.getEmail()).get();
+    User user = userRepository.findByEmailIgnoreCase(registerRequest.getEmail()).get();
     assertFalse(user.isActivated());
 
     verificationTokenRepository.deleteAll();
@@ -142,7 +141,7 @@ class AuthControllerIntegrationTest {
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
 
-    User savedUser = userRepository.findByEmail(registerRequest.getEmail()).get();
+    User savedUser = userRepository.findByEmailIgnoreCase(registerRequest.getEmail()).get();
     assertNotNull(savedUser);
     assertTrue(savedUser.isActivated());
 
@@ -235,7 +234,7 @@ class AuthControllerIntegrationTest {
     String token = UUID.randomUUID().toString();
     createUserInDb(registerRequest);
 
-    User user = userRepository.findByEmail(registerRequest.getEmail()).get();
+    User user = userRepository.findByEmailIgnoreCase(registerRequest.getEmail()).get();
     assertFalse(user.isActivated());
 
     VerificationToken verificationToken = new VerificationToken();
@@ -253,7 +252,7 @@ class AuthControllerIntegrationTest {
     // THEN
     assertEquals(HttpStatus.OK, response.getStatusCode());
 
-    User savedUser = userRepository.findByEmail(registerRequest.getEmail()).get();
+    User savedUser = userRepository.findByEmailIgnoreCase(registerRequest.getEmail()).get();
     assertNotNull(savedUser);
     assertTrue(savedUser.isActivated());
   }
@@ -266,7 +265,7 @@ class AuthControllerIntegrationTest {
     applicationEventPublisher.publishEvent(
         new OnConfirmRegistrationEvent(registerRequest.getEmail()));
 
-    User user = userRepository.findByEmail(registerRequest.getEmail()).get();
+    User user = userRepository.findByEmailIgnoreCase(registerRequest.getEmail()).get();
 
     VerificationToken verificationToken = new VerificationToken();
     verificationToken.setToken(token);
@@ -394,7 +393,7 @@ class AuthControllerIntegrationTest {
     // THEN
     assertEquals(HttpStatus.OK, response.getStatusCode());
 
-    User savedUser = userRepository.findByEmail(registerRequest.getEmail()).get();
+    User savedUser = userRepository.findByEmailIgnoreCase(registerRequest.getEmail()).get();
     assertNotNull(savedUser);
     assertNull(savedUser.getPassword());
     assertFalse(savedUser.isActivated());

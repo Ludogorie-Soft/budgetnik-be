@@ -53,7 +53,7 @@ public class UserServiceImpl implements UserService {
   @Override
   public User createUser(RegisterRequest registerRequest) {
 
-    if (userRepository.existsByEmail(registerRequest.getEmail())) {
+    if (userRepository.existsByEmailIgnoreCase(registerRequest.getEmail())) {
       throw new UserExistsException(messageSource);
     }
 
@@ -87,7 +87,7 @@ public class UserServiceImpl implements UserService {
   @Override
   public User findByEmail(String email) {
     return userRepository
-        .findByEmail(email)
+        .findByEmailIgnoreCase(email)
         .orElseThrow(() -> new UserNotFoundException(messageSource));
   }
 
@@ -195,7 +195,7 @@ public class UserServiceImpl implements UserService {
         return (User) principal;
       } else if (principal instanceof UserDetails) {
         UserDetails userDetails = (UserDetails) principal;
-        return userRepository.findByEmail(userDetails.getUsername()).orElse(null);
+        return userRepository.findByEmailIgnoreCase(userDetails.getUsername()).orElse(null);
       }
     }
     return null;
