@@ -19,6 +19,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +52,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
   @ExceptionHandler(ConstraintViolationException.class)
   public ResponseEntity<ExceptionResponse> handleConstraintValidationExceptions(
       ConstraintViolationException exception) {
+    slackService.sendMessage("Error: " + exception.getMessage());
     return handleApiExceptions(new ValidationException(exception.getConstraintViolations()));
   }
 
@@ -62,18 +64,19 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
   }
 
   @ExceptionHandler({Exception.class})
-  public void alertSlackChannelWhenUnexpectedErrorOccurs(Exception ex) {
-    slackService.sendMessage("Error: " + ex.getMessage());
+  public void alertSlackChannelWhenUnexpectedErrorOccurs(Exception exception) {
+    slackService.sendMessage("Error: " + exception.getMessage());
+    slackService.sendMessage(Arrays.toString(exception.getStackTrace()));
   }
 
   @Override
   protected ResponseEntity<Object> handleMethodArgumentNotValid(
-          MethodArgumentNotValidException ex,
+          MethodArgumentNotValidException exception,
           HttpHeaders headers,
           HttpStatusCode status,
           WebRequest request) {
 
-    Map<String, String> errors = ex.getBindingResult()
+    Map<String, String> errors = exception.getBindingResult()
             .getFieldErrors()
             .stream()
             .collect(Collectors.toMap(
@@ -85,8 +88,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     Map<String, Object> responseBody = new HashMap<>();
     responseBody.put("timestamp", LocalDateTime.now());
     responseBody.put("status", status.value());
-    responseBody.put("errors", errors); // Тук ще са съобщенията за грешките
+    responseBody.put("errors", errors);
     responseBody.put("path", request.getDescription(false));
+
+    slackService.sendMessage("Error: " + exception.getMessage());
+    slackService.sendMessage(errors.toString());
 
     return new ResponseEntity<>(responseBody, headers, status);
   }

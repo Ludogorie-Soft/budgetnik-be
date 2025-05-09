@@ -3,7 +3,6 @@ package com.ludogorieSoft.budgetnik.service.impl;
 import com.ludogorieSoft.budgetnik.dto.request.ExpenseRequestDto;
 import com.ludogorieSoft.budgetnik.dto.response.ExpenseResponseDto;
 import com.ludogorieSoft.budgetnik.exception.ExpenseNotFoundException;
-import com.ludogorieSoft.budgetnik.exception.SubcategoryNotFoundException;
 import com.ludogorieSoft.budgetnik.model.Expense;
 import com.ludogorieSoft.budgetnik.model.ExpenseCategory;
 import com.ludogorieSoft.budgetnik.model.Subcategory;
@@ -200,7 +199,9 @@ public class ExpenseServiceImpl implements ExpenseService {
   }
 
   private Expense findById(UUID id) {
-    return expenseRepository.findById(id).orElseThrow(() -> new ExpenseNotFoundException(messageSource));
+    return expenseRepository
+        .findById(id)
+        .orElseThrow(() -> new ExpenseNotFoundException(messageSource));
   }
 
   private void setExpenseDueDate(ExpenseRequestDto expenseRequestDto, Expense expense) {
@@ -235,12 +236,15 @@ public class ExpenseServiceImpl implements ExpenseService {
   }
 
   private void setSubcategory(ExpenseRequestDto expenseRequestDto, Expense expense) {
-    if (!expenseRequestDto.getSubcategory().isEmpty()) {
+    if (expenseRequestDto.getSubcategory() == null
+        || expenseRequestDto.getSubcategory().equals("")) {
+      expense.setSubcategory(null);
+    } else {
       Subcategory subcategory =
           subcategoryRepository
               .findByNameAndExpenseCategory(
                   expenseRequestDto.getSubcategory(), expense.getCategory())
-              .orElseThrow(() -> new SubcategoryNotFoundException(messageSource));
+              .orElse(null);
       expense.setSubcategory(subcategory);
     }
   }

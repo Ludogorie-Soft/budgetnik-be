@@ -47,14 +47,14 @@ public class AdminServiceImpl implements AdminService {
 
   @Override
   public List<UserResponse> getLastTenRegisteredUsers() {
-    return userRepository.findTop10ByOrderByCreatedAtDesc().stream()
+    return userRepository.findTop10RegisteredUsersDesc().stream()
         .map(u -> modelMapper.map(u, UserResponse.class))
         .toList();
   }
 
   @Override
   public List<UserResponse> getLastTenLoggedInUsers() {
-    return userRepository.findTop10ByOrderByLastLoginDesc().stream()
+    return userRepository.findTop10LastLoginUsersDesc().stream()
         .map(u -> modelMapper.map(u, UserResponse.class))
         .toList();
   }

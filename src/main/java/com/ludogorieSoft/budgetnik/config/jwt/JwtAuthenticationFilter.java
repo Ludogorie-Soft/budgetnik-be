@@ -1,12 +1,11 @@
 package com.ludogorieSoft.budgetnik.config.jwt;
 
 import com.ludogorieSoft.budgetnik.dto.response.UserResponse;
-import com.ludogorieSoft.budgetnik.exception.InvalidTokenException;
-import com.ludogorieSoft.budgetnik.model.Token;
 import com.ludogorieSoft.budgetnik.repository.TokenRepository;
 import com.ludogorieSoft.budgetnik.service.JwtService;
 import com.ludogorieSoft.budgetnik.service.TokenService;
 import com.ludogorieSoft.budgetnik.service.UserService;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -41,15 +40,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
     String path = request.getServletPath();
-    return path.startsWith("/v3/api-docs") || path.startsWith("/swagger-ui") || path.startsWith(PUSH_TOKEN_PATH);
+    return path.startsWith("/v3/api-docs")
+        || path.startsWith("/swagger-ui")
+        || path.startsWith(PUSH_TOKEN_PATH);
   }
 
   @Override
   protected void doFilterInternal(
-          @NonNull HttpServletRequest request,
-          @NonNull HttpServletResponse response,
-          @NonNull FilterChain filterChain)
-          throws ServletException, IOException {
+      @NonNull HttpServletRequest request,
+      @NonNull HttpServletResponse response,
+      @NonNull FilterChain filterChain)
+      throws ServletException, IOException {
     if (request.getServletPath().contains(AUTH_PATH)) {
       filterChain.doFilter(request, response);
       return;
@@ -77,17 +78,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       UserDetails userDetails = userService.findByEmail(userEmail);
 
       boolean isTokenValid =
-              tokenRepository
-                      .findByToken(jwt)
-                      .map(token -> !token.isExpired() && !token.isRevoked())
-                      .orElse(false);
+          tokenRepository
+              .findByToken(jwt)
+              .map(token -> !token.isExpired() && !token.isRevoked())
+              .orElse(false);
 
-     boolean isValid = tokenService.isTokenValid(jwt, userDetails);
+      boolean isValid;
+      try {
+        isValid = tokenService.isTokenValid(jwt, userDetails);
+      } catch (JwtException jwtException) {
+        isValid = false;
+      }
 
       if (isValid && isTokenValid) {
         UsernamePasswordAuthenticationToken authToken =
-                new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
+            new UsernamePasswordAuthenticationToken(
+                userDetails, null, userDetails.getAuthorities());
 
         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 

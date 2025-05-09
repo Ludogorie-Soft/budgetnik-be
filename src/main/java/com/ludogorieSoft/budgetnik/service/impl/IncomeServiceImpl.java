@@ -3,7 +3,6 @@ package com.ludogorieSoft.budgetnik.service.impl;
 import com.ludogorieSoft.budgetnik.dto.request.IncomeRequestDto;
 import com.ludogorieSoft.budgetnik.dto.response.IncomeResponseDto;
 import com.ludogorieSoft.budgetnik.exception.IncomeNotFoundException;
-import com.ludogorieSoft.budgetnik.exception.SubcategoryNotFoundException;
 import com.ludogorieSoft.budgetnik.model.Income;
 import com.ludogorieSoft.budgetnik.model.IncomeCategory;
 import com.ludogorieSoft.budgetnik.model.Subcategory;
@@ -196,7 +195,9 @@ public class IncomeServiceImpl implements IncomeService {
   }
 
   private Income findById(UUID id) {
-    return incomeRepository.findById(id).orElseThrow(() -> new IncomeNotFoundException(messageSource));
+    return incomeRepository
+        .findById(id)
+        .orElseThrow(() -> new IncomeNotFoundException(messageSource));
   }
 
   private void setIncomeDueDate(IncomeRequestDto incomeRequestDto, Income income) {
@@ -231,11 +232,13 @@ public class IncomeServiceImpl implements IncomeService {
   }
 
   private void setSubcategory(IncomeRequestDto incomeRequestDto, Income income) {
-    if (!incomeRequestDto.getSubcategory().isEmpty()) {
+    if (incomeRequestDto.getSubcategory() == null || incomeRequestDto.getSubcategory().equals("")) {
+      income.setSubcategory(null);
+    } else {
       Subcategory subcategory =
           subcategoryRepository
               .findByNameAndIncomeCategory(incomeRequestDto.getSubcategory(), income.getCategory())
-              .orElseThrow(() -> new SubcategoryNotFoundException(messageSource));
+              .orElse(null);
       income.setSubcategory(subcategory);
     }
   }

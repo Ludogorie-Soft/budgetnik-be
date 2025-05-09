@@ -33,9 +33,13 @@ public interface UserRepository extends JpaRepository<User, UUID> {
       nativeQuery = true)
   void removePromoMessageFromAllUsers(@Param("promoMessageId") UUID promoMessageId);
 
-  List<User> findTop10ByOrderByCreatedAtDesc();
+  @Query(value = "SELECT * FROM users WHERE created_at IS NOT NULL ORDER BY created_at DESC LIMIT 10", nativeQuery = true)
+  List<User> findTop10RegisteredUsersDesc();
 
-  List<User> findTop10ByOrderByLastLoginDesc();
+
+  @Query(value = "SELECT * FROM users WHERE last_login IS NOT NULL ORDER BY last_login DESC LIMIT 10", nativeQuery = true)
+  List<User> findTop10LastLoginUsersDesc();
+
 
   User findByCustomerId(String customerId);
 }
