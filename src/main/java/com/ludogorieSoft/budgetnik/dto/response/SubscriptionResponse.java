@@ -13,4 +13,7 @@ public class SubscriptionResponse {
     private String paymentIntentId;
     private String customerId;
     private Long amount;
+    private String stripeSubscriptionId;
+    private String status;
+    private SubscriptionPlanResponse subscriptionPlan;
 }

@@ -30,7 +30,9 @@ import com.stripe.param.CustomerCreateParams;
 import com.stripe.param.EphemeralKeyCreateParams;
 import com.stripe.param.PaymentIntentCreateParams;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
@@ -198,6 +200,14 @@ public class PaymentController {
   public ResponseEntity<List<SubscriptionResponse>> getAllSubscriptions() {
     List<SubscriptionResponse> response = subscriptionService.getAllSubscriptions();
     return new ResponseEntity<>(response, HttpStatus.OK);
+  }
+
+  @GetMapping("/config")
+  public ResponseEntity<Map<String, String>> getStripeConfig() {
+    Map<String, String> config = new HashMap<>();
+    config.put("publishableKey", stripePublishableKey);
+    config.put("currency", currency);
+    return new ResponseEntity<>(config, HttpStatus.OK);
   }
 
   private void sendNotification(User user) {
