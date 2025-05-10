@@ -23,7 +23,7 @@ SET translations = '{
   "en": {
     "name": "Annual Plan",
     "description": "Access to all premium features with annual billing",
-    "features": "All premium features,Priority support,Unlimited transactions,Annual discount"
+    "features": "All premium features,Priority support,Unlimited transactions"
   },
   "bg": {
     "name": "Годишен план",

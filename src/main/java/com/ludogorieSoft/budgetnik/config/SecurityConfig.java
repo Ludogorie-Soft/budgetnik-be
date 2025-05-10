@@ -53,6 +53,8 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers("/api/users/exponent-push-token")
                     .permitAll()
+                    .requestMatchers("/api/community/**")
+                    .permitAll()
                     .requestMatchers("/api/admin/**")
                     .hasAnyRole(Role.ADMIN.name())
                     .anyRequest()
